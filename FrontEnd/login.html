@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Password</title>
+    <link rel="stylesheet" href="/FrontEnd/login.css">
+    <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
+</head>
+
+<body>
+    <div id="login-container">
+    <div id="mensagem-login"></div>
+    <div id="login" class="auth-section">
+        <img src="https://dspace.mj.gov.br/retrieve/74805ae2-e77e-4327-afbe-7896dcfe94a6" alt="MJ" style="width: 90px; height: auto; margin-bottom: 1.8rem; "/>
+        <form id="loginForm">
+            <div class="input-icon-wrapper">
+            <i class="fas fa-id-badge"></i> 
+            <input type="text" id="username" name="username" required placeholder="Digite o seu usuário">
+            </div>
+
+            <div class="input-icon-wrapper">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" name="password" required placeholder="Digite a sua senha">
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        
+        <p>Não tem uma conta? <a href="#criar-conta" id="toggle-register">Crie uma aqui</a>.</p>
+        <p><a href="#change-password" id="toggle-change-password">Alterar senha</a></p>
+    </div>
+
+
+<div id="criar-conta" class="auth-section" style="display: none;">
+        <h2>Criar Conta</h2>
+        <form id="registerForm">
+            <label for="nome">Nome Completo:</label>
+            <input type="text" id="nome" name="nome" required placeholder="Digite o seu nome completo">
+            
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" name="email" required placeholder="Digite o seu e-mail">
+            
+            <label for="new-username">Usuário:</label>
+            <input type="text" id="new-username" name="new-username" required placeholder="Crie um nome de usuário">
+            
+            <label for="new-password">Senha:</label>
+            <input type="password" id="new-password" name="new-password" required placeholder="Crie uma senha">
+            
+            <label for="confirm-password">Confirmar Senha:</label>
+            <input type="password" id="confirm-password" name="confirm-password" required placeholder="Confirme sua senha">
+            
+            <button type="submit">Criar Conta</button>
+        </form>
+        <p>Já tem uma conta? <a href="#login" id="toggle-login">Faça login aqui</a>.</p>
+    </div>
+
+    <div id="change-password" class="auth-section" style="display: none;">
+        <h2>Alterar Senha</h2>
+        <form id="changePasswordForm">
+            <label for="change-username">Usuário:</label>
+            <input type="text" id="change-username" name="username" required placeholder="Digite seu usuário">
+            
+            <label for="current-password">Senha Atual:</label>
+            <input type="password" id="current-password" name="current-password" required placeholder="Digite sua senha atual">
+            
+            <label for="new-password-change">Nova Senha:</label>
+            <input type="password" id="new-password-change" name="new-password-change" required placeholder="Digite a nova senha">
+            
+            <label for="confirm-new-password">Confirmar Nova Senha:</label>
+            <input type="password" id="confirm-new-password" name="confirm-new-password" required placeholder="Confirme a nova senha">
+            
+            <button type="submit">Alterar Senha</button>
+        </form>
+        <p><a href="#login" id="back-to-login">Voltar ao Login</a></p>
+    </div>
+</div>
+
+<script src="/FrontEnd/login.js" defer></script>
+</body>
+</html>
+

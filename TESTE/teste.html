@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENAPPEN - Sistema Integrado</title>
+    <!-- Otimização dos imports CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary-color: #004a8d;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ff6b00;
+            --text-dark: #212529;
+            --text-light: #f8f9fa;
+            --success-color: #24883b;
+            --warning-color: #927211;
+            --danger-color: #c52e2e;
+            --info-color: #0463bd;
+            --sidebar-width: 250px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            color: var(--text-dark);
+            background-color: #f5f7fa;
+        }
+
+        /* Barra Superior */
+        .top-bar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .top-bar i {
+            margin-right: 0.3rem;
+        }
+
+        /* Cabeçalho Principal */
+        .main-header {
+            background-color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-container {
+            height: 60px;
+            background-image: url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: left center;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1.5rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+
+        .logout-btn {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Navegação Principal */
+        .main-nav {
+            background-color: var(--primary-color);
+            padding: 0;
+        }
+
+        .main-nav .navbar-nav {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .main-nav .nav-link {
+            color: white;
+            font-weight: 500;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .main-nav .nav-link:hover, 
+        .main-nav .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-nav .nav-link i {
+            margin-right: 0.5rem;
+        }
+
+        /* Conteúdo Principal */
+        .app-container {
+            display: flex;
+            min-height: calc(100vh - 160px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand img {
+            max-width: 80%;
+            height: auto;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.5rem 1rem;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .nav-item.active {
+            background-color: rgba(0, 74, 141, 0.1);
+        }
+
+        .nav-item.active .nav-link {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(0, 74, 141, 0.1);
+            color: var(--primary-color);
+        }
+
+        .icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+            margin-right: 0.75rem;
+            color: inherit;
+        }
+
+        .link-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+
+        /* Área de Conteúdo */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .welcome-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .welcome-title {
+            color: var(--primary-color);
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-title i {
+            color: var(--accent-color);
+        }
+
+        /* Cards de Acesso Rápido */
+        .quick-access .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .quick-access .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Seção de Documentos */
+        .documents-section {
+            margin-top: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .document-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            text-align: center;
+            cursor: pointer;
+            border-top: 4px solid transparent;
+        }
+
+        .document-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .document-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .document-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+
+        /* Cores específicas para cada tipo */
+        .contract {
+            border-top-color: var(--success-color);
+        }
+        .contract .document-icon {
+            color: var(--success-color);
+        }
+
+        .project {
+            border-top-color: var(--warning-color);
+        }
+        .project .document-icon {
+            color: var(--warning-color);
+        }
+
+        .identity {
+            border-top-color: var(--danger-color);
+        }
+        .identity .document-icon {
+            color: var(--danger-color);
+        }
+
+        .other {
+            border-top-color: var(--info-color);
+        }
+        .other .document-icon {
+            color: var(--info-color);
+        }
+
+        /* Rodapé */
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3rem 0 0;
+        }
+
+        .footer h5 {
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            margin-bottom: 0.7rem;
+            transition: all 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .footer p {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .footer i {
+            margin-right: 0.7rem;
+            margin-top: 0.2rem;
+        }
+
+        .copyright {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 1rem 0;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+
+        /* Botão Voltar ao Topo */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 99;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+        }
+
+        .back-to-top:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-3px);
+        }
+
+        /* Responsividade */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 80px;
+            }
+            .link-text {
+                display: none;
+            }
+            .icon {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            .sidebar-brand {
+                padding: 1rem 0.5rem;
+            }
+            .sidebar-brand img {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .app-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                display: flex;
+            }
+            .sidebar-nav {
+                display: flex;
+                width: 100%;
+                padding: 0;
+            }
+            .nav-item {
+                margin: 0;
+                flex: 1;
+                text-align: center;
+            }
+            .nav-link {
+                justify-content: center;
+                padding: 1rem 0;
+            }
+            .main-content {
+                padding: 1.5rem;
+            }
+            .documents-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .quick-access .col-md-3 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+            .user-menu {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 0.5rem;
+            }
+            .main-nav .nav-link {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .quick-access .col-md-3 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .documents-grid {
+                grid-template-columns: 1fr;
+            }
+            .footer .col-md-4, 
+            .footer .col-md-2 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra superior -->
+    <div class="top-bar" id="inicio">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <i class="fas fa-phone-alt me-2"></i> (61) 2025-0000 <strong>|</strong> 
+                    <i class="fas fa-envelope ms-3 me-2"></i> Contato@portal.gov.br <strong>|</strong>
+                    <i class="fas fa-calendar-alt me-2" style="margin-left: 2.5%;"></i><span id="current-date"></span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <i class="fas fa-sign-in-alt me-2"></i><a href="#" style="color: white; text-decoration: none;">Acesso Restrito</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cabeçalho principal -->
+    <header class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="logo-container"></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <span id="username-display">Usuário</span>  
+                        </div>
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Sair
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegação -->
+    <nav class="main-nav navbar navbar-expand-lg">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars text-white"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#inicio"><i class="fas fa-home me-2"></i>Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#documentos"><i class="fas fa-file-alt me-2"></i>Documentos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#dashboard"><i class="fas fa-chart-bar me-2"></i>DashBoard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contatos"><i class="fas fa-users me-2"></i>Contatos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#sobre"><i class="fas fa-info-circle me-2"></i>Sobre</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Estrutura do Aplicativo -->
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <img src="https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png" alt="Logo SENAPPEN" class="logo">
+            </div>
+            <ul class="sidebar-nav">
+                <li class="nav-item active">
+                    <a href="/FrontEnd/documentos.html" class="nav-link">
+                        <i class="fas fa-file icon"></i>
+                        <span class="link-text">Documentos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/FrontEnd/contrato.html" class="nav-link">
+                        <i class="fas fa-file-contract icon"></i>
+                        <span class="link-text">Contratos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="projeto" class="nav-link">
+                        <i class="fas fa-diagram-project icon"></i>
+                        <span class="link-text">Projetos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="documentos-de-identidade" class="nav-link">
+                        <i class="fas fa-id-card icon"></i>
+                        <span class="link-text">Identidades</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="outros" class="nav-link">
+                        <i class="fas fa-folder-open icon"></i>
+                        <span class="link-text">Outros</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <div class="welcome-card">
+                <h2 class="welcome-title"><i class="fas fa-user-circle me-2"></i>Bem-vindo ao Portal Institucional</h2>
+                <p>Este é o sistema de gestão integrada da instituição. Aqui você pode acessar todas as ferramentas e recursos disponíveis para o seu perfil.</p>
+                
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i> Você possui <strong>5</strong> documentos pendentes, <strong>0</strong> notificações e <strong>1</strong> tarefas para revisar.
+                </div>
+            </div>
+            
+            <h3 class="mb-4"><i class="fas fa-rocket me-2"></i>Acesso Rápido</h3>
+            
+            <div class="row quick-access">
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center p-4">
+                        <div class="card-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h5 class="card-title">Documentos</h5>
+                        <p class="card-text">Acesse e gerencie documentos</p>
+                        <a href="/FrontEnd/documentos.html" class="btn btn-sm btn-outline-primary">Acessar</a>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center p-4">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h5 class="card-title">DashBoard</h5>
+                        <p class="card-text">Consulte os DashBoards</p>
+                        <a href="#" class="btn btn-sm btn-outline-primary">Acessar</a>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center p-4">
+                        <div class="card-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h5 class="card-title">Agenda</h5>
+                        <p class="card-text">Consulte sua agenda</p>
+                        <a href="#" class="btn btn-sm btn-outline-primary">Acessar</a>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center p-4">
+                        <div class="card-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h5 class="card-title">Perfil</h5>
+                        <p class="card-text">Gerencie suas informações</p>
+                        <a href="#" class="btn btn-sm btn-outline-primary">Acessar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Documentos -->
+            <section class="documents-section" id="documentos">
+                <h2 class="section-title"><i class="fas fa-file-alt me-2"></i>Documentos Pendentes</h2>
+                
+                <div class="documents-grid">
+                    <div class="document-card contract">
+                        <div class="document-icon">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <h3 class="document-title">Contratos</h3>
+                        <span class="badge">12 pendentes</span>
+                    </div>
+                    
+                    <div class="document-card project">
+                        <div class="document-icon">
+                            <i class="fas fa-diagram-project"></i>
+                        </div>
+                        <h3 class="document-title">Projetos</h3>
+                        <span class="badge">5 pendentes</span>
+                    </div>
+                    
+                    <div class="document-card identity">
+                        <div class="document-icon">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <h3 class="document-title">Identidades</h3>
+                        <span class="badge">8 pendentes</span>
+                    </div>
+                    
+                    <div class="document-card other">
+                        <div class="document-icon">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h3 class="document-title">Outros</h3>
+                        <span class="badge">3 pendentes</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>Sobre o Sistema <i class="fas fa-cog fa-pulse"></i></h5>
+                    <p>Plataforma integrada de gestão institucional sendo desenvolvida para facilitar o acesso à informação e otimizar processos.</p>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <div class="footer-links">
+                        <h5>Links Úteis</h5>
+                        <a href="https://www.gov.br/mj/pt-br" target="_blank">Portal MJ</a>
+                        <a href="#">Normativos</a>
+                        <a href="#">Manuais</a>
+                        <a href="#">FAQ</a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <div class="footer-links">
+                        <h5>Ajuda</h5>
+                        <a href="#">Suporte</a>
+                        <a href="#">Tutoriais</a>
+                        <a href="#">Contato</a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5><i class="fas fa-users me-2"></i>Contatos</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> Esplanada dos Ministérios, Bloco T, Brasília/DF</p>
+                    <p><i class="fas fa-phone-alt me-2"></i> (61) 2025-0000</p>
+                    <p><i class="fas fa-envelope me-2"></i> contato@portal.gov.br</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright text-center">
+            <div class="container">
+                &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <a class="back-to-top" href="#"><i class="fas fa-arrow-up"></i></a>
+
+    <script>
+        // Atualizar data atual
+        function updateCurrentDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR', options);
+        }
+
+        // Mostrar/ocultar botão voltar ao topo
+        window.addEventListener('scroll', function() {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // Simular logout
+        function logout() {
+            alert('Você será redirecionado para a página de login');
+            // window.location.href = '/login.html';
+        }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

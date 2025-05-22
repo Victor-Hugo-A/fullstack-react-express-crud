@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENAPPEN - Processamento de Documentos</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Open+Sans:wght@400;600&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <button id="menuToggle">✕</button>
+        <nav id="sidebar" class="sidebar">
+
+            <div class="sidebar-brand">
+                <a href="/FrontEnd/Documentos/documentos.html">
+                    <img src="/FrontEnd/img/MJ.png" alt="Logo MJ" class="logo">
+                </a>
+            </div>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item active">
+                <a href="/FrontEnd/Documentos/documentos.html" class="nav-link">
+                    <i class="fas fa-clipboard icon"></i>
+                        <span class="link-text">Documentos</span>
+                </a>
+            </li>
+            <li class="nav-item contract">
+                <a href="/FrontEnd/Documentos/contrato.html" class="nav-link nav-contract" >
+                    <i class="fas fa-file-contract icon"></i>
+                        <span class="link-text">Contratos</span>
+                </a>
+            </li>
+            <li class="nav-item project">
+                <a href="/FrontEnd/Documentos/projetos.html" class="nav-link nav-project">
+                    <i class="fas fa-diagram-project icon"></i>
+                        <span class="link-text">Projetos</span>
+                </a>
+            </li>
+            <li class="nav-item identity">
+                <a href="/FrontEnd/Documentos/identidades.html" class="nav-link nav-identify">
+                    <i class="fas fa-id-card icon"></i>
+                        <span class="link-text">Identidades</span>
+                </a>
+            </li>
+            <li class="nav-item others">
+                <a href="outros" class="nav-link nav-others">
+                    <i class="fas fa-folder-open icon"></i>
+                        <span class="link-text">Outros</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+
+        <!-- Conteúdo Principal -->
+    <main class="main-content">
+        <header class="main-header">
+            <h1 class="page-title">Processamento de Documentos</h1>
+                <div class="user-actions">
+                    <span class="username" id="username-display">Usuário</span>
+                        <a href="/FrontEnd/Sistema/sistema.html" class="home-btn">
+                        <i class="fas fa-home"></i>
+                        </a>
+                </div>
+        </header>
+
+            <section class="documents-section">
+                <h2 class="section-title">Documentos a serem Processados</h2>
+                
+                <div class="documents-grid">
+
+                <div class="document-card contract">
+                        <a href="/FrontEnd/Documentos/contrato.html">
+                <div class="card-icon">
+                        <i class="fas fa-file-contract"></i>
+                </div>
+                        </a>
+                            <h3 class="card-title">Contratos</h3>
+                        <span class="badge">0 pendentes</span>
+                </div>
+                    
+                <div class="document-card project">
+                        <a href="/FrontEnd/Documentos/projetos.html">
+                <div class="card-icon">
+                        <i class="fas fa-diagram-project"></i>
+                </div>
+                        </a>
+                            <h3 class="card-title">Projetos</h3>
+                        <span class="badge">0 pendentes</span>
+                </div>
+                    
+                <div class="document-card identity">
+                        <a href="/FrontEnd/Documentos/identidades.html">
+                <div class="card-icon">
+                        <i class="fas fa-id-card"></i>
+                </div>
+                    </a>
+                            <h3 class="card-title">Identidades</h3>
+                        <span class="badge">0 pendentes</span>
+                </div>
+                    
+                <div class="document-card other">
+                <div class="card-icon">
+                        <i class="fas fa-folder-open"></i>
+                </div>
+                            <h3 class="card-title">Outros</h3>
+                        <span class="badge">0 pendentes</span>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+    
+<script>
+    
+        async function displayUsername() {
+            const usernameElement = document.getElementById('username-display')
+        try {
+            // Recupera o token do localStorage (armazenado durante o login)
+            const token = localStorage.getItem('token');
+        if (!token) {
+            usernameElement.textContent = 'Visitante'
+            return;
+            }
+    
+        const response = await fetch('http://localhost:3000/api/user', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+                }
+            });
+
+
+        if (!response.ok){
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Erro HTTP: ${response.status}`);
+        }
+         
+        const data = await response.json();
+    
+        if (data.success && data.user) {
+            usernameElement.textContent = data.user.nome || data.user.username;
+        } else {
+            throw new Error(data.message || 'Erro ao obter dados do usuário:');
+        }
+        } catch (error) {
+            console.error('Erro ao buscar nome do usuário:', error);
+            usernameElement.textContent = 'Usuário'
+
+        if (error.message.includes('401')) {
+            window.location.href = '/login.html'
+        }
+    }
+}
+    // Chama a função quando a página carrega
+    document.addEventListener('DOMContentLoaded', displayUsername);
+
+
+const menuToggle = document.getElementById("menuToggle");
+const sidebar = document.getElementById("sidebar");
+
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener("click", () => {
+        sidebar.classList.toggle("closed");
+        menuToggle.textContent = sidebar.classList.contains("closed") ? "☰" : "✕"
+});
+} else {
+    console.error('Elementos do menu não encontrados');
+}
+
+
+// Active dentro dos links para ficar fixado(marcado), como = "CONTRATO" "PROJETOS" "DOCUMENTOS" "IDENTIDADES" "OUTROS" !!!
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname.split('/').pop();
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+        const linkPage = link.getAttribute('href').split('/').pop();
+        if (linkPage === currentPage) {
+            const navItem = link.closest('.nav-item')
+            if (navItem) {
+                navItem.classList.add('active')
+            }
+        }
+    });
+});
+
+
+</script>
+
+    </body>
+</html>

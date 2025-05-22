@@ -1,0 +1,110 @@
+* {
+    margin: 0;
+}
+
+body {
+    background-image: 
+        linear-gradient(rgba(240, 240, 240, 0.911), rgba(61, 61, 61, 0.911)),
+        url('https://www.gov.br/senappen/pt-br/assuntos/noticias/nova-estrutura-da-secretaria-nacional-de-politicas-penais-senappen-vigora-hoje/senappen_marca_final_prancheta_1_copia.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow-y: hidden;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.auth-section {
+    padding: 22px;
+    width: 310px;
+    background-color: #f2f2f2;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin: auto auto auto auto;
+    border: 1px solid;
+}
+
+.auth-section h2 {
+    margin: 10px auto;
+    color: #000000;
+    text-align: center;
+}
+
+.auth-section form {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-section label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.auth-section input[type="text"],
+.auth-section input[type="password"],
+.auth-section input[type="email"] {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #979696;
+    border-radius: 5px;
+    box-shadow: 3px 4px 10px #1112168a;
+}
+
+.auth-section button {
+    padding: 10px;
+    background-color: #9a9c9a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.auth-section button:hover {
+    background-color: #3443ca;
+}
+
+.auth-section p {
+    margin-top: 14px;
+}
+
+.auth-section a {
+    color: #c20404d5;
+    text-decoration: none;
+}
+
+#mensagem-login {
+    display: none;
+    margin: 0.6rem 0;
+    padding: 0.6rem;
+    border-radius: 0.3rem;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.input-icon-wrapper {
+    position: relative;
+}
+
+.input-icon-wrapper i {
+    position: absolute;
+    top: 35%;
+    left: 90%;
+    transform: translateY(-50%);
+    color: #292929de;
+    font-size: 1.1rem;
+}
+
+.input-icon-wrapper input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
