@@ -2,6 +2,8 @@
 const API_URL = 'http://localhost:3000/api';
 const UPLOADS_DIR = 'uploads/projects/';
 
+
+
 // Utilitários
 const utils = {
   sanitize: (str) => {
@@ -16,8 +18,8 @@ const utils = {
 
   formatDate: (dateString) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    return `${day}/${month}/${year}`;
   },
 
   getStatusText: (status) => {
@@ -41,8 +43,8 @@ const utils = {
 
 document.addEventListener('DOMContentLoaded', function() {
   // Elementos DOM
-  const projectForm = document.getElementById('project-form');
   const projectMessage = document.getElementById('project-message');
+  const projectForm = document.getElementById('project-form');
   const loadingProjects = document.getElementById('loading-projects');
   const projectsTable = document.createElement('div');
   projectsTable.className = 'projects-table-container';
@@ -59,8 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function initDatePickers() {
     // Config data mínima no campo de início
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('project-start').min = today;
+    // const today = new Date().toISOString().split('T')[0];
+    // document.getElementById('project-start').min = today;
 
     document.getElementById('project-start').addEventListener('change', function() {
       document.getElementById('project-end').min = this.value;
@@ -118,20 +120,27 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Erro ao criar projeto');
+        let errorMsg = 'Erro ao criar projeto';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch {
+          const errorText = await response.text();
+          errorMsg = errorText || errorMsg;
+        }
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
-      showMessage(data, 'Projeto criado com sucesso!', 'success');
       projectForm.reset();
       await loadProjects();
+      SuccessMessage('Projeto criado com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao criar projeto:', error);
       const errorMsg = error.message.includes('<!DOCTYPE html>') 
         ? 'Erro no servidor - Verifique a conexão com a API' 
         : error.message;
-      showMessage(errorMsg, 'error');
+      ErroMessage(errorMsg, 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnText;
@@ -147,13 +156,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Validação básica
     if (!name || !code || !manager || !startDate || !description) {
-      showMessage('Preencha todos os campos obrigatórios', 'error');
+      ErroMessage('Preencha todos os campos obrigatórios', 'error');
       return false;
     }
 
     // Validação de código do projeto 
     if (code.length < 3) {
-      showMessage('O código do projeto deve ter pelo menos 3 caracteres', 'error');
+      ErroMessage ('O código do projeto deve ter pelo menos 3 caracteres', 'error');
       return false;
     }
 
@@ -164,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (end) {
       const endDate = new Date(end);
       if (endDate < start) {
-        showMessage('A data de término não pode ser anterior à data de início', 'error');
+        ErroMessage('A data de término não pode ser anterior à data de início', 'error');
         return false;
       }
     }
@@ -202,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
       renderProjects(allProjects);
     } catch (error) {
       console.error('Erro ao carregar projetos:', error);
-      showMessage(
+      ErroMessage(
         error.message.includes('<!DOCTYPE html>') 
           ? 'Erro no servidor - Verifique a conexão com a API' 
           : error.message, 
@@ -251,9 +260,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <td>${project.end_date ? utils.formatDate(project.end_date) : '-'}</td>
         <td><span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></td>
         <td class="actions">
-          <button class="btn-view" data-id="${project.id}" title="Visualizar"><i class="fas fa-eye"></i></button>
-          <button class="btn-edit" data-id="${project.id}" title="Editar"><i class="fas fa-edit"></i></button>
-          <button class="btn-delete" data-id="${project.id}" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+          <button class="btn-view project" data-id="${project.id}" title="Visualizar Projeto"><i class="fas fa-eye"></i></button>
+          <button class="btn-edit project" data-id="${project.id}" title="Editar Projeto"><i class="fas fa-edit"></i></button>
+          <button class="btn-delete project" data-id="${project.id}" title="Excluir Projeto"><i class="fas fa-trash-alt"></i></button>
         </td>
       `;
       tbody.appendChild(row);
@@ -326,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
   async function viewProject(projectId) {
     if (!projectId) {
         console.error('ID do projeto não fornecido')
-        showMessage('Erro ao carregar projeto: ID não encontrado', 'error')
+        ErroMessage('Erro ao carregar projeto: ID não encontrado', 'error')
         return;
     }
 
@@ -345,21 +354,29 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       const data = await response.json();
+      const project = data.project || data;
+      if (!project || !project.name) {
+        throw new Error('Projeto não encontrado ou resposta inválida');
+      }
       showProjectDetails(data.project);
     } catch (error) {
       console.error('Erro ao visualizar projeto:', error);
-      showMessage(error.message, 'error');
+      ErroMessage(error.message, 'error');
     }
   }
 
 
   function showProjectDetails(project) {
+    if (!project || !project.name) {
+      ErroMessage('Erro ao carregar detalhes do projeto', 'error');
+      return;
+    }
     const modal = document.createElement('div');
     modal.className = 'project-modal';
     modal.innerHTML = `
       <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h3>${utils.sanitize(project.name)} <span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></h3>
+        <span class="close-modal"> &times; </span>
+        <h3> ${utils.sanitize(project.name)} - <span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></h3>
         
         <div class="project-details">
           <div class="detail-row">
@@ -400,10 +417,10 @@ document.addEventListener('DOMContentLoaded', function() {
                       <span class="file-size">(${formatFileSize(file.size)})</span>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-download-file" data-file-url="${API_URL}/project-files/${file.filename} " data-filename="${file.originalname}" title="Download">
+                      <button class="btn-download-file" data-file-url="${API_URL}/project-files/${file.filename}?download=1" data-filename="${file.originalname}" title="Download do projeto">
                         <i class="fas fa-download"></i>
                       </button>
-                      <button class="btn-delete-file" data-file-id="${file._id || file.id}" data-project-id="${project.id}" title="Excluir">
+                      <button class="btn-delete-file" data-file-id="${file._id || file.id}" data-project-id="${project.id}" title="Excluir o arquivo">
                         <i class="fas fa-trash"></i>
                       </button>
                     </div>
@@ -416,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     
+    modal.classList.add('active');
     document.body.appendChild(modal);
 
     // Fechamento do modal
@@ -459,7 +477,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function downloadFile(url, filename) {
     if (!url || !filename) {
         console.error('Dados inválidos para download:', {url, filename});
-        showMessage('Erro ao preparar download: dados incompletos', 'error')
+        ErroMessage('Erro ao preparar download: dados incompletos', 'error')
         return;
     }
 
@@ -472,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.removeChild(a);
   } catch (error) {
     console.error('Erro ao baixar arquivo:', error)
-    showMessage('Erro ao baixar arquivo. Tente novamente')
+    ErroMessage('Erro ao baixar arquivo. Tente novamente')
   }
 }
 
@@ -501,16 +519,17 @@ document.addEventListener('DOMContentLoaded', function() {
         throw new Error(errorData.message || 'Erro ao excluir arquivo') 
       }
 
-      showMessage('Arquivo excluído com sucesso!', 'success');
+      SuccessMessage('Arquivo excluído com sucesso!', 'success');
         await viewProject(projectId);
 
     } catch (error) {
       console.error('Erro ao excluir arquivo:', error);
-      showMessage(error.message, 'error');
+      ErroMessage(error.message, 'error');
     }
   }
 
   async function editProject(projectId) {
+    let editBtn;
     try {
       // Mostrar loader
       const editBtn = document.querySelector(`.btn-edit[data-id="${projectId}"]`);
@@ -549,15 +568,18 @@ document.addEventListener('DOMContentLoaded', function() {
       const submitBtn = projectForm.querySelector('button[type="submit"]');
       submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Atualizar Projeto';
       submitBtn.dataset.editing = projectId;
+      submitBtn.classList.add('btn-update');
+      
+      SuccessMessage('Preencha os campos que deseja alterar!', 'info');
 
       // Remove o evento antigo e adiciona o novo
       projectForm.removeEventListener('submit', handleProjectSubmit);
       projectForm.addEventListener('submit', handleProjectUpdate);
 
-      showMessage('Preencha os campos que deseja alterar', 'info');
+      
     } catch (error) {
       console.error('Erro ao editar projeto', error);
-      showMessage(error.message, 'error');
+      ErroMessage(error.message, 'error');
     } finally {
       if (editBtn) {
         editBtn.innerHTML = originalContent;
@@ -609,20 +631,26 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       const data = await response.json();
-      
-      showMessage('Projeto atualizado com sucesso!', 'success');
+      console.log('Projeto atualizado:', data);
+      // Limpa o formulário
       projectForm.reset();
       await loadProjects();
       
+      // Exibe mensagem de sucesso
+      SuccessMessage('Projeto atualizado com sucesso!', 'success');
+
       // Restaura o formulário para modo de criação
       submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Salvar Projeto';
       delete submitBtn.dataset.editing;
+      submitBtn.classList.remove('btn-update');
+
+
       
       projectForm.removeEventListener('submit', handleProjectUpdate);
       projectForm.addEventListener('submit', handleProjectSubmit);
     } catch (error) {
       console.error('Erro ao atualizar projeto:', error);
-      showMessage(error.message, 'error');
+      ErroMessage(error.message, 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnText;
@@ -649,11 +677,12 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       const data = await response.json();
-      showMessage('Projeto excluído com sucesso!', 'success');
+      data.project = data.project || data;
       await loadProjects();
+      SuccessMessage('Projeto excluído com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao excluir projeto:', error);
-      showMessage(error.message, 'error');
+      ErroMessage(error.message, 'error');
     } finally {
       if (deleteBtn) {
         deleteBtn.innerHTML = originalContent;
@@ -662,16 +691,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  function showMessage(message, type) {
+
+  function ErroMessage(message, type) {
     projectMessage.textContent = message;
     projectMessage.className = `message ${type}`;
     projectMessage.style.display = 'block';
+    projectMessage.style.backgroundColor ='#f8d7da';
 
-    // Remove mensagens duplicadas
-    const existingMessages = document.querySelectorAll('.message');
-    existingMessages.forEach(msg => {
-      if (msg !== projectMessage) msg.remove();
-    });
+    setTimeout(() => {
+      projectMessage.style.display = 'none';
+    }, 5000);
+  }
+
+
+  function SuccessMessage(message, type) {
+    projectMessage.textContent = message;
+    projectMessage.className = `message ${type}`;
+    projectMessage.style.display = 'block';
+    projectMessage.style.backgroundColor = '#7CFC00' 
 
     setTimeout(() => {
       projectMessage.style.display = 'none';

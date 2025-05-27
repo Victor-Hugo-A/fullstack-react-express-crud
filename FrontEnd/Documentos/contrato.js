@@ -18,41 +18,26 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Funções de exibição de mensagens
-    function exibirMensagemSucesso(mensagem) {
-        const mensagemElemento = document.getElementById('message-success');
-    
-        if (mensagemElemento) {
-            mensagemElemento.textContent = mensagem;
-            mensagemElemento.style.color = 'green';
-            mensagemElemento.style.backgroundColor = '#e6ffe6';
-            mensagemElemento.style.border = '2px solid #a3e8a3';
-            mensagemElemento.style.display = 'block';
-            mensagemElemento.style.padding = '4px';
-            mensagemElemento.style.marginBottom = '12px'
-
-            setTimeout(() => {
-                mensagemElemento.style.display = 'none';
-            }, 3500);
-        }
+    function showSuccessMessage(message) {
+    const msg = document.getElementById('contract-message');
+    msg.textContent = message;
+    msg.className = 'message success';
+    msg.style.display = 'block';
+    setTimeout(() => {
+        msg.style.display = 'none';
+    }, 5000);
     }
 
-    function exibirMensagemErro(mensagem) {
-        const mensagemElemento = document.getElementById('message-success');
-    
-        if (mensagemElemento) {
-            mensagemElemento.textContent = mensagem;
-            mensagemElemento.style.color = 'red';
-            mensagemElemento.style.backgroundColor = '#ffe6e6';
-            mensagemElemento.style.border = '2px solid #ffb3b3';
-            mensagemElemento.style.display = 'block';
-            mensagemElemento.style.padding = '4px';
-            mensagemElemento.style.marginBottom = '12px'
+    function showErrorMessage(message) {
+    const msg = document.getElementById('contract-message');
+    msg.textContent = message;
+    msg.className = 'message error';
+    msg.style.display = 'block';
+    setTimeout(() => {
+        msg.style.display = 'none';
+    }, 5000);
+}
 
-            setTimeout(() => {
-                mensagemElemento.style.display = 'none';
-            }, 3500);
-        }
-    }
 
     // Configuração inicial da data (mínimo 2025-01, máximo 2040-12)
     function setupDateValidation() {
@@ -143,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return result.exists;
         } catch (error) {
             console.error('Erro ao verificar contrato:', error);
-            exibirMensagemErro('Erro ao verificar contrato. Tente novamente');
+            showErrorMessage('Erro ao verificar contrato. Tente novamente');
             return false;
         }
     }
@@ -211,12 +196,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const result = await response.json();
-            exibirMensagemSucesso('Contrato cadastrado com sucesso!');
+            showSuccessMessage('Contrato cadastrado com sucesso!');
             elements.form.reset();
             loadContracts(); // Recarrega a lista de contratos
         } catch (error) {
             console.error('Erro:', error);
-            exibirMensagemErro(error.message);
+            showErrorMessage(error.message);
         } finally {
             showLoading(false);
             submitButton.disabled = false;
@@ -226,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clean Button - Limpar todos os contratos
     document.getElementById('clean-all-button')?.addEventListener('click', async () => {
         if (!confirm('Tem certeza que deseja apagar TODOS os contratos? Esta ação não pode ser desfeita.')) {
-            exibirMensagemSucesso('Operação cancelada pelo usuário');
+            showSuccessMessage('Operação cancelada pelo usuário');
             return;
         }
 
@@ -249,13 +234,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Atualiza a interface do usuário
         elements.documentsContainer.innerHTML = '<div class="no-results">Nenhum contrato encontrado</div>';
-            exibirMensagemSucesso('Todos os contratos foram removidos com sucesso!');
+            showSuccessMessage('Todos os contratos foram removidos com sucesso!');
             
         // Força um reload nos dados (opcional)
         setTimeout(() => loadContracts(), 500);   
 
         } catch (error) {
-            exibirMensagemErro(`Falha ao limpar contratos: ${error.message}`);
+            showErrorMessage(`Falha ao limpar contratos: ${error.message}`);
         } finally {
             showLoading(false);
         }
@@ -265,6 +250,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateContractList(contracts) {
         const container = elements.documentsContainer;
         
+        // Ordenar por data (mais antiga primeiro)
+        contracts.sort((a, b) => {
+            if (!a.date) return -1;
+            if (!b.date) return 1;
+            return a.date.localeCompare(b.date);
+        })
+
         if (contracts.length === 0) {    
             container.innerHTML = '<div class="no-results">Nenhum contrato encontrado</div>';
         } else {
@@ -308,25 +300,26 @@ async function loadContracts(filters = {}) {
 
 
     function createContractElement(contract) {
+        const typeClass = `badge-${(contract.type || 'outro').toLowerCase()}`;
         const element = document.createElement('div');
         element.className = 'document-card contracts';
         element.innerHTML = `
             <div class="document-header">
-                <span class="document-type badge bg-primary">${getContractTypeName(contract.type)}</span>
-                <span class="document-number">${contract.number}</span>
+                <span class="document-type badge ${typeClass}">${getContractTypeName(contract.type)}</span>
+                <span class="document-number"> N° ${contract.number}</span>
             </div>
             <div class="document-body">
                 <p class="document-date"><i class="far fa-calendar-alt me-2"></i>${formatDisplayDate(contract.date)}</p>
-                <p class="document-description">${contract.description || 'Sem descrição'}</p>
+                <p class="document-description">Informações: ${contract.description || 'Sem descrição'}</p>
             </div>
             <div class="document-actions">
-                <button class="btn-view" data-id="${contract.id}">
+                <button class="btn-view" title="Visualizar contrato" data-id="${contract.id}">
                     <i class="fas fa-eye"></i> Visualizar
                 </button>
-                <button class="btn-download" data-id="${contract.id}">
+                <button class="btn-download" title="Baixar contrato "data-id="${contract.id}">
                     <i class="fas fa-download"></i> Download
                 </button>
-                <button class="btn-delete" data-id="${contract.id}">
+                <button class="btn-delete" title="Excluir contrato" data-id="${contract.id}">
                     <i class="fas fa-trash"></i> Excluir
                 </button>
             </div>
@@ -360,9 +353,9 @@ async function loadContracts(filters = {}) {
             }
 
             await loadContracts(); // Recarrega a lista de contratos
-            exibirMensagemSucesso('Contrato excluído com sucesso!');
+            showSuccessMessage('Contrato excluído com sucesso!');
         } catch (error) {
-            exibirMensagemErro(`Falha ao excluir contrato: ${error.message}`);
+            showErrorMessage(`Falha ao excluir contrato: ${error.message}`);
         } finally {
             showLoading(false);
         }
@@ -380,8 +373,9 @@ async function loadContracts(filters = {}) {
     }
 
     function formatDisplayDate(dateString) {
-        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        return new Date(dateString).toLocaleDateString('pt-BR', options);
+       if (!dateString) return '';
+       const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
     }
 
     // Visualizar contrato
@@ -411,7 +405,7 @@ async function viewContract(id) {
 
     } catch (error) {
         console.error('Erro:', error);
-        exibirMensagemErro(error.message);
+        showErrorMessage(error.message);
         
         // Fallback: Abre diretamente se o pré-carregamento falhar
         window.open(`${API_BASE_URL}/contracts/${id}/view`, '_blank');
@@ -490,7 +484,7 @@ async function viewContract(id) {
             
         } catch (error) {
             console.error('Erro ao baixar contrato:', error);
-            exibirMensagemErro(`Erro ao baixar: ${error.message}`);
+            showErrorMessage(`Erro ao baixar: ${error.message}`);
         } finally {
             showLoading(false);
         }

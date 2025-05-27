@@ -20,7 +20,8 @@ async function carregarIdentidades() {
                 <td>${id.endereco}</td>
                 <td>${id.perfil}</td>
                 <td>
-                <img src="${BACKEND_URL}${id.foto}" alt="Foto 3x4" style="width:48px;height:64px;object-fit:cover;border-radius:4px;">
+                <img src="${BACKEND_URL}${id.foto}" alt="Foto 3x4" style="width:100px;height:100px;object-fit:cover;border-radius:4px;"
+                onclick="abrirModalImagem('${BACKEND_URL}${id.foto}')" />
                 <button class = "btn btn-danger btn-sm" onclick="deletarIdentidade('${id.id}')">Excluir</button>
                 </td>
                 </tr>
@@ -45,6 +46,7 @@ document.getElementById('identity-form').addEventListener('submit', async functi
     }
 });
 
+
 window.deletarIdentidade = async function(id) {
     if(!confirm('Tem certeza que deseja excluir esta identidade?')) return;
     const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
@@ -57,6 +59,40 @@ window.deletarIdentidade = async function(id) {
         }
 }
 
+
+//Abrir modal de imagem
+function abrirModalImagem(src) {
+    const modal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-image');
+    modalImg.src = src;
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modalImg.style.maxWidth = '90%';
+    modalImg.style.maxHeight = '90%';
+    modalImg.style.objectFit = 'contain';
+    modalImg.style.borderRadius = '8px';
+    modalImg.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+    modalImg.style.transition = 'transform 0.3s ease';
+    modalImg.onclick = function() {
+        this.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+        }, 300);
+    };
+}
+
+//Fechar modal de imagem
+document.getElementById('close-modal').onclick = function() {
+    document.getElementById('image-modal').style.display = 'none';
+};
+document.getElementById('image-modal').onclick = function(e) {
+    if (e.target === this) {
+        this.style.display = 'none';
+    }
+}
+
+
 function showIdentityMessage(msg, type) {
     const msgDiv = document.getElementById('identity-message');
     msgDiv.textContent = msg;
@@ -67,5 +103,6 @@ function showIdentityMessage(msg, type) {
     }, 4000);
 }
 
+window.abrirModalImagem = abrirModalImagem;
 carregarIdentidades();
 });

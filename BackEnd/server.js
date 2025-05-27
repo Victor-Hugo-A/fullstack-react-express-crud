@@ -588,8 +588,17 @@ const projectsUpload = multer({
 
 // Rotas para projetos
 router.post('/projects', projectsUpload.array('files'), async (req, res) => {
-    try {
+        try {
         const projectData = JSON.parse(req.body.project);
+
+    const allowedHeaders = ['planejamento', 'andamento', 'suspenso', 'concluido'];
+    if (!allowedHeaders.includes(projectData.status)) {
+        return res.status(400).json({ success: false, message: 'Status inválido' });
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(projectData.start_date)) {
+        return res.status(400).json({ success: false, message: 'Data de início inválida' });
+    }
+
         
         // Validação básica
         if (!projectData.name || !projectData.code || !projectData.manager || !projectData.start_date || !projectData.description) {
@@ -608,8 +617,7 @@ router.post('/projects', projectsUpload.array('files'), async (req, res) => {
                     projectData.start_date,
                     projectData.end_date,
                     projectData.status,
-                    projectData.description,
-                    projectData.id
+                    projectData.description
                 ],
                 function(err) {
                     if (err) reject(err);
@@ -620,9 +628,11 @@ router.post('/projects', projectsUpload.array('files'), async (req, res) => {
         
         // Processa os arquivos enviados
         if (req.files && req.files.length > 0) {
+            console.log('Arquivos recebidos:', req.files);
             for (const file of req.files) {
                 const originalName = file.originalname || path.basename(file.originalname);
-                
+                console.log('Tentando inserir arquivo no banco:', file.filename);
+
                 await new Promise((resolve, reject) => {
                     db.run(
                         `INSERT INTO project_files (project_id, filename, originalname, mimetype, size) 
@@ -635,16 +645,23 @@ router.post('/projects', projectsUpload.array('files'), async (req, res) => {
                             file.size
                         ],
                         function(err) {
-                            if (err) reject(err);
-                            else resolve();
-                        }
-                    );
-                });
-            }
-        }
+                            if (err) {
+                                console.error('Erro ao inserir arquivo no banco:', err);
+                            reject(err);
+                        }  else {
+                             resolve();
+                    }
+                }
+            );
+        });
+    }
+}
         
         res.json({ success: true, projectId: result });
     } catch (error) {
+        if (error.message && error.message.includes('UNIQUE constraint failed: projects.code')) {
+            return res.status(400).json({ success: false, message: 'Código do projeto já existe' });
+        }
         console.error('Erro ao criar projeto:', error);
         res.status(500).json({ success: false, message: error.message });
     }
@@ -652,14 +669,28 @@ router.post('/projects', projectsUpload.array('files'), async (req, res) => {
 
 router.get('/projects', async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+        let sql = 'SELECT * FROM projects';
+        let params = [];
+
+        // Filtros opcionais
+        if (req.query.status) {
+            sql += ' WHERE status = ?';
+            params.push(req.query.status);
+        }
+        sql += ' ORDER BY start_date DESC LIMIT ? OFFSET ?';
+        params.push(limit, offset);
+
         const projects = await new Promise((resolve, reject) => {
-            db.all('SELECT * FROM projects ORDER BY start_date DESC', [], (err, rows) => {
+            db.all(sql, params, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
         });
-        
-        // Para cada projeto, busca seus arquivos
+
+        // Para cada projeto, busca os arquivos associados
         for (const project of projects) {
             project.files = await new Promise((resolve, reject) => {
                 db.all(
@@ -667,18 +698,17 @@ router.get('/projects', async (req, res) => {
                     [project.id],
                     (err, rows) => {
                         if (err) reject(err);
-                        else resolve(rows);
+                         else resolve(rows);
                     }
                 );
             });
+        };
+        res.json({ success: true, projects, page, limit });
+        } catch (error) {
+            console.error('Erro ao buscar projetos:', error);
+            res.status(500).json({ success: false, message: error.message });
         }
-        
-        res.json({ success: true, projects });
-    } catch (error) {
-        console.error('Erro ao buscar projetos:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
+    });
 
 router.get('/projects/:id', async (req, res) => {
     try {
@@ -723,7 +753,10 @@ router.get('/project-files/:filename', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Arquivo não encontrado'});
         }
         
-        res.download(filePath);
+        if (req.query.download === '1') {
+        return res.download(filePath, req.params.filename);
+        }
+        res.sendFile(filePath)
     } catch (error) {
         console.error('Erro ao baixar arquivo:', error)
         res.status(500).json({ success: false, message: error.messsage });
@@ -780,8 +813,16 @@ router.delete('/project-files/:id', async (req, res) => {
 
 
 router.put('/projects/:id', projectsUpload.array('files'), async (req, res) => {
-    try {
+        try {
         const projectData = JSON.parse(req.body.project);
+
+    const allowedStatus = ['planejamento', 'andamento', 'suspenso', 'concluido'];
+    if (!allowedStatus.includes(projectData.status)) {
+        return res.status(400).json({ success: false, message: 'Status inválido' });
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(projectData.start_date)) {
+        return res.status(400).json({ success: false, message: 'Data de início inválida' });
+    }
         
         // Atualiza o projeto no banco de dados
         await new Promise((resolve, reject) => {
@@ -830,11 +871,31 @@ router.put('/projects/:id', projectsUpload.array('files'), async (req, res) => {
                 });
             }
         }
-        
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Erro ao atualizar projeto:', error);
-        res.status(500).json({ success: false, message: error.message });
+
+        const project = await new Promise((resolve, reject) => {
+            db.get(
+                'SELECT * FROM projects WHERE id = ?',
+                [req.params.id],
+                (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                
+            });
+        });
+
+        project.files = await new Promise((resolve, reject) => {
+            db.all(
+                'SELECT * FROM project_files WHERE project_id = ?',
+                [req.params.id],
+                (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                })
+            })
+            res.json({ success: true, project });
+        } catch (error) {
+            console.error('Erro ao atualizar projeto:', error);
+            res.status(500).json({ success: false, message: error.message });
     }
 });
 

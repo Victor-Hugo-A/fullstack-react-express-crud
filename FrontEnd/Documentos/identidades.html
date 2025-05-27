@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Identidades </title>
+    <title> SENAPPEN - Identidades </title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Open+Sans:wght@400;600&display=swap">
@@ -53,8 +53,8 @@
             </li>
             <li class="nav-item others">
                 <a href="outros" class="nav-link nav-others">
-                    <i class="fas fa-folder-open icon"></i>
-                        <span class="link-text">Outros</span>
+                    <img src="/FrontEnd/img/grafico-result.png" alt="Gráficos" class="icon">
+                        <span class="link-text">Gráficos</span>
                 </a>
             </li>
         </ul>
@@ -110,7 +110,11 @@
 
     <!-- Lista de identidades cadastradas -->
     <section class="identity-list-section">
-        <h2 class="mb-3">Identidades Cadastradas</h2>
+        <h2 class="section-title"> 
+        <i class="fas fa-id-card icon"></i>
+            Identidades Cadastradas 
+        </h2>
+        
         <div class="table-responsive">
             <table class="table table-bordered align-middle" id="identities-table">
                 <thead class="table-light">
@@ -131,8 +135,11 @@
     </section>
 </main>
 
-</body>
-</html>
+    <div id="image-modal" class="modal" style="display:none; position: fixed; z-index: 9999; top:0px;;
+    width: 70%; background: rgba(0, 0, 0, 0.5);  align-items: center; justify-content: center;">
+    <span id="close-modal" style="position: absolute; top: 20px; right: 40px; font-size: 2rem; color: #fff; cursor:pointer;">&times;</span>
+    <img id="modal-image" src="" alt="Imagem da Identidade" style="max-width: 90vw; max-height: 90vh; border-radius:8px;  box-shadow:  0 0 20px #000;">
+    </div>
 
 
 <script> 
@@ -182,6 +189,7 @@
     // Chama a função quando a página carrega
     document.addEventListener('DOMContentLoaded', displayUsername);
 
+    document.addEventListener('DOMContentLoaded', function() {
     const menuToggle = document.getElementById("menuToggle");
     const sidebar = document.getElementById("sidebar");
 
@@ -195,7 +203,6 @@
     }
 
     // Active dentro dos links para ficar fixado(marcado), como = "CONTRATOS" "PROJETOS" "DOCUMENTOS" "IDENTIDADES" "OUTROS" !!!
-    document.addEventListener('DOMContentLoaded', function() {
         const currentPage = window.location.pathname.split('/').pop();
         const navLinks = document.querySelectorAll('.nav-link');
         
@@ -211,7 +218,5 @@
     });
 
     </script>
-
 </body>
-
 </html>
