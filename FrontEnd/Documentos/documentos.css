@@ -998,7 +998,7 @@ label {
     gap: 0.3rem;
 }
 
-.pagination, .projectpage {
+.pagination {
     margin-bottom: 3rem;
     display: flex;
     justify-content: center;

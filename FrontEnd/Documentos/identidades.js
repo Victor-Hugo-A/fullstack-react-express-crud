@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'http://localhost:3000/api/identities';
+const API_URL = 'http://localhost:3000/api/identities';
     
+let allIdentidades = [];
+let currentPage = 1;
+const IDENTIDADES_PER_PAGE = 5;
+
     
     function cpfValue(cpf) {
         try {
@@ -61,48 +65,91 @@ document.addEventListener('DOMContentLoaded', () => {
             ErroMessage('Erro ao carregar identidades!', 'error');
             return;
         }
+        allIdentidades = await response.json();
+        renderIdentidadesPage(currentPage)
 
-const identidades = await response.json();
-const tbody = document.getElementById('identities-table').querySelector('tbody');
-tbody.innerHTML = ''; // Limpa o conteúdo atual da tabela
-identidades.forEach(id => {
-    const BACKEND_URL = 'http://localhost:3000';
-    const perfilClass = `perfil-${(id.perfil || '').toLowerCase()}`;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td>${id.nome}</td>
-        <td>${id.cpf}</td>
-        <td>${id.endereco}</td>
-        <td><span class="${perfilClass}">${id.perfil}</span></td>
-        <td>
-            <img src="${BACKEND_URL}${id.foto}" alt="Foto 3x4" style="width:80px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;" />
-        </td>
-        <td>
-            <button class="btn btn-danger btn-sm btn-excluir" title="Excluir identidade">Excluir</button>
-        </td>
-    `;
+    function renderIdentidadesPage(page) {
+    const tbody = document.getElementById('identities-table').querySelector('tbody');
+    tbody.innerHTML = '';
+    const start = (page - 1) * IDENTIDADES_PER_PAGE;
+    const end = start + IDENTIDADES_PER_PAGE;
+    const identidadesToShow = allIdentidades.slice(start, end);
 
-    // Evento para abrir modal da imagem
-    tr.querySelector('img').addEventListener('click', () => abrirModalImagem(`${BACKEND_URL}${id.foto}`));
-    // Evento para excluir identidade
-    tr.querySelector('.btn-excluir').addEventListener('click', () => deletarIdentidade(id.id));
-    tbody.appendChild(tr);
-});
-}
+    if (identidadesToShow.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6">Nenhuma identidade encontrado</td></tr>';
+    return;
+  }
 
+    identidadesToShow.forEach(id => {
+        const BACKEND_URL = 'http://localhost:3000';
+        const perfilClass = `perfil-${(id.perfil || '').toLowerCase()}`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${id.nome}</td>
+            <td>${id.cpf}</td>
+            <td>${id.endereco}</td>
+            <td><span class="${perfilClass}">${id.perfil}</span></td>
+            <td>
+                <img src="${BACKEND_URL}${id.foto}" alt="Foto 3x4" style="width:80px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;" />
+            </td>
+            <td>
+                <button class="btn btn-danger btn-sm btn-excluir" title="Excluir identidade">Excluir</button>
+            </td>
+        `;
 
-window.deletarIdentidade = async function(id) {
-    if(!confirm('Tem certeza que deseja excluir esta identidade?')) return;
-    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    const data = await res.json();
-        if(data.success) {
-            SuccessMessage('Identidade excluída com sucesso!', 'success');
-            carregarIdentidades();
-        } else {
-            ErroMessage('Erro ao excluir identidade!', 'error');
+        // Evento para abrir modal da imagem
+        tr.querySelector('img').addEventListener('click', () => abrirModalImagem(`${BACKEND_URL}${id.foto}`));
+        // Evento para excluir identidade
+        tr.querySelector('.btn-excluir').addEventListener('click', () => deletarIdentidade(id.id));
+        tbody.appendChild(tr);
+        });
+
+        renderIdentidadesPagination();
+
+    }
+
+    function renderIdentidadesPagination() {
+        const totalPages = Math.ceil(allIdentidades.length / IDENTIDADES_PER_PAGE);
+        const pagination = document.querySelector('.pagination');
+        if (!pagination) return;
+        pagination.innerHTML = `
+        <a href="#" class="page-nav" data-page="prev"><i class="fas fa-angle-double-left"></i></a>
+            ${Array.from({length: totalPages}, (_, i) => `
+                <a href="#" class="page-link${i+1 === currentPage ? ' active' : ''}" data-page="${i+1}">${i+1}</a>
+            `).join('')}
+            <a href="#" class="page-nav" data-page="next"><i class="fas fa-angle-double-right"></i></a>
+        `;
+    }
+
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.page-link')) {
+            e.preventDefault();
+            currentPage = Number(e.target.closest('.page-link').dataset.page);
+            renderIdentidadesPage(currentPage);
         }
-}
+        if (e.target.closest('.page-nav')) {
+            e.preventDefault();
+            const nav = e.target.closest('.page-nav').dataset.page;
+            const totalPages = Math.ceil(allIdentidades.length / IDENTIDADES_PER_PAGE);
+            if (nav === 'prev' && currentPage > 1) currentPage--;
+            if (nav === 'next' && currentPage < totalPages) currentPage++;
+            renderIdentidadesPage(currentPage);
+            }
+        });
+    }
 
+
+    window.deletarIdentidade = async function(id) {
+        if(!confirm('Tem certeza que deseja excluir esta identidade?')) return;
+        const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+            if(data.success) {
+                SuccessMessage('Identidade excluída com sucesso!', 'success');
+                carregarIdentidades();
+            } else {
+                ErroMessage('Erro ao excluir identidade!', 'error');
+        }
+    }
 
 
 //Abrir modal de imagem
@@ -140,6 +187,7 @@ document.getElementById('image-modal').onclick = function(e) {
 window.abrirModalImagem = abrirModalImagem;
 carregarIdentidades();
 
+
 const identityMessage = document.getElementById('identity-message');
   function ErroMessage(message, type) {
     identityMessage.textContent = message;
@@ -164,4 +212,4 @@ const identityMessage = document.getElementById('identity-message');
     }, 5000);
   }
 
-});
+})

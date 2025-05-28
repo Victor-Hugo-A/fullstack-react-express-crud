@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('.document-section:last-child').appendChild(projectsTable);
 
   // Logica de Páginação
-  const PROJECTS_PER_PAGE = 3;
+  const PROJECTS_PER_PAGE = 5;
   let currentPage = 1;
 
   // Variáveis Globais
@@ -127,9 +127,9 @@ function renderProjectsPage(page) {
     if (e.target.closest('.page-link')) {
       e.preventDefault();
       currentPage = Number(e.target.closest('.page-link').dataset.page)
-      renderProjectsPage();
+      renderProjectsPage(currentPage);
     }
-    if (e.target.closest('.pag-nav')) {
+    if (e.target.closest('.page-nav')) {
       e.preventDefault();
       const nav = e.target.closest('.page-nav').dataset.page;
       const totalPages = Math.ceil(allProjects.length / PROJECTS_PER_PAGE);

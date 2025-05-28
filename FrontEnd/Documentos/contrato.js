@@ -247,9 +247,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 
-    function updateContractList(contracts) {
+    function updateContractList(contracts, page = 1) {
         const container = elements.documentsContainer;
-        
+        const CONTRACTS_PER_PAGE = 6;
+        const start = (page - 1) * CONTRACTS_PER_PAGE
+        const end = start + CONTRACTS_PER_PAGE;
+        const contractsToShow = contracts.slice(start, end)
+
         // Ordenar por data (mais antiga primeiro)
         contracts.sort((a, b) => {
             if (!a.date) return -1;
@@ -257,18 +261,49 @@ document.addEventListener('DOMContentLoaded', function() {
             return a.date.localeCompare(b.date);
         })
 
-        if (contracts.length === 0) {    
+        if (contractsToShow.length === 0) {    
             container.innerHTML = '<div class="no-results">Nenhum contrato encontrado</div>';
         } else {
             container.innerHTML = '';
-            contracts.forEach(contract => {
+            contractsToShow.forEach(contract => {
                 const contractElement = createContractElement(contract);
                 container.appendChild(contractElement);
             });
         }
+
+        renderPagination(contracts.length, page)
+
+            // Função renderização de página
+    function renderPagination(totalContracts, page) {
+        const totalPages = Math.ceil(totalContracts / CONTRACTS_PER_PAGE);
+        const pagination = document.querySelector('.pagination');
+        pagination.innerHTML = `
+        <a href="#" class="page-nav" data-page="prev"><i class="fas fa-angle-double-left"></i></a>
+        ${Array.from({length: totalPages}, (_, i) => `
+            <a href="#" class="page-link${i+1 === page ? ' active' : ''}" data-page="${i+1}">${i+1}</a>
+        `).join('')}
+        <a href="#" class="page-nav" data-page="next"><i class="fas fa-angle-double-right"></i></a>
+    `;
     }
 
-    // Carregar contratos do servidor
+    //Evento navegação 
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.page-link')) {
+            e.preventDefault();
+            currentPage = Number(e.target.closest('.page-link').dataset.page);
+            updateContractList(allContracts, currentPage);
+        }
+        if (e.target.closest('.page-nav')) {
+            e.preventDefault();
+            const nav = e.target.closest('.page-nav').dataset.page;
+            const totalPages = Math.ceil(allContracts.length / CONTRACTS_PER_PAGE);
+            if (nav === 'prev' && currentPage > 1) currentPage--;
+            if (nav === 'next' && currentPage < totalPages) currentPage++;
+            updateContractList(allContracts, currentPage);
+        }
+    })
+}
+
 // Atualize a função loadContracts para forçar recarregamento
 async function loadContracts(filters = {}) {
     try {
@@ -285,7 +320,9 @@ async function loadContracts(filters = {}) {
         if (!response.ok) throw new Error('Erro ao carregar contratos');
         
         const contracts = await response.json();
-        updateContractList(contracts);
+        allContracts = contracts;
+        currentPage = 1;
+        updateContractList(allContracts, currentPage);
         
     } catch (error) {
         console.error('Erro ao carregar contratos:', error);
@@ -579,4 +616,6 @@ async function viewContract(id) {
     }
 
     init();
+
+
 });
