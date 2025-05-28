@@ -195,7 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(errorData.error || 'Erro ao cadastrar contrato');
             }
 
-            const result = await response.json();
             showSuccessMessage('Contrato cadastrado com sucesso!');
             elements.form.reset();
             loadContracts(); // Recarrega a lista de contratos
@@ -208,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-        // Clean Button - Limpar todos os contratos
+    // Clean Button - Limpar todos os contratos
     document.getElementById('clean-all-button')?.addEventListener('click', async () => {
         if (!confirm('Tem certeza que deseja apagar TODOS os contratos? Esta ação não pode ser desfeita.')) {
             showSuccessMessage('Operação cancelada pelo usuário');
@@ -249,17 +248,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateContractList(contracts, page = 1) {
         const container = elements.documentsContainer;
-        const CONTRACTS_PER_PAGE = 6;
+        const CONTRACTS_PER_PAGE = 4;
         const start = (page - 1) * CONTRACTS_PER_PAGE
         const end = start + CONTRACTS_PER_PAGE;
         const contractsToShow = contracts.slice(start, end)
 
-        // Ordenar por data (mais antiga primeiro)
-        contracts.sort((a, b) => {
-            if (!a.date) return -1;
-            if (!b.date) return 1;
-            return a.date.localeCompare(b.date);
-        })
 
         if (contractsToShow.length === 0) {    
             container.innerHTML = '<div class="no-results">Nenhum contrato encontrado</div>';
@@ -320,6 +313,14 @@ async function loadContracts(filters = {}) {
         if (!response.ok) throw new Error('Erro ao carregar contratos');
         
         const contracts = await response.json();
+
+                // Ordenar por data (mais antiga primeiro)
+        contracts.sort((a, b) => {
+            if (!a.date) return -1;
+            if (!b.date) return 1;
+            return a.date.localeCompare(b.date);
+        })
+
         allContracts = contracts;
         currentPage = 1;
         updateContractList(allContracts, currentPage);

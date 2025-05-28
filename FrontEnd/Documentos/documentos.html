@@ -119,7 +119,35 @@
 
     
 <script>
-    
+    const API_BASE_URL = 'http://localhost:3000/api';
+
+async function atualizarBadges() {
+    // Defina os endpoints e seletores dos badges
+    const recursos = [
+        { endpoint: 'contracts', badgeSelector: '.document-card.contract .badge', texto: 'contratos registrados' },
+        { endpoint: 'projects', badgeSelector: '.document-card.project .badge', texto: 'projetos registrados' },
+        { endpoint: 'identities', badgeSelector: '.document-card.identity .badge', texto: 'identidades registradas' }
+    ];
+
+    for (const recurso of recursos) {
+        try {
+            const res = await fetch(`${API_BASE_URL}/${recurso.endpoint}/count`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            const badge = document.querySelector(recurso.badgeSelector);
+            if (badge) badge.textContent = `${data.count} ${recurso.texto}`;
+        } catch {
+            // Se der erro, mostra 0
+            const badge = document.querySelector(recurso.badgeSelector);
+            if (badge) badge.textContent = `0 ${recurso.texto}`;
+        }
+    }
+}
+
+// Chame ao carregar a página
+document.addEventListener('DOMContentLoaded', atualizarBadges);
+
+// E chame também após adicionar/excluir em cada página específica
         async function displayUsername() {
             const usernameElement = document.getElementById('username-display')
         try {

@@ -294,6 +294,14 @@ function renderProjectsPage(page) {
       
       const data = await response.json();
       allProjects = data.projects || [];
+
+      // Ordenar por data de início mais recente primeiro
+    allProjects.sort((a, b) => {
+      if (!a.start_date) return 1;
+      if (!b.start_date) return -1;
+      return b.start_date < b.end_date ? 1 : -1;
+    });
+
       renderProjectsPage(currentPage);
     } catch (error) {
       console.error('Erro ao carregar projetos:', error);
@@ -309,6 +317,7 @@ function renderProjectsPage(page) {
     }
   }
 
+  
   function renderProjects(projects) {
     projectsTable.innerHTML = '';
 

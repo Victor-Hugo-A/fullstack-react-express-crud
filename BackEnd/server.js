@@ -53,6 +53,34 @@ app.use('/project-files', express.static('uploads/projects'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Adicionar o router ao app
+app.use('/api', router);
+
+// ATUALIZAÇÃO DO BADGE - REGISTROS
+router.get('/contracts/count', (req, res) => {
+    try {
+        const contracts = readContracts();
+        res.json({ count: contracts.length });
+    } catch (error) {
+        res.status(500).json({ count: 0, error: 'Erro ao contar contratos' })
+    }
+});
+
+router.get('/projects/count', (req, res) => {
+    db.get('SELECT COUNT(*) as count FROM projects', [], (err, row) => {
+        if (err) return res.status(500).json({ count: 0, error: 'Erro ao contar projetos' });
+        res.json({ count: row.count });
+    });
+});
+
+router.get('/identities/count', (req, res) => {
+    db.get('SELECT COUNT(*) as count FROM identities', [], (err, row) => {
+        if (err) return res.status(500).json({ count: 0, error: 'Erro ao contar identidades' });
+        res.json({ count: row.count });
+    });
+});
+
+
 
 app.post('/api/contracts/sync', (req, res) => {
     try {
@@ -1546,5 +1574,3 @@ process.on('SIGINT', async () => {
     }
 });
 
-// Adicionar o router ao app
-app.use('/api', router);
