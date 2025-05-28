@@ -124,11 +124,11 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn-submit">
-                            <i class="fas fa-save me-2"></i>Salvar Projeto
+                        <button type="submit" title="Salvar Projeto" class="btn-submit">
+                            <i class="fas fa-save me-2" title="Salvar"></i>Salvar Projeto
                         </button>
-                        <button type="reset" class="btn-cancel">
-                            <i class="fas fa-times me-2"></i>Limpar Formulário
+                        <button type="reset"  title="Limpar Formulário"  class="btn-cancel">
+                            <i class="fas fa-times me-2" title="Limpar"></i>Limpar Formulário
                         </button>
                     </div>
                 </form>
@@ -168,24 +168,24 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div id="loading-projects" class="loading">
                     <i class="fas fa-spinner fa-spin me-2"></i>Carregando projetos...
                 </div>
-
-
-                <div class="pagination">
-                    <a href="#" class="page-nav"><i class="fas fa-angle-double-left"></i></a>
-                    <a href="#pagina1" class="page-link active">1</a>
-                    <a href="#pagina2" class="page-link">2</a>
-                    <a href="#pagina3" class="page-link">3</a>
-                    <a href="#" class="page-nav"><i class="fas fa-angle-double-right"></i></a>
-                </div>
+                
+                
             </section>
         </main>
     </div>
-
-
+    <div class="pagination projectpage">
+        <a href="#" class="page-nav" data-page="prev"><i class="fas fa-angle-double-left"></i></a>
+        <a href="#" class="page-link active" data-page="1">1</a>
+        <a href="#" class="page-link" data-page="2">2</a>
+        <a href="#" class="page-link" data-page="3">3</a>
+        <a href="#" class="page-nav" data-page="next"><i class="fas fa-angle-double-right"></i></a>
+    </div>
+    
+    
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/FrontEnd/Documentos/projetos.js"></script>

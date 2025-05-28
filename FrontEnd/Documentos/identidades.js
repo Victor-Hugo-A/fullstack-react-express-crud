@@ -1,36 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
     const API_URL = 'http://localhost:3000/api/identities';
-
-async function carregarIdentidades() {
-        const response = await fetch(API_URL);
-        if(!response.ok) {
-            showIdentityMessage('Erro ao carregar identidades!', 'error');
-            return;
+    
+    
+    function cpfValue(cpf) {
+        try {
+            if (!/^\d{11}$/.test(cpf)) {
+                throw new Error('CPF deve ter 11 dígitos numéricos');
+            }
+            if  (/^(\d)\1+$/.test(cpf)) {
+                throw new Error('CPF inválido');
+                }
+                // Fomatação do CPF
+                return cpf.replace(/(^\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+            }  catch (error) {
+                ErroMessage(error.message, 'error');
+                return '';
+            }
+        }
+        
+        async function cpfJaCadastrado(cpf) {
+            const response = await fetch (API_URL)
+            if (!response.ok) return false;
+            const identidades = await response.json();
+            return identidades.some(id => id.cpf.replace(/\D/g, '') === cpf);
         }
 
-        const identidades = await response.json();
-        const tbody = document.getElementById('identities-table').querySelector('tbody');
-        tbody.innerHTML = ''; // Limpa o conteúdo atual da tabela
-        identidades.forEach(id => {
-            const BACKEND_URL = 'http://localhost:3000';
-            tbody.innerHTML += `
-                <tr>
-                <td>${id.nome}</td>
-                <td>${id.cpf}</td>
-                <td>${id.endereco}</td>
-                <td>${id.perfil}</td>
-                <td>
-                <img src="${BACKEND_URL}${id.foto}" alt="Foto 3x4" style="width:100px;height:100px;object-fit:cover;border-radius:4px;"
-                onclick="abrirModalImagem('${BACKEND_URL}${id.foto}')" />
-                <button class = "btn btn-danger btn-sm" onclick="deletarIdentidade('${id.id}')">Excluir</button>
-                </td>
-                </tr>
-            `;
-        });
-    }      
-
-document.getElementById('identity-form').addEventListener('submit', async function(e) {
+        document.getElementById('identity-form').addEventListener('submit', async function(e) {
     e.preventDefault();
+    const cpfInput = document.getElementById('cpf');
+    const cpf = cpfInput.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+
+    const cpfFormatado = cpfValue(cpf);
+    if (!cpfFormatado) return
+
+    if (await cpfJaCadastrado(cpf)) {
+        ErroMessage('CPF já cadastrado!', 'error');
+        return;
+    }
+
     const formData = new FormData(this);
     const response = await fetch(API_URL, {
         method: 'POST',
@@ -38,13 +45,50 @@ document.getElementById('identity-form').addEventListener('submit', async functi
     });
     const data = await response.json();
     if(data.success) {
-        showIdentityMessage('Identidade cadastrada com sucesso!', 'success');
+        SuccessMessage('Identidade cadastrada com sucesso!', 'success');
         this.reset();
         carregarIdentidades();
     } else {
-        showIdentityMessage('Erro ao cadastrar identidade!', 'error');
+        ErroMessage('Erro ao cadastrar identidade!', 'error');
     }
+
 });
+
+
+    async function carregarIdentidades() {
+        const response = await fetch(API_URL);
+        if(!response.ok) {
+            ErroMessage('Erro ao carregar identidades!', 'error');
+            return;
+        }
+
+const identidades = await response.json();
+const tbody = document.getElementById('identities-table').querySelector('tbody');
+tbody.innerHTML = ''; // Limpa o conteúdo atual da tabela
+identidades.forEach(id => {
+    const BACKEND_URL = 'http://localhost:3000';
+    const perfilClass = `perfil-${(id.perfil || '').toLowerCase()}`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>${id.nome}</td>
+        <td>${id.cpf}</td>
+        <td>${id.endereco}</td>
+        <td><span class="${perfilClass}">${id.perfil}</span></td>
+        <td>
+            <img src="${BACKEND_URL}${id.foto}" alt="Foto 3x4" style="width:80px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;" />
+        </td>
+        <td>
+            <button class="btn btn-danger btn-sm btn-excluir" title="Excluir identidade">Excluir</button>
+        </td>
+    `;
+
+    // Evento para abrir modal da imagem
+    tr.querySelector('img').addEventListener('click', () => abrirModalImagem(`${BACKEND_URL}${id.foto}`));
+    // Evento para excluir identidade
+    tr.querySelector('.btn-excluir').addEventListener('click', () => deletarIdentidade(id.id));
+    tbody.appendChild(tr);
+});
+}
 
 
 window.deletarIdentidade = async function(id) {
@@ -52,12 +96,13 @@ window.deletarIdentidade = async function(id) {
     const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
     const data = await res.json();
         if(data.success) {
-            showIdentityMessage('Identidade excluída com sucesso!', 'success');
+            SuccessMessage('Identidade excluída com sucesso!', 'success');
             carregarIdentidades();
         } else {
-            showIdentityMessage('Erro ao excluir identidade!', 'error');
+            ErroMessage('Erro ao excluir identidade!', 'error');
         }
 }
+
 
 
 //Abrir modal de imagem
@@ -68,8 +113,8 @@ function abrirModalImagem(src) {
     modal.style.display = 'flex';
     modal.style.justifyContent = 'center';
     modal.style.alignItems = 'center';
-    modalImg.style.maxWidth = '90%';
-    modalImg.style.maxHeight = '90%';
+    modalImg.style.maxWidth = '100%';
+    modalImg.style.maxHeight = '100%';
     modalImg.style.objectFit = 'contain';
     modalImg.style.borderRadius = '8px';
     modalImg.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
@@ -92,17 +137,31 @@ document.getElementById('image-modal').onclick = function(e) {
     }
 }
 
-
-function showIdentityMessage(msg, type) {
-    const msgDiv = document.getElementById('identity-message');
-    msgDiv.textContent = msg;
-    msgDiv.className = `message ${type}`;
-    msgDiv.style.display = 'block';
-    setTimeout(() => {
-        msgDiv.style.display = 'none';
-    }, 4000);
-}
-
 window.abrirModalImagem = abrirModalImagem;
 carregarIdentidades();
+
+const identityMessage = document.getElementById('identity-message');
+  function ErroMessage(message, type) {
+    identityMessage.textContent = message;
+    identityMessage.className = `message ${type}`;
+    identityMessage.style.display = 'block';
+    identityMessage.style.backgroundColor ='#f8d7da';
+
+    setTimeout(() => {
+      identityMessage.style.display = 'none';
+    }, 5000);
+  }
+
+
+  function SuccessMessage(message, type) {
+    identityMessage.textContent = message;
+    identityMessage.className = `message ${type}`;
+    identityMessage.style.display = 'block';
+    identityMessage.style.backgroundColor = '#7CFC00' 
+
+    setTimeout(() => {
+      identityMessage.style.display = 'none';
+    }, 5000);
+  }
+
 });

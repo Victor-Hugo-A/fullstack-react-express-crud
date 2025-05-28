@@ -47,23 +47,109 @@ document.addEventListener('DOMContentLoaded', function() {
   const projectForm = document.getElementById('project-form');
   const loadingProjects = document.getElementById('loading-projects');
   const projectsTable = document.createElement('div');
+  projectsTable.id = 'projects-table';
   projectsTable.className = 'projects-table-container';
   document.querySelector('.document-section:last-child').appendChild(projectsTable);
+
+  // Logica de Páginação
+  const PROJECTS_PER_PAGE = 3;
+  let currentPage = 1;
 
   // Variáveis Globais
   let allProjects = [];
   const token = localStorage.getItem('token');
   
+function renderProjectsPage(page) {
+  const start = (page - 1) * PROJECTS_PER_PAGE;
+  const end = start + PROJECTS_PER_PAGE;
+  const projectsToShow = allProjects.slice(start, end);
+
+  projectsTable.innerHTML = '';
+
+  if (projectsToShow.length === 0) {
+    projectsTable.innerHTML = '<p class="no-projects">Nenhum projeto encontrado</p>';
+    return;
+  }
+
+  const table = document.createElement('table');
+  table.className = 'projects-table';
+
+  const thead = document.createElement('thead');
+  thead.innerHTML = `
+    <tr>
+      <th>Código</th>
+      <th>Nome</th>
+      <th>Responsável</th>
+      <th>Início</th>
+      <th>Término</th>
+      <th>Status</th>
+      <th>Ações</th>
+    </tr>
+  `;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  projectsToShow.forEach(project => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${utils.sanitize(project.code)}</td>
+      <td>${utils.sanitize(project.name)}</td>
+      <td>${utils.sanitize(project.manager)}</td>
+      <td>${utils.formatDate(project.start_date)}</td>
+      <td>${project.end_date ? utils.formatDate(project.end_date) : '-'}</td>
+      <td><span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></td>
+      <td class="actions">
+        <button class="btn-view project" data-id="${project.id}" title="Visualizar Projeto"><i class="fas fa-eye"></i></button>
+        <button class="btn-edit project" data-id="${project.id}" title="Editar Projeto"><i class="fas fa-edit"></i></button>
+        <button class="btn-delete project" data-id="${project.id}" title="Excluir Projeto"><i class="fas fa-trash-alt"></i></button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+  projectsTable.appendChild(table);
+
+  addProjectActionEvents();
+  renderPagination();
+}
+  // Função para renderizar a página
+  function renderPagination() {
+    const totalPages = Math.ceil(allProjects.length / PROJECTS_PER_PAGE)
+    const pagination = document.querySelector('.pagination');
+    pagination.innerHTML = `
+    <a href="#" class="page-nav" data-page="prev"><i class="fas fa-angle-double-left"></i></a>
+    ${Array.from({length: totalPages}, (_, i) => `
+    <a href="#" class="page-link${i+1 === currentPage ? ' active' : ''}" data-page="${i+1}">${i+1}</a>`).join('')}
+    <a href="#" class="page-nav" data-page="next"><i class="fas fa-angle-double-right"></i></a>`;
+  }
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.page-link')) {
+      e.preventDefault();
+      currentPage = Number(e.target.closest('.page-link').dataset.page)
+      renderProjectsPage();
+    }
+    if (e.target.closest('.pag-nav')) {
+      e.preventDefault();
+      const nav = e.target.closest('.page-nav').dataset.page;
+      const totalPages = Math.ceil(allProjects.length / PROJECTS_PER_PAGE);
+      if (nav === 'prev' && currentPage > 1) currentPage--;
+      if (nav === 'next' && currentPage < totalPages) currentPage++;
+      renderProjectsPage(currentPage);
+      }
+    }
+  )
+
   // Inicialização
   initDatePickers();
   loadProjects();
   setupEventListeners();
 
   function initDatePickers() {
-    // Config data mínima no campo de início
-    // const today = new Date().toISOString().split('T')[0];
-    // document.getElementById('project-start').min = today;
-
+    const startDateInput = document.getElementById('project-start');
+    const endDateInput = document.getElementById('project-end');
+    startDateInput.setAttribute('type', 'date');
+    endDateInput.setAttribute('type', 'date');
     document.getElementById('project-start').addEventListener('change', function() {
       document.getElementById('project-end').min = this.value;
     });
@@ -208,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const data = await response.json();
       allProjects = data.projects || [];
-      renderProjects(allProjects);
+      renderProjectsPage(currentPage);
     } catch (error) {
       console.error('Erro ao carregar projetos:', error);
       ErroMessage(
@@ -331,6 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+
 
   async function viewProject(projectId) {
     if (!projectId) {
