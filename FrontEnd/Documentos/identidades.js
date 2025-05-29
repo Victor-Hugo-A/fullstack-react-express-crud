@@ -83,6 +83,9 @@ const IDENTIDADES_PER_PAGE = 5;
     identidadesToShow.forEach(id => {
         const BACKEND_URL = 'http://localhost:3000';
         const perfilClass = `perfil-${(id.perfil || '').toLowerCase()}`;
+        const dataCriacao = id.created_at
+        ? new Date(id.created_at).toLocaleDateString('pt-BR')
+        : '—';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${id.nome}</td>
@@ -92,6 +95,7 @@ const IDENTIDADES_PER_PAGE = 5;
             <td>
                 <img src="${BACKEND_URL}${id.foto}" alt="Foto 3x4" style="width:80px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;" />
             </td>
+            <td>${dataCriacao}</td>
             <td>
                 <button class="btn btn-danger btn-sm btn-excluir" title="Excluir identidade">Excluir</button>
             </td>

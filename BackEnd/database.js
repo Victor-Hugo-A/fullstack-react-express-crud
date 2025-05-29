@@ -71,6 +71,12 @@ db.serialize(() => {
     `);
   });
 
+
+db.all("PRAGMA table_info(identities)", [], (err, rows) => {
+  if (err) throw err;
+  console.log(rows);
+});
+
   module.exports = db;
 
 
@@ -199,6 +205,7 @@ const closeDatabase = () => {
     });
   });
 };
+
 
 // Tratamento de erros do banco de dados
 db.on('error', (err) => {

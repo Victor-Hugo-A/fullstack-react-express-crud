@@ -296,13 +296,14 @@ function renderProjectsPage(page) {
       allProjects = data.projects || [];
 
       // Ordenar por data de início mais recente primeiro
-    allProjects.sort((a, b) => {
-      if (!a.start_date) return 1;
-      if (!b.start_date) return -1;
-      return b.start_date < b.end_date ? 1 : -1;
-    });
+      allProjects.sort((a, b) => {
+        if (!a.start_date) return 1;
+        if (!b.start_date) return -1;
+        return new Date(a.start_date) - new Date(b.start_date)
+      });
 
       renderProjectsPage(currentPage);
+
     } catch (error) {
       console.error('Erro ao carregar projetos:', error);
       ErroMessage(

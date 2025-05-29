@@ -438,6 +438,21 @@ body {
     background-color: rgba(216, 215, 215, 0.315);
 }
 
+.dashboard-container { 
+    max-width: 1400px; 
+    margin: 40px auto; 
+}
+
+#dashboardChart { background: #fff; 
+    border-radius: 10px; 
+    box-shadow: 0 2px 8px #0001; 
+}
+
+.dashboard-actions { 
+    margin-top: 15px; 
+}
+
+
 /* Responsividade */
 @media (max-width: 768px) {
     .projects-container {

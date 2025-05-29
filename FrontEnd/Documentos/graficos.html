@@ -2,17 +2,17 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENAPPEN - Processamento de Documentos</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Open+Sans:wght@400;600&display=swap">
+    <title>SENAPPEN Dashboard de Gráficos</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Open+Sans:wght@400;600&display=swap">
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 
 <body>
-    <div class="app-container">
+
+        <div class="app-container">
         <!-- Sidebar -->
         <button id="menuToggle">✕</button>
         <nav id="sidebar" class="sidebar">
@@ -61,7 +61,7 @@
         <!-- Conteúdo Principal -->
     <main class="main-content">
         <header class="main-header">
-            <h1 class="page-title">Processamento de Documentos</h1>
+            <h1 class="page-title">Dashboard</h1>
                 <div class="user-actions">
                     <span class="username" id="username-display">Usuário</span>
                         <a href="/FrontEnd/Sistema/sistema.html" class="home-btn">
@@ -71,86 +71,38 @@
         </header>
 
             <section class="documents-section">
-                <h2 class="section-title">Documentos a serem Processados</h2>
-                
-                <div class="documents-grid">
+                <h2 class="section-title">Gerenciamento Gráficos</h2>
 
-                <div class="document-card contract">
-                        <a href="/FrontEnd/Documentos/contrato.html">
-                <div class="card-icon">
-                        <i class="fas fa-file-contract"></i>
-                </div>
-                        </a>
-                            <h3 class="card-title">Contratos</h3>
-                        <span class="badge"></span>
-                </div>
-                    
-                <div class="document-card project">
-                        <a href="/FrontEnd/Documentos/projetos.html">
-                <div class="card-icon">
-                        <i class="fas fa-diagram-project"></i>
-                </div>
-                        </a>
-                            <h3 class="card-title">Projetos</h3>
-                        <span class="badge"></span>
-                </div>
-                    
-                <div class="document-card identity">
-                        <a href="/FrontEnd/Documentos/identidades.html">
-                <div class="card-icon">
-                        <i class="fas fa-id-card"></i>
-                </div>
-                        </a>
-                        <h3 class="card-title">Identidades</h3>
-                        <span class="badge"></span>
-                </div>
-                    
-                <div class="document-card other">
-                        <a href="/FrontEnd/Documentos/graficos.html">
-                <div class="card-icon">
-                    <img src="/FrontEnd/img/grafico-result.png" alt="Gráficos" class="grafic">
-                </div>
-                        </a>
-                            <h3 class="card-title">Gráficos</h3>
-                            <span class="badge">Registro Total
-                                <i class="fas fa-info-circle info-icon" title="Verifique o gráfico para mais informações!"></i>
-                            </span>
-                        </div>
-            </div>
-        </section>
-    </main>
-</div>
+
+
+    <div class="dashboard-container">
+        <h3 class="mb-4">Dashboard de Documentos</h3>
+        <div class="mb-3">
+            <label for="yearSelect" class="form-label">Ano:</label>
+            <select id="yearSelect" class="form-select" style="width:150px;display:inline-block;">
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+            </select>
+        </div>
+        <canvas id="dashboardChart" height="120"></canvas>
+        <div class="dashboard-actions">
+            <button id="downloadChart" class="btn btn-success">
+                <i class="fas fa-download"></i> Baixar Gráfico
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
     
-<script>
+    <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const API_BASE_URL = 'http://localhost:3000/api';
+
     
-    document.addEventListener('DOMContentLoaded', function() {
-        const API_BASE_URL = 'http://localhost:3000/api';
-
-async function atualizarBadges() {
-    // Defina os endpoints e seletores dos badges
-    const recursos = [
-        { endpoint: 'contracts', badgeSelector: '.document-card.contract .badge', texto: 'contratos registrados' },
-        { endpoint: 'projects', badgeSelector: '.document-card.project .badge', texto: 'projetos registrados' },
-        { endpoint: 'identities', badgeSelector: '.document-card.identity .badge', texto: 'identidades registradas' }
-    ];
-
-    for (const recurso of recursos) {
-        try {
-            const res = await fetch(`${API_BASE_URL}/${recurso.endpoint}/count`);
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            const badge = document.querySelector(recurso.badgeSelector);
-            if (badge) badge.textContent = `${data.count} ${recurso.texto}`;
-        } catch {
-            // Se der erro, mostra 0
-            const badge = document.querySelector(recurso.badgeSelector);
-            if (badge) badge.textContent = `0 ${recurso.texto}`;
-        }
-    }
-}
-
-        async function displayUsername() {
+            async function displayUsername() {
             const usernameElement = document.getElementById('username-display')
         try {
             // Recupera o token do localStorage (armazenado durante o login)
@@ -192,7 +144,6 @@ async function atualizarBadges() {
 }
 
 displayUsername();
-atualizarBadges();
 
 const menuToggle = document.getElementById("menuToggle");
 const sidebar = document.getElementById("sidebar");
@@ -222,7 +173,9 @@ if (menuToggle && sidebar) {
     });
 });
 
-</script>
+    </script>
+    <script src="/FrontEnd/Documentos/graficos.js"></script>
 
-    </body>
+</body>
+
 </html>

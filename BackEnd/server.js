@@ -59,22 +59,40 @@ app.use('/api', router);
 // ATUALIZAÇÃO DO BADGE - REGISTROS
 router.get('/contracts/count', (req, res) => {
     try {
+        const year = req.query.year;
         const contracts = readContracts();
-        res.json({ count: contracts.length });
+        const filtered = year
+        ? contracts.filter(c => c.date && c.date.startsWith(year))
+        : contracts;
+        res.json({ count: filtered.length });
     } catch (error) {
         res.status(500).json({ count: 0, error: 'Erro ao contar contratos' })
     }
 });
 
 router.get('/projects/count', (req, res) => {
-    db.get('SELECT COUNT(*) as count FROM projects', [], (err, row) => {
+    const year = req.query.year;
+    let sql = 'SELECT COUNT(*) as count FROM projects';
+    let params = [];
+    if (year) {
+        sql += ' WHERE start_date LIKE ?';
+        params.push(`${year}%`);
+    }
+    db.get(sql, params, (err, row) => {
         if (err) return res.status(500).json({ count: 0, error: 'Erro ao contar projetos' });
         res.json({ count: row.count });
     });
 });
 
 router.get('/identities/count', (req, res) => {
-    db.get('SELECT COUNT(*) as count FROM identities', [], (err, row) => {
+    const year = req.query.year;
+    let sql = 'SELECT COUNT(*) as count FROM identities';
+    let params = [];
+    if (year) {
+        sql += ' WHERE created_at LIKE ?';
+        params.push(`${year}%`);
+    }
+    db.get(sql, params, (err, row) => {
         if (err) return res.status(500).json({ count: 0, error: 'Erro ao contar identidades' });
         res.json({ count: row.count });
     });
@@ -989,50 +1007,50 @@ router.delete('/projects/:id', async (req, res) => {
         limits: { fileSize: 5 * 1024 * 1024 }, // 5MB   
     });
 
-app.post('/api/identities', identitiesUpload.single('foto'), (req, res) => {
-    console.log('Recebido:', req.body, req.file);
-    const {nome, cpf, endereco, perfil} = req.body;
-    const foto = req.file ? `/uploads/identities/${req.file.filename}` : null;
-    db.run(
-        `INSERT INTO identities (nome, cpf, endereco, perfil, foto) VALUES (?, ?, ?, ?, ?)`,
-        [nome, cpf, endereco, perfil, foto],
-        function(err) {
-            if (err) return res.status(500).json({ success: false, error: err.message });
-            res.json({ success: true, id: this.lastID, foto });
-        }
-    );
-});
-
-app.get('/api/identities', (req, res) => {
-    db.all('SELECT * FROM identities', [], (err, rows) => {
-        console.log('Retornando:', rows);
-        if (err) return res.status(500).json({ success: false, error: err.message });
-        res.json(rows);
-    });
-});
-
-app.delete('/api/identities/:id', (req, res) => {
-    const id = req.params.id;
-
-    db.get(`SELECT foto FROM identities WHERE id = ?`, [id], (err, row) => {
-        if (err) return res.status(500).json({ success: false, error: err.message });
-        if (!row) return res.status(404).json({ success: false, message: 'Identidade não encontrada' });
-
-        // Deletar o arquivo físico
-        if (row && row.foto) {
-            const filePath = path.join(__dirname, row.foto); 
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
+    app.post('/api/identities', identitiesUpload.single('foto'), (req, res) => {
+        console.log('Recebido:', req.body, req.file);
+        const {nome, cpf, endereco, perfil} = req.body;
+        const foto = req.file ? `/uploads/identities/${req.file.filename}` : null;
+        const createdAt = new Date().toISOString().slice(0, 10);
+        db.run(
+            `INSERT INTO identities (nome, cpf, endereco, perfil, foto, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+            [nome, cpf, endereco, perfil, foto, createdAt],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, error: err.message });
+                res.json({ success: true, id: this.lastID, foto });
             }
-        }
-             // Deletar do banco de dados
-            db.run(`DELETE FROM identities WHERE id = ?`, [id], function (err) { 
-                if (err) return res.status(500).json({ success: false, message: err.message });
-                res.json({ success: true });
+        );
+    });
+
+    app.get('/api/identities', (req, res) => {
+        db.all('SELECT * FROM identities', [], (err, rows) => {
+            console.log('Retornando:', rows);
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            res.json(rows);
         });
     });
-});
 
+    app.delete('/api/identities/:id', (req, res) => {
+        const id = req.params.id;
+
+        db.get(`SELECT foto FROM identities WHERE id = ?`, [id], (err, row) => {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            if (!row) return res.status(404).json({ success: false, message: 'Identidade não encontrada' });
+
+            // Deletar o arquivo físico
+            if (row && row.foto) {
+                const filePath = path.join(__dirname, row.foto); 
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+            }
+                // Deletar do banco de dados
+                db.run(`DELETE FROM identities WHERE id = ?`, [id], function (err) { 
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    res.json({ success: true });
+            });
+        });
+    });
 
 
 // Funções de gerenciamento de token
