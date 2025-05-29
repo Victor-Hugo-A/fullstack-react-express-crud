@@ -1,5 +1,5 @@
-node_modules
-.env
-uploads
-database.sqlite
-data
+# node_modules
+# .env
+# uploads
+# database.sqlite
+# data
