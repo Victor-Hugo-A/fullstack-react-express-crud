@@ -190,6 +190,8 @@
 
     
 <script> 
+
+document.addEventListener('DOMContentLoaded', function() {
     async function displayUsername() {
     const usernameElement = document.getElementById('username-display')
 
@@ -255,8 +257,7 @@
     }
 }
 
-// Chama a função quando a página carrega
-document.addEventListener('DOMContentLoaded', displayUsername);
+    displayUsername();
 
 const menuToggle = document.getElementById("menuToggle");
 const sidebar = document.getElementById("sidebar");
@@ -272,7 +273,6 @@ if (menuToggle && sidebar) {
 
 
 // Active dentro dos links para ficar fixado(marcado), como = "CONTRATO" "PROJETOS" "DOCUMENTOS" "IDENTIDADES" "OUTROS" !!!
-document.addEventListener('DOMContentLoaded', function() {
     const currentPage = window.location.pathname.split('/').pop();
     const navLinks = document.querySelectorAll('.nav-link');
     

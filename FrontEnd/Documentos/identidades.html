@@ -157,6 +157,7 @@
 
 
 <script> 
+    document.addEventListener('DOMContentLoaded', function() {
 
 // Função para exibir o nome de usuário
         async function displayUsername() {
@@ -200,10 +201,8 @@
     }
 }
 
-    // Chama a função quando a página carrega
-    document.addEventListener('DOMContentLoaded', displayUsername);
+displayUsername();
 
-    document.addEventListener('DOMContentLoaded', function() {
     const menuToggle = document.getElementById("menuToggle");
     const sidebar = document.getElementById("sidebar");
 

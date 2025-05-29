@@ -110,8 +110,10 @@
                     <img src="/FrontEnd/img/grafico-result.png" alt="Gráficos" class="grafic">
                 </div>
                             <h3 class="card-title">Gráficos</h3>
-                        <span class="badge">0 pendentes</span>
-                </div>
+                            <span class="badge">Registro Total
+                                <i class="fas fa-info-circle info-icon" title="Verifique o gráfico para mais informações"></i>
+                            </span>
+                        </div>
             </div>
         </section>
     </main>
@@ -119,7 +121,8 @@
 
     
 <script>
-    const API_BASE_URL = 'http://localhost:3000/api';
+    document.addEventListener('DOMContentLoaded', function() {
+        const API_BASE_URL = 'http://localhost:3000/api';
 
 async function atualizarBadges() {
     // Defina os endpoints e seletores dos badges
@@ -143,9 +146,6 @@ async function atualizarBadges() {
         }
     }
 }
-
-// Chame ao carregar a página
-document.addEventListener('DOMContentLoaded', atualizarBadges);
 
 // E chame também após adicionar/excluir em cada página específica
         async function displayUsername() {
@@ -188,9 +188,9 @@ document.addEventListener('DOMContentLoaded', atualizarBadges);
         }
     }
 }
-    // Chama a função quando a página carrega
-    document.addEventListener('DOMContentLoaded', displayUsername);
 
+atualizarBadges();
+displayUsername();
 
 const menuToggle = document.getElementById("menuToggle");
 const sidebar = document.getElementById("sidebar");
@@ -206,7 +206,6 @@ if (menuToggle && sidebar) {
 
 
 // Active dentro dos links para ficar fixado(marcado), como = "CONTRATO" "PROJETOS" "DOCUMENTOS" "IDENTIDADES" "OUTROS" !!!
-document.addEventListener('DOMContentLoaded', function() {
     const currentPage = window.location.pathname.split('/').pop();
     const navLinks = document.querySelectorAll('.nav-link');
     
@@ -220,7 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
 
 </script>
 

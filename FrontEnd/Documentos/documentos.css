@@ -41,7 +41,7 @@ body {
     top: 1rem;
     left: 0.5rem;
     z-index: 1001;
-    background: var(--primary-color);
+    background: rgba(143, 142, 142, 0.863);
     color: white;
     border: none;
     width: 35px;
@@ -65,6 +65,12 @@ body {
     left: calc(var(--sidebar-width) + 1rem);
 }
 
+.sidebar.closed {
+    transform: translateX(-100%);
+    transition: var(--transition);
+}
+
+.si
 /* Visualização de Projetos - Estilo Modernizado */
 .projects-container {
     display: grid;
@@ -493,6 +499,7 @@ tr:hover {
     height: 100vh;
     z-index: 100;
     transition: var(--transition);
+    transform: translateX(0);
 }
 
 .sidebar-brand {
@@ -851,6 +858,7 @@ tr:hover {
 }
 
 .badge {
+    color: rgba(136, 134, 134, 0.932);
     font-size: 0.8rem;
     font-family:cursive
 }
