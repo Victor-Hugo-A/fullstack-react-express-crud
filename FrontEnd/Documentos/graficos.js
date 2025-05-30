@@ -25,8 +25,15 @@ async function renderDashboard(year) {
     const counts = await fetchCounts(year);
     const ctx = document.getElementById('dashboardChart').getContext('2d');
     
-    // Destruir gráfico anterior se existir
-    if (chart) chart.destroy();
+    if (chart && typeof chart.destroy === 'function') {
+        chart.destroy();
+    }
+
+    if (!ctx) {
+        console.error('Canvas context não encontrado')
+        return
+    }
+
 
     // Dados para o gráfico
     const data = {
@@ -61,6 +68,7 @@ async function renderDashboard(year) {
         maintainAspectRatio: false,          // Permite ajustar livremente
         plugins: {
             legend: { 
+                onClick: null,
                 display: true,
                 position: 'top',
                 labels: {
@@ -162,6 +170,12 @@ async function renderDashboard(year) {
         data: data,
         options: options
     });
+
+        if( !chart || chart === null) {
+        console.warn('Gráfico não está inicializado')
+        return;
+    } 
+
 }    
 
 document.getElementById('yearSelect').addEventListener('change', function() {

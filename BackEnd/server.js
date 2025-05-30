@@ -15,6 +15,7 @@ const router = express.Router();
 const contractsFilePath = path.join(__dirname, 'data', 'contracts.json');
 const mime = require('mime-types');
 const compression = require('compression'); // npm install compression
+const { count } = require('console');
 app.use(compression()); // Ativa compressão globalmente
 
 const corsOptions = {
@@ -55,6 +56,35 @@ app.use(express.json());
 
 // Adicionar o router ao app
 app.use('/api', router);
+
+
+// RETORNA DASHBOARD PARA OS TIPOS, STATUS E PERFIL
+router.get('/contracts/groupby/type', (req, res) => {
+    const contracts = readContracts();
+    const counts = {};
+    contracts.forEach(c => {
+        const tipo = (c.tipo || 'Outro', 'Convenio').toLowerCase();
+        counts[tipo] = (counts[tipo] || 0) +1;
+    });
+    res.json(Object.entries(counts).map(([tipo,count]) => ({ tipo, count })));
+});
+
+// Identidades por status
+router.get('/projects/groupby/status', (req, res) => {
+    db.all('SELECT status, COUNT(*) as count FROM projects GROUP BY status', [], (err, rows) => {
+        if (err) return res.status(500).json([]);
+        res.json(rows);
+    });
+});
+
+// Identidades por perfil
+router.get('/identities/groupby/perfil', (req, res) => {
+    db.all('SELECT perfil, COUNT(*) as count FROM identities GROUP BY perfil', [], (err, rows) => {
+        if (err) return res.status(500).json([]);
+        res.json(rows);
+    });
+});
+
 
 // ATUALIZAÇÃO DO BADGE - REGISTROS
 router.get('/contracts/count', (req, res) => {
