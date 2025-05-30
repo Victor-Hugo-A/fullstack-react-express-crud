@@ -99,7 +99,6 @@ router.get('/identities/count', (req, res) => {
 });
 
 
-
 app.post('/api/contracts/sync', (req, res) => {
     try {
         // Atualiza a lista de contratos com o sistema de arquivos

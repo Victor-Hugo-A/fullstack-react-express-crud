@@ -61,7 +61,7 @@
         <!-- Conteúdo Principal -->
     <main class="main-content">
         <header class="main-header">
-            <h1 class="page-title">Dashboard</h1>
+            <h1 class="page-title"> Gerenciamento do Dashboard</h1>
                 <div class="user-actions">
                     <span class="username" id="username-display">Usuário</span>
                         <a href="/FrontEnd/Sistema/sistema.html" class="home-btn">
@@ -71,29 +71,40 @@
         </header>
 
             <section class="documents-section">
-                <h2 class="section-title">Gerenciamento Gráficos</h2>
 
-
-
-    <div class="dashboard-container">
+<div class="dashboard-wrapper"> <!-- Novo container pai para organizar os dois lados -->
+    <div class="dashboard-container"> <!-- Lado esquerdo (gráfico) -->
         <h3 class="mb-4">Dashboard de Documentos</h3>
         <div class="mb-3">
             <label for="yearSelect" class="form-label">Ano:</label>
-            <select id="yearSelect" class="form-select" style="width:150px;display:inline-block;">
+            <select id="yearSelect" class="form-select" style="width:100px;display:inline-block;">
                 <option value="2025">2025</option>
                 <option value="2026">2026</option>
                 <option value="2027">2027</option>
             </select>
         </div>
-        <canvas id="dashboardChart" height="120"></canvas>
+        <div id="dashboardChart-container">
+            <canvas id="dashboardChart"></canvas>
+        </div>
         <div class="dashboard-actions">
-            <button id="downloadChart" class="btn btn-success">
+            <button id="downloadChart" class="btn btn-download">
                 <i class="fas fa-download"></i> Baixar Gráfico
             </button>
         </div>
     </div>
+    
+    <div class="chart-container"> <!-- Lado direito (informações) -->
+        <div class="chart-info">
+            <h5>Este gráfico apresenta somente a parte de "DOCUMENTOS"</h5>
+            <p>Para mais informações verifique o Dashboard Geral clicando na imagem a baixo:</p>
+            <a href="/FrontEnd/Dashboard/dashboard.html">
+                <img src="/FrontEnd/img/grafico-result.png" alt="Gráficos" class="icon">
+            </a>
+        </div>
+    </div>
+</div>    
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
     
     <script>
