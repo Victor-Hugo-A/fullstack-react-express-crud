@@ -12,18 +12,6 @@
     "createdAt": "2025-05-26T18:48:05.421Z"
   },
   {
-    "id": "b840dc8b-b893-4497-b22c-66c308f87b75",
-    "type": "servicos",
-    "number": "928392",
-    "date": "2025-05-26",
-    "description": "123",
-    "fileName": "1748286185472-440418879.png",
-    "originalName": "relatorio.png",
-    "filePath": "/uploads/contracts/1748286185472-440418879.png",
-    "mimeType": "image/png",
-    "createdAt": "2025-05-26T19:03:05.474Z"
-  },
-  {
     "id": "375b02e9-2105-40e2-bb85-ee848fd2ccfe",
     "type": "convenio",
     "number": "928390",

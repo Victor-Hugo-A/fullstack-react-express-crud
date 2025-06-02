@@ -4,7 +4,8 @@
     async function fetchContratosPorTipo() {
         // Exemplo de resposta esperada: [{ tipo: 'aditivo', count: 5 }, ...]
         const res = await fetch(`${API_BASE_URL}/contracts/groupby/type`);
-        return res.ok ? await res.json() : [];
+        const data = res.ok ? await res.json() : [];
+        return data;
     }
 
     async function fetchProjetosPorStatus() {
@@ -21,26 +22,38 @@
 
     // Renderização dos gráficos
     async function renderCharts() {
+
         // Contratos por tipo
         const contratos = await fetchContratosPorTipo();
+        const contratosFiltrados = contratos.filter(c => c.tipo && c.count);
+
+        // Cria um dataset para cada tipo de contrato
+        const datasets = contratosFiltrados.map((c, idx) => ({
+            label: c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1),
+            data: [c.count],
+            backgroundColor: [
+                ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14'][idx % 6]
+            ]
+        }));
+
         new Chart(document.getElementById('contratosChart'), {
             type: 'bar',
             data: {
-                labels: contratos.map(c => c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1)),
-                datasets: [{
-                    label: 'Quantidade',
-                    data: contratos.map(c => c.count),
-                    backgroundColor: [
-                        '#007bff', '#28a745', '#ffc107', '#dc3545'
-                    ]
-                }]
+                labels: ['Tipos de Contrato'],
+                datasets: datasets
             },
             options: {
-                plugins: { title: { display: true, text: 'Contratos por Tipo' } },
+                plugins: {
+                    legend: { display: true }, // Mostra a legenda com os tipos
+                    title: { display: true, text: 'Contratos por Tipo' }
+                },
                 responsive: true,
-                scales: { y: { beginAtZero: true, precision: 0 } }
+                scales: { 
+                    y: { beginAtZero: true, precision: 0 }
+                }
             }
         });
+
 
         // Projetos por status
         const projetos = await fetchProjetosPorStatus();

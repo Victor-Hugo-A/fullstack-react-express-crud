@@ -2,6 +2,8 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_super_segura';
 const express = require('express');
+const session = require('express-session')
+const Keycloak = require('keycloak-connect')
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -26,8 +28,50 @@ const corsOptions = {
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+// Configuração da sessão
+const memoryStore = new session.MemoryStore();
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'segredo-desenvolvimento',
+  resave: false,
+  saveUninitialized: true,
+  store: memoryStore
+}));
+
+// Configuração do Keycloak
+const keycloak = new Keycloak(
+  { store: memoryStore },
+  {
+    realm: process.env.KEYCLOAK_REALM,
+    'auth-server-url': process.env.KEYCLOAK_AUTH_SERVER_URL,
+    'ssl-required': 'external',
+    resource: process.env.KEYCLOAK_CLIENT_ID,
+    credentials: {
+      secret: process.env.KEYCLOAK_CLIENT_SECRET
+    },
+    'confidential-port': 0
+  }
+);
+
+app.use(keycloak.middleware());
+
+// Rotas
+app.get('/public', (req, res) => {
+  res.json({ message: 'Rota pública' });
+});
+
+app.get('/protected', keycloak.protect(), (req, res) => {
+  res.json({ 
+    message: 'Rota protegida',
+    user: req.kauth.grant.access_token.content 
+  });
+});
+
+app.get('/admin', keycloak.protect('realm:admin'), (req, res) => {
+  res.json({ message: 'Acesso apenas para administradores' });
+});
 
 
 // Configuração de diretórios
@@ -63,7 +107,7 @@ router.get('/contracts/groupby/type', (req, res) => {
     const contracts = readContracts();
     const counts = {};
     contracts.forEach(c => {
-        const tipo = (c.tipo || 'Outro', 'Convenio').toLowerCase();
+        const tipo = (c.type || 'Outro').toLowerCase();
         counts[tipo] = (counts[tipo] || 0) +1;
     });
     res.json(Object.entries(counts).map(([tipo,count]) => ({ tipo, count })));

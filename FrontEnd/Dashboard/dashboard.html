@@ -3,38 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard Geral</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
     <link rel="stylesheet" href="dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        body { background: #f8f9fa; }
-        .dashboard-container { max-width: 1200px; margin: 40px auto; }
-        .chart-box { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0001; padding: 2rem; margin-bottom: 2rem; }
-        .chart-title { margin-bottom: 1rem; }
-        .row { gap: 2rem 0; }
-    </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <h1 class="mb-4">Dashboard Geral</h1>
-        <div class="row">
-            <div class="col-md-6 chart-box">
-                <h4 class="chart-title">Contratos por Tipo</h4>
-                <canvas id="contratosChart"></canvas>
+
+        <div class="app-container">
+        <!-- Sidebar -->
+        <button id="menuToggle">✕</button>
+        <nav id="sidebar" class="sidebar">
+
+            <div class="sidebar-brand">
+                <a href="/FrontEnd/Dashboard/dashboard.html">
+                    <img src="/FrontEnd/img/MJ.png" alt="Logo MJ" class="logo">
+                </a>
             </div>
-            <div class="col-md-6 chart-box">
-                <h4 class="chart-title">Projetos por Status</h4>
-                <canvas id="projetosChart"></canvas>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item contract">
+                <a href="" class="nav-link nav-contract" >
+                    <i class="fas fa-file-contract icon"></i>
+                        <span class="link-text">ContratosTipo</span>
+                </a>
+            </li>
+            <li class="nav-item project">
+                <a href="" class="nav-link nav-project">
+                    <i class="fas fa-diagram-project icon"></i>
+                        <span class="link-text">ProjetosStatus</span>
+                </a>
+            </li>
+            <li class="nav-item identity">
+                <a href="" class="nav-link nav-identify">
+                    <i class="fas fa-id-card icon"></i>
+                        <span class="link-text">IdentidadesPerfil</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+        <main class="main-content">
+        <header class="main-header">
+            <h1 class="page-title">Gerenciamento Geral do dashboard
+                <img class="gflinha" src="/FrontEnd/img/grafico-preditivo.png" alt="grafico-de-linha">
+            </h1>
+            <div class="user-actions">
+                <span class="username" id="username-display">Usuário</span>
+                    <a href="/FrontEnd/Sistema/sistema.html" class="home-btn">
+                        <i class="fas fa-home"></i>
+                    </a>
             </div>
-            <div class="col-md-6 chart-box">
-                <h4 class="chart-title">Identidades por Perfil</h4>
-                <canvas id="identidadesChart"></canvas>
+        </header>
+
+
+        </aside>
+        <main class="flex-fill p-4 dashboard-container">
+            <div class="row g-4">
+                <div class="col-md-6 chart-box">
+                    <h4 class="chart-title">Contratos por Tipo</h4>
+                    <canvas id="contratosChart" aria-label="Gráfico de contratos por tipo" role="img"></canvas>
+                </div>
+                <div class="col-md-6 chart-box">
+                    <h4 class="chart-title">Projetos por Status</h4>
+                    <canvas id="projetosChart" aria-label="Gráfico de projetos por status" role="img"></canvas>
+                </div>
+                <div class="col-md-6 chart-box">
+                    <h4 class="chart-title">Identidades por Perfil</h4>
+                    <canvas id="identidadesChart" aria-label="Gráfico de identidades por perfil" role="img"></canvas>
+                </div>
             </div>
+        </main>
+    </div>
+    
+    <footer>
+        <div class="copyright text-center">
+        <div class="container">
+            &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
         </div>
     </div>
+    </footer>
 
-    <script src="/FrontEnd/Dashboard/dashboard.js"></script>
+
+<script src="/FrontEnd/Dashboard/dashboard.js"></script>
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    async function displayUsername() {
+        const usernameElement = document.getElementById('username-display')
+        if (!usernameElement) {
+            console.error('Elemento username-display não encontrado')
+            return;
+        }
+
+        // Recupera o token do localStorage (armazenado durante o login)
+        const token = localStorage.getItem('token');
+        if (!token) {
+            usernameElement.textContent = 'Visitante'
+            console.warn('Token não encontrado no LocalStorage')
+            return;
+        }
+
+        if (token.length < 30) {
+            console.error('Token parece inválido', token)
+            usernameElement.textContent = 'Usuário';
+            return;
+        }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/user', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+            credentials: 'include'
+        });
+
+        if (response.status === 403) {
+            console.error('Acesso proibido - token pode estar inválido ou expirado');
+            localStorage.removeItem('token'); // Remove token inválido
+            window.location.href = '/login.html'; // Redireciona para login
+            return;
+        }
+             
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data.success && data.user) {
+            usernameElement.textContent = data.user.nome || data.user.username;
+        } else {
+                throw new Error(data.message || 'Dados do usuário não encontrados');
+        }
+    }   catch (error) {
+            console.error('Erro ao buscar nome do usuário:', error);
+            usernameElement.textContent = 'Usuário'
+
+    }
+}
+
+    displayUsername();
+});
+
+const menuToggle = document.getElementById("menuToggle");
+const sidebar = document.getElementById("sidebar");
+
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener("click", () => {
+        sidebar.classList.toggle("closed");
+        menuToggle.textContent = sidebar.classList.contains("closed") ? "☰" : "✕"
+});
+} else {
+    console.error('Elementos do menu não encontrados');
+}
+
+
+// Active dentro dos links para ficar fixado(marcado), como = "CONTRATO" "PROJETOS" "DOCUMENTOS" "IDENTIDADES" "OUTROS" !!!
+    const currentPage = window.location.pathname.split('/').pop();
+    const navLinks = document.querySelectorAll('.nav-link');
     
+    navLinks.forEach(link => {
+        const linkPage = link.getAttribute('href').split('/').pop();
+        if (linkPage === currentPage) {
+            const navItem = link.closest('.nav-item')
+            if (navItem) {
+                navItem.classList.add('active')
+            }
+        }
+    });
+
+</script>
+ 
 </body>
+
 </html>
