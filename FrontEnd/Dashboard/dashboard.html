@@ -25,21 +25,21 @@
 
         <ul class="sidebar-nav">
             <li class="nav-item contract">
-                <a href="" class="nav-link nav-contract" >
+                <a href="#tipo" class="nav-link nav-contract" >
                     <i class="fas fa-file-contract icon"></i>
-                        <span class="link-text">ContratosTipo</span>
+                        <span class="link-text">Tipo</span>
                 </a>
             </li>
             <li class="nav-item project">
-                <a href="" class="nav-link nav-project">
+                <a href="#status" class="nav-link nav-project">
                     <i class="fas fa-diagram-project icon"></i>
-                        <span class="link-text">ProjetosStatus</span>
+                    <span class="link-text">Status</span>
                 </a>
             </li>
             <li class="nav-item identity">
-                <a href="" class="nav-link nav-identify">
+                <a href="#perfil" class="nav-link nav-identify">
                     <i class="fas fa-id-card icon"></i>
-                        <span class="link-text">IdentidadesPerfil</span>
+                        <span class="link-text">Perfil</span>
                 </a>
             </li>
         </ul>
@@ -60,31 +60,30 @@
 
 
         </aside>
-        <main class="flex-fill p-4 dashboard-container">
+        <main class="flex-fill p-4">
             <div class="row g-4">
                 <div class="col-md-6 chart-box">
-                    <h4 class="chart-title">Contratos por Tipo</h4>
+                    <h4 id="tipo" class="chart-title">Contratos por Tipo</h4>
                     <canvas id="contratosChart" aria-label="Gráfico de contratos por tipo" role="img"></canvas>
                 </div>
                 <div class="col-md-6 chart-box">
-                    <h4 class="chart-title">Projetos por Status</h4>
+                    <h4 id="status" class="chart-title">Projetos por Status</h4>
                     <canvas id="projetosChart" aria-label="Gráfico de projetos por status" role="img"></canvas>
                 </div>
                 <div class="col-md-6 chart-box">
-                    <h4 class="chart-title">Identidades por Perfil</h4>
+                    <h4 id="perfil" class="chart-title">Identidades por Perfil</h4>
                     <canvas id="identidadesChart" aria-label="Gráfico de identidades por perfil" role="img"></canvas>
                 </div>
             </div>
         </main>
     </div>
     
-    <footer>
-        <div class="copyright text-center">
-        <div class="container">
+    <footer class="footer bg-light py-3 mt-auto">
+        <div class="container text-center">
             &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
         </div>
-    </div>
     </footer>
+
 
 
 <script src="/FrontEnd/Dashboard/dashboard.js"></script>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>SENAPPEN - Análises Institucionais</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
+    <link rel="stylesheet" href="analises.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <button id="menuToggle">✕</button>
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-brand">
+                <a href="/FrontEnd/Sistema/sistema.html">
+                    <img src="/FrontEnd/img/MJ.png" alt="MJ HOME" class="logo">
+                </a>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a href="/FrontEnd/Documentos/documentos.html" class="nav-link">
+                        <i class="fas fa-clipboard icon"></i>
+                        <span class="link-text">Documentos</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item active">
+                    <a href="/FrontEnd/Análises/analises.html" class="nav-link">
+                        <img src="/FrontEnd/img/grafico-preditivo.png" alt="Análises Geral" class="icon">
+                        <span class="link-text">Análises</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <header class="main-header">
+                <h1 class="page-title">Painel de Análises Institucionais</h1>
+                <div class="user-actions">
+                    <span class="username" id="username-display">Usuário</span>
+                    <a href="/FrontEnd/Sistema/sistema.html" class="home-btn">
+                        <i class="fas fa-home"></i>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Cards de Resumo -->
+            <section class="documents-section">
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card text-center shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-file-contract text-primary"></i> Contratos Ativos</h5>
+                                <p class="display-6" id="contratos-ativos">...</p>
+                                <p class="text-muted">Atualizado em tempo real</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-tasks text-success"></i> Projetos em Andamento</h5>
+                                <p class="display-6" id="projetos-andamento">...</p>
+                                <p class="text-muted">Inclui projetos estratégicos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-users text-warning"></i> Identidades Cadastradas</h5>
+                                <p class="display-6" id="identidades-cadastradas">...</p>
+                                <p class="text-muted">Departamentos distintos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Contratos por Status</h5>
+                                <canvas id="contratosStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Projetos por Status</h5>
+                                <canvas id="projetosStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Análises Recentes -->
+                <h4 class="mb-3"><i class="fas fa-table"></i> Análises Recentes</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Resumo</th>
+                                <th>Status</th>
+                                <th>Responsável</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analises-recentes">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="footer bg-light py-3 mt-auto">
+        <div class="container text-center">
+            &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
+        </div>
+    </footer>
+
+    <script src="analises.js"></script>
+</body>
+</html>

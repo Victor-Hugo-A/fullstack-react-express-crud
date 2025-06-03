@@ -191,6 +191,7 @@ app.post('/api/contracts/sync', (req, res) => {
     }
 });
 
+
 app.get('/api/user', async (req, res) => {
     console.log('Headers recebidos:', req.headers);
 

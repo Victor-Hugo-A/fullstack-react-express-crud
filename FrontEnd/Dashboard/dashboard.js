@@ -32,7 +32,7 @@
             label: c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1),
             data: [c.count],
             backgroundColor: [
-                ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14'][idx % 6]
+                ['#ff9800', '#9c27b0', '#4caf50', '#607d8b', '#2196f3', '#fd7e14'][idx % 6]
             ]
         }));
 
@@ -65,7 +65,7 @@
                     label: 'Quantidade',
                     data: projetos.map(p => p.count),
                     backgroundColor: [
-                        '#17a2b8', '#ffc107', '#6c757d', '#28a745'
+                        '#0288d1', '#2e7d32', '#ed6c02', '#d32f2f'
                     ]
                 }]
             },
@@ -85,7 +85,7 @@
                     label: 'Quantidade',
                     data: identidades.map(i => i.count),
                     backgroundColor: [
-                        '#6610f2', '#fd7e14', '#20c997'
+                        '#1565c0', '#1b5e20', '#f57c00'
                     ]
                 }]
             },

@@ -91,6 +91,10 @@ h5 {
     background-position: left center;
 }
 
+.img {
+    width: 3rem;
+}
+
 .user-menu {
     display: flex;
     align-items: center;

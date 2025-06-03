@@ -1,0 +1,9 @@
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(rgba(250, 250, 250, 0.95), rgba(230, 230, 230, 0.95)), 
+            url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png') center center no-repeat;
+    color: var(--text-dark);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+

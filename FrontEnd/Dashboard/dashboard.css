@@ -11,9 +11,19 @@ body {
     justify-content: center;
     align-items: center;
     display: flex;
-
+    height: 100%;
+    flex-direction: column;
 }
 
+.app-container {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1 0 auto;
+}
 
 .dashboard-container { 
     max-width: 95vw; 
@@ -21,7 +31,6 @@ body {
     margin: 55px auto; 
     padding: 2rem 1rem;
     box-sizing: border-box;
-    /* Melhoria: responsividade */
 }
 
 .chart-box { 
@@ -32,13 +41,17 @@ body {
     margin-bottom: 2rem; 
     margin-left: auto;
     margin-right: auto;
-    width: 100%;
-    max-width: 900px;
+    width: 70%;
+    height: 70%;
     transition: box-shadow 0.2s;
 }
 .chart-box:hover {
     box-shadow: 0 8px 32px #0003;
     /* Melhoria: efeito hover */
+}
+
+.page-title {
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
 }
 
 .chart-title { 
@@ -54,7 +67,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    /* Melhoria: flexbox para melhor layout */
+    background-color: rgba(238, 238, 238, 0.048);
 }
 
 .gflinha {
@@ -76,6 +89,11 @@ body {
     padding: 0 1.5rem;
 }
 
+.footer {
+    flex-shrink: 0;
+    padding: 1rem 0;
+    width: 100%;
+}
 
 /* Responsividade para telas menores */
 @media (max-width: 768px) {
