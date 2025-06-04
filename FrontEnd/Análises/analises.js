@@ -15,15 +15,15 @@ async function fetchResumo() {
 }
 
 async function fetchGraficos() {
-    // Contratos por Status
-    const contratosStatus = await fetch(`${API_BASE_URL}/contracts/groupby/type`).then(r => r.json()).catch(() => ({}));
+    // Contratos por Tipo
+    const contratosTipo = await fetch(`${API_BASE_URL}/contracts/groupby/type`).then(r => r.json()).catch(() => ({}));
     new Chart(document.getElementById('contratosStatusChart'), {
         type: 'doughnut',
         data: {
-            labels: Object.keys(contratosStatus),
+            labels: contratosTipo.map(c => (c.tipo ? c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1) : '-')),
             datasets: [{
-                data: Object.values(contratosStatus),
-                backgroundColor: ['#198754', '#ffc107', '#dc3545', '#6c757d']
+                data: contratosTipo.map(c => c.count),
+                backgroundColor: ['#ff9800', '#9c27b0', '#4caf50', '#6c757d', '#2196f3']
             }]
         },
         options: { plugins: { legend: { position: 'bottom' }}}
@@ -34,24 +34,36 @@ async function fetchGraficos() {
     new Chart(document.getElementById('projetosStatusChart'), {
         type: 'bar',
         data: {
-            labels: Object.keys(projetosStatus),
+            labels: projetosStatus.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1)),
             datasets: [{
                 label:'Projetos',
-                data: Object.values(projetosStatus),
-                backgroundColor: '#0d6efd'
+                data: projetosStatus.map(p => p.count),
+                backgroundColor: ['#2e7d32', '#ed6c02', '#d32f2f']
             }]
         },
         options: {
-            plugins: { legend: 
-                {
-                display: false 
-            }},
-            scales: { y: {
-                beginAtZero: true
-            }}
+            plugins: { legend: { display: false }},
+            scales: { y: { beginAtZero: true }}
         }
     });
-}
+        const identidadesPerfil = await fetch (`${API_BASE_URL}/identities/groupby/perfil`).then(r => r.json()).catch(() => ({}));
+        new Chart(document.getElementById('identidadesChart'), {
+            type: 'line',
+            data: {
+                labels: identidadesPerfil.map(i => i.perfil.charAt(0).toUpperCase() + i.perfil.slice(1)),
+                datasets: [{
+                    label: 'Quantidade',
+                    data: identidadesPerfil.map(i => i.count),
+                    backgroundColor: ['#1565c0', '#1b5e20', '#f57c00']
+                }]
+            },
+            options: {
+                plugins: { title: { display: true, text: 'Identidades por Perfil' } },
+                responsive: true
+            }
+        });
+    }
+
 
 async function fetchAnalisesRecentes() {
     // Busca últimas análises ( contratos, projetos, identidades )
@@ -68,23 +80,25 @@ async function fetchAnalisesRecentes() {
     //Junta e ordena por data
     const todas = [
         ...contratosArr.map(c => ({
-            data: c.updated_at || c.created_at,
+            data: c.updated_at || c.created_at || c.dataCriacao || c.data || c.date || null,
             tipo: 'Contrato',
-            resumo: c.description || c.numero || c.usuario || '-'
+            resumo: c.description || c.numero || c.usuario || '-',
+            status: c.status || c.type || '-',
+            responsavel: 'Não existe Reponsável, para o tipo de contrato!'
         })),
         ...projetosArr.map(p => ({
-            data: p.updated_at || p.created_at,
+            data: p.updated_at || p.created_at || p.data || null,
             tipo: 'Projeto',
             resumo: p.description || p.name,
             status: p.status,
             responsavel: p.manager || '-'
         })),
         ...identidadesArr.map(i => ({
-            data: i.updated_at || i.created_at,
+            data: i.updated_at || i.created_at || i.data || null,
             tipo: 'Identidade',
-            resumo: i.nome,
-            status: i.perfil,
-            responsavel: i.nome
+            resumo: i.cpf || '-',
+            status: i.perfil || '-',
+            responsavel: i.nome || '-'
         }))
     ].sort((a, b) => new Date(b.data) - new Date(a.data)).slice(0, 10);
     
@@ -94,7 +108,7 @@ async function fetchAnalisesRecentes() {
             <td>${a.data ? new Date(a.data).toLocaleDateString('pt-BR') : '-'}</td>
             <td>${a.tipo}</td>
             <td>${a.resumo}</td>
-            <td><span class="badge bg-${a.status === 'Concluído' || a.status === 'ativo' ? 'success' : a.status === 'Em andamento' ? 'warning text-dark' : 'secondary'}">${a.status}</span></td>
+            <td><span class="badge -${a.status === 'Concluído' || a.status === 'ativo' ? 'success' : a.status === 'Em andamento' ? 'warning text-dark' : 'secondary'}">${a.status}</span></td>
             <td>${a.responsavel}</td>
         </tr>
     `).join('');
@@ -124,6 +138,17 @@ async function displayUsername() {
     fetchGraficos();
     fetchAnalisesRecentes();
     displayUsername();
+
+    // Menu expansível para Documentos
+    const documentosToggle = document.getElementById('documentosToggle');
+    const submenuDocumentos = document.getElementById('submenuDocumentos');
+    if (documentosToggle && submenuDocumentos) {
+        documentosToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            submenuDocumentos.style.display = submenuDocumentos.style.display === 'none' ? 'block' : 'none';
+            documentosToggle.querySelector('.submenu-arrow').classList.toggle('rotated');
+        });
+    }
 
     // Sidebar toggle
     const menuToggle = document.getElementById("menuToggle");

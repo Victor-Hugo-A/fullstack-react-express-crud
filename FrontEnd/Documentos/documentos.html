@@ -13,49 +13,65 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
-        <button id="menuToggle">✕</button>
-        <nav id="sidebar" class="sidebar">
 
-            <div class="sidebar-brand">
-                <a href="/FrontEnd/Documentos/documentos.html">
-                    <img src="/FrontEnd/img/MJ.png" alt="Logo MJ" class="logo">
-                </a>
-            </div>
+<!-- Sidebar -->
+<button id="menuToggle">✕</button>
+<nav id="sidebar" class="sidebar">
 
-        <ul class="sidebar-nav">
-            <li class="nav-item active">
-                <a href="/FrontEnd/Documentos/documentos.html" class="nav-link">
-                    <i class="fas fa-clipboard icon"></i>
-                        <span class="link-text">Documentos</span>
-                </a>
-            </li>
-            <li class="nav-item contract">
-                <a href="/FrontEnd/Documentos/contrato.html" class="nav-link nav-contract" >
-                    <i class="fas fa-file-contract icon"></i>
+    <div class="sidebar-brand">
+        <a href="/FrontEnd/Documentos/documentos.html">
+            <img src="/FrontEnd/img/MJ.png" alt="Logo MJ" class="logo">
+        </a>
+    </div>
+
+    <ul class="sidebar-nav">
+        <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" id="documentosToggle">
+                <i class="fas fa-clipboard icon"></i>
+                <span class="link-text">Documentos</span>
+                <i class="fas fa-chevron-down submenu-arrow"></i>
+            </a>
+            <ul class="submenu" id="submenuDocumentos" style="display: none;">
+                <li class="nav-item contract">
+                    <a href="/FrontEnd/Documentos/contrato.html" class="nav-link nav-contract">
+                        <i class="fas fa-file-contract icon"></i>
                         <span class="link-text">Contratos</span>
-                </a>
-            </li>
-            <li class="nav-item project">
-                <a href="/FrontEnd/Documentos/projetos.html" class="nav-link nav-project">
-                    <i class="fas fa-diagram-project icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item project">
+                    <a href="/FrontEnd/Documentos/projetos.html" class="nav-link nav-project">
+                        <i class="fas fa-diagram-project icon"></i>
                         <span class="link-text">Projetos</span>
-                </a>
-            </li>
-            <li class="nav-item identity">
-                <a href="/FrontEnd/Documentos/identidades.html" class="nav-link nav-identify">
-                    <i class="fas fa-id-card icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item identity">
+                    <a href="/FrontEnd/Documentos/identidades.html" class="nav-link nav-identify">
+                        <i class="fas fa-id-card icon"></i>
                         <span class="link-text">Identidades</span>
+                    </a>
+                </li>
+                <li class="nav-item others">
+                    <a href="/FrontEnd/Documentos/graficos.html" class="nav-link nav-others">
+                        <img src="/FrontEnd/img/grafico-result.png" alt="Gráficos" class="icon">
+                        <span class="link-text">Gráficos</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+            <li class="nav-item others">
+                <a href="/FrontEnd/Dashboard/dashboard.html" class="nav-link nav-others">
+                    <img src="/FrontEnd/img/grafico-preditivo.png" alt="Gráficos" class="icon">
+                    <span class="link-text">Dashboard</span>
                 </a>
             </li>
             <li class="nav-item others">
-                <a href="/FrontEnd/Documentos/graficos.html" class="nav-link nav-others">
-                    <img src="/FrontEnd/img/grafico-result.png" alt="Gráficos" class="icon">
-                        <span class="link-text">Gráficos</span>
+                <a href="/FrontEnd/Análises/analises.html" class="nav-link nav-others">
+                    <img src="/FrontEnd/img/analysis.png" alt="Gráficos" class="icon">
+                    <span class="link-text">Análises</span>
                 </a>
             </li>
-        </ul>
-    </nav>
+    </ul>
+</nav>
 
 
         <!-- Conteúdo Principal -->
@@ -149,6 +165,17 @@ async function atualizarBadges() {
         }
     }
 }
+
+// Menu expansível para Documentos
+    const documentosToggle = document.getElementById('documentosToggle');
+    const submenuDocumentos = document.getElementById('submenuDocumentos');
+    if (documentosToggle && submenuDocumentos) {
+        documentosToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            submenuDocumentos.style.display = submenuDocumentos.style.display === 'none' ? 'block' : 'none';
+            documentosToggle.querySelector('.submenu-arrow').classList.toggle('rotated');
+        });
+    }
 
         async function displayUsername() {
             const usernameElement = document.getElementById('username-display')

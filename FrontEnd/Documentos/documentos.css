@@ -34,6 +34,31 @@ body {
 }
 
 
+/* Menu expansível */
+.has-submenu > .nav-link {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    background-color: #cecdcd38;
+}
+.submenu {
+    padding-left: 0.5rem;
+    background-color: #0d3bb83b;
+    margin: 0;
+    list-style: none;
+}
+.submenu-arrow {
+    margin-left: 30px;
+    transition: transform 0.2s;
+}
+.submenu-arrow.rotated {
+    transform: rotate(180deg);
+}
+.submenu li {
+    margin: 0.5rem 0;
+}
+
+
 /* Botão de abrir/fechar menu - VISÍVEL EM TODAS AS RESOLUÇÕES */
 #menuToggle {
     display: flex !important;

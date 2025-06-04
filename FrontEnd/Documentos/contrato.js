@@ -407,7 +407,7 @@ async function loadContracts(filters = {}) {
             'convenio': 'Convênio',
             'outro': 'Outro'
         };
-        return types[type] || type;
+        return types[type] || type || '-';
     }
 
     function formatDisplayDate(dateString) {
