@@ -17,52 +17,60 @@ async function fetchResumo() {
 async function fetchGraficos() {
     // Contratos por Tipo (Pie)
     const contratosTipo = await fetch(`${API_BASE_URL}/contracts/groupby/type`).then(r => r.json()).catch(() => []);
-    new Chart(document.getElementById('contratosStatusChart'), {
-        type: 'pie',
-        data: {
-            labels: contratosTipo.map(c => (c.tipo ? c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1) : '-')),
-            datasets: [{
-                data: contratosTipo.map(c => c.count),
-                backgroundColor: [
-                    '#1976d2', '#43a047', '#fbc02d', '#e53935', '#8e24aa'
-                ],
-                borderColor: '#fff',
-                borderWidth: 2
-            }]
+new Chart(document.getElementById('contratosStatusChart'), {
+    type: 'pie',
+    data: {
+        labels: contratosTipo.map(c => (c.tipo ? c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1) : '-')),
+        datasets: [{
+            data: contratosTipo.map(c => c.count),
+            backgroundColor: [
+                '#1976d2', '#43a047', '#fbc02d', '#e53935', '#8e24aa'
+            ],
+            borderColor: '#fff',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            datalabels: {
+                achor: 'end',
+                align: 'top',
+                offset: 12,
+                padding: { top: 10, bottom: 0 },
+                font: { weight: 'bold', size: 18 },
+                color: '#333'
+            },
+            title: {
+                display: true,
+                text: 'Contratos por Tipo',
+                font: { size: 18 },
+                padding: { top: 0, bottom: 23 }
+            },
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    font: { size: 14 },
+                    padding: 20
+            }
         },
-        options: {
-            responsive: true,
-            plugins: {
-                    datalabels: {
-                    achor: 'end',
-                    align: 'top',
-                    offset: 12,
-                    padding: {
-                        top: 10,
-                        bottom: 0
-                    },
-                    font: { weight: 'bold', size: 18 },
-                    color: '#333'
-                },
-                title: {
-                    display: true,
-                    text: 'Contratos por Tipo',
-                    font: { size: 18 }
-                },
-                legend: {
-                    position: 'bottom',
-                    labels: { font: { size: 14 } }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.label}: ${ctx.parsed} contratos`
+            tooltip: {
+                callbacks: {
+                    label: function(ctx) {
+                        const valor = ctx.parsed;
+                        const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                        const porcentagem = total ? ((valor / total) * 100).toFixed(1) : 0;
+                        return `${ctx.label}: ${valor} (${porcentagem}%)`;
                     }
                 }
-            },
-            animation: { animateRotate: true, animateScale: true }
+            }
         },
-        plugins: [ChartDataLabels]
-    });
+        animation: { animateRotate: true, animateScale: true }
+    },
+    plugins: [ChartDataLabels]
+});
+
 
     // Projetos por Status (Bar)
     const projetosStatus = await fetch(`${API_BASE_URL}/projects/groupby/status`).then(r => r.json()).catch(() => []);
@@ -97,7 +105,8 @@ async function fetchGraficos() {
                 title: {
                     display: true,
                     text: 'Projetos por Status',
-                    font: { size: 18 }
+                    font: { size: 18 },
+                    padding: { top: 0, bottom: 26 }
                 },
                 legend: { display: false },
                 tooltip: {
@@ -142,16 +151,17 @@ async function fetchGraficos() {
                     datalabels: {
                     achor: 'end',
                     align: 'top',
-                    font: { weight: 'bold', size: 11 },
+                    font: { weight: 'bold', size: 10 },
                     color: '#333'
                 },
                 title: {
                     display: true,
                     text: 'Identidades por Perfil',
-                    font: { size: 18 }
+                    font: { size: 18 },
+                    padding: { top: 0, bottom: 26 }
                 },
                 legend: {
-                    display: true,
+                    display: true, position: 'bottom',
                     labels: { font: { size: 14 } }
                 },
                 tooltip: {
@@ -189,13 +199,14 @@ async function fetchAnalisesRecentes() {
         const data =c.updated_at || c.created_at || c.data || c.date || null;
     return `
         <tr>
-            <td>${data ? new Date(data).toLocaleDateString('pt-BR'):'-'}</td>
+            <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
             <td>${c.number || '-'}</td>
             <td><span class="badge ${c.type === 'aditivo'? 'aditivo' : c.type === 'convenio'? 'convenio' : c.type === 'fornecimento'? 'fornecimento' : c.type}">
             ${c.type || '-'}</span></td>
             <td>${c.description || '-'}</td>
         </tr>
     `}).join('');
+
 
     // PROJETOS
     const projetosArr = Array.isArray(projetos.projects) ? projetos.projects : [];
@@ -206,7 +217,7 @@ async function fetchAnalisesRecentes() {
         const data = p.updated_at || p.created_at || p.data || p.date || null;
     return `
         <tr>
-            <td>${data ? new Date(data).toLocaleDateString('pt-BR'):'-'}</td>
+            <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
             <td>${p.name || '-'}</td>
             <td>${p.code || '-'}</td>
             <td><span class="badge ${p.status === 'planejamento'?'plan': p.status === 'andamento'?'and': p.status === 'suspenso'?'susp' : p.status === 'concluido'?'conc': 
@@ -224,7 +235,7 @@ async function fetchAnalisesRecentes() {
         const data = i.updated_at || i.created_at || i.data || i.date || null;
     return `
         <tr>
-            <td>${data ? new Date(data).toLocaleDateString('pt-BR'):'-'}</td>
+            <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
             <td>${i.cpf || '-'}</td>
             <td>${i.nome || '-'}</td> 
             <td><span class="badge ${i.perfil === 'Administrador'?'admin' : i.perfil === 'Usuário'?'user' : i.perfil === 'Visitante'?'vis' : ''}">${i.perfil || '-'}</span></td>
