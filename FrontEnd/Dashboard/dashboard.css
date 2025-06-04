@@ -35,15 +35,15 @@ body {
 
 .chart-box { 
     background: #fff; 
-    border-radius: 16px; 
-    box-shadow: 0 4px 16px #0002; 
+    border-radius: 14px; 
+    box-shadow: 0 4px 16px rgba(224, 224, 224, 0.133); 
     padding: 2rem; 
     margin-bottom: 2rem; 
     margin-left: auto;
     margin-right: auto;
-    width: 70%;
-    height: 70%;
-    transition: box-shadow 0.2s;
+    width: 60%;
+    height: 60%;
+    transition: box-shadow 0.4s;
 }
 .chart-box:hover {
     box-shadow: 0 8px 32px #0003;
