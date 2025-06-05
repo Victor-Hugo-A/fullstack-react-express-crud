@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Sistema - Página Inicial </title>
 <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
-    <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap">
-                <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" >
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap">
+            <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" >
 
 </head>
 
@@ -61,13 +61,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link active" href="/FrontEnd/Sistema/sistema.html"><i class="fas fa-home me-2" style="padding: 0.2rem;"></i>Início</a>
+                    <a class="nav-link active" href="/FrontEnd/Sistema/sistema.html"> <img class="img-home" src="/FrontEnd/img/house.png" alt="HomeBack"></i> Início</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#contatos"><i class="fas fa-users me-2" style="padding: 0.2rem;"></i>Contatos</a>
+                    <a class="nav-link" href="#contatos"><img class="img-home" src="/FrontEnd/img/contact-us.png" alt="Contatos"></i>Contatos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#sobre"><i class="fas fa-info-circle me-2" style="padding: 0.2rem;"></i>Sobre</a>
+                    <a class="nav-link" href="#sobre"><img class="img-home" src="/FrontEnd/img/info.png" alt="About"></i>Sobre</a>
                 </li>
             </ul>
         </div>
@@ -82,7 +82,7 @@
             <p>Este é o sistema de gestão integrada da instituição. Aqui você pode acessar todas as ferramentas e recursos disponíveis para o seu perfil.</p>
             
             <div class="alert alert-info mt-4">
-                <i class="fas fa-info-circle me-2" style="font-size: 1.2rem;"></i> Você possui <strong>0</strong> notificações e <strong>0</strong> tarefas pendentes.
+                <i class="fas fa-info-circle me-2" style="font-size: 1.2rem;"></i> Você não possui notificações e tarefas pendentes.
             </div>
         </div>
         
@@ -130,7 +130,7 @@
                     </div>
                     <h5 class="card-title">Perfil</h5>
                     <p class="card-text">Gerencie suas informações pessoais</p>
-                    <a href="#" class="btn btn-sm btn-outline-primary">Acessar</a>
+                    <a href="/FrontEnd/Perfil/perfil.html" class="btn btn-sm btn-outline-primary">Acessar</a>
                 </div>
             </div>
         </div>
@@ -162,7 +162,7 @@
                 </div>
             </div>
             <div class="col-md-4 mb-4">
-                <h5><a class="footer-links" id="contatos"><i class="fas fa-users me-2" style="margin-left: 0.2rem; margin-bottom: 0.19rem; color: #ff0000;"></i></a></h5>
+                <h5><a class="footer-links" id="contatos"><i class="fas fa-users me-2"></i></a></h5>
                 <p><i class="fas fa-map-marker-alt me-2"></i> Esplanada dos Ministérios, Bloco T, Brasília/DF</p>
                 <p><i class="fas fa-phone-alt me-2"></i> (61) 2025-0000</p>
                 <p><i class="fas fa-envelope me-2"></i> contato@portal.gov.br</p>
@@ -178,20 +178,7 @@
 
 <a class="back-to-top" href="#"><i class="fa-solid fa-arrow-up"></i></a>
 
-
-    <script>
-            document.addEventListener('DOMContentLoaded', function() {
-            const dateSpan = document.getElementById('current-date');
-            const hoje = new Date();
-            const dia = String(hoje.getDate()).padStart(2, '0');
-            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-            const ano = hoje.getFullYear();
-            dateSpan.textContent = `${dia}/${mes}/${ano}`;
-        });
-    </script>
-
-
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="/FrontEnd/Sistema/sistema.js"></script>
-    </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/FrontEnd/Sistema/sistema.js"></script>
+</body>
 </html>

@@ -3,6 +3,11 @@
     --black-color : #000000;
 }
 
+.img-analises {
+    width: 3rem;
+    margin-left: 0.5rem;
+}
+
 .img {
     width: 2.2rem;
     margin-bottom: 0.4rem;
@@ -55,6 +60,9 @@
   border-color: #dee2e6;
 }
 
+.table th {
+    color: #009CFF;
+}
 
 /*  CONTRATOS RECENTES  */
 .aditivo {

@@ -1,11 +1,12 @@
- // Atualiza a data atual
+document.addEventListener('DOMContentLoaded', function() {
+
+// Atualiza a data atual
  function updateCurrentDate() {
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR', options);
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
     
     const userData = localStorage.getItem('userData');
     const { nome, username } = JSON.parse(userData);
@@ -15,7 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
             usernameDisplay.textContent = nome || username;
     }
     
+        const dateSpan = document.getElementById('current-date');
+        const hoje = new Date();
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const ano = hoje.getFullYear();
+            dateSpan.textContent = `${dia}/${mes}/${ano}`;
 });
+
 
 
 // Função de logout

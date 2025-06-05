@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil do Usuário</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap, FontAwesome, Google Fonts, seu CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
+    <link rel="stylesheet" href="perfil.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap">
+</head>
+<body>
+    <!-- Barra superior (opcional, igual às outras páginas) -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <i class="fas fa-phone-alt me-2"></i> (61) 2025-0000 <strong>|</strong>
+                    <i class="fas fa-envelope ms-3 me-2"></i> contato@portal.gov.br <strong>|</strong>
+                    <i class="fas fa-calendar-alt me-2" style="margin-left: 2.5%;"></i><span id="current-date"></span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span id="current-date"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cabeçalho principal -->
+    <header class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="logo-container"></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <span id="username-display">Usuário</span>
+                        </div>
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegação -->
+    <nav class="main-nav navbar navbar-expand-lg">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars text-white"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/FrontEnd/Sistema/sistema.html"><img class="perfil-img" src="/FrontEnd/img/house.png" alt="HomeBack">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/FrontEnd/Documentos/documentos.html"><img class="perfil-img" src="/FrontEnd/img/file.png" alt="Documentos"> Documentos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/FrontEnd/Dashboard/dashboard.html"><img class="perfil-img" src="/FrontEnd/img/grafico-preditivo.png" alt="DashBoard-Geral"> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/FrontEnd/Análises/analises.html"><img class="perfil-img" src="/FrontEnd/img/analysis.png" alt="Análises-Geral"> Análises</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/FrontEnd/Perfil/perfil.html"><img class="perfil-img" src="/FrontEnd/img/profile.png" alt="Perfil"> Perfil</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo principal -->
+    <main class="main-content">
+        <div class="container">
+            <div class="row justify-content-center mt-4">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="mb-4"><i class="fas fa-user-edit me-2"></i>Meu Perfil</h3>
+                            <form id="perfil-form">
+                                <div id="mensagem-login" style="display:none; margin-bottom: 1rem; padding: 0.5rem; border-radius: 6px;"></div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="nome" class="form-label">Nome Completo :</label>
+                                        <input type="text" class="form-control" id="nome" name="nome" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">E-mail :</label>
+                                        <input type="email" class="form-control" id="email" name="email" disabled>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="cpf" class="form-label">CPF :</label>
+                                        <input type="text" class="form-control" id="cpf" name="cpf" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="departamento" class="form-label">Departamento :</label>
+                                        <input type="text" class="form-control" id="departamento" name="departamento" disabled>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="cargo" class="form-label">Cargo :</label>
+                                    <input type="text" class="form-control" id="cargo" name="cargo" disabled>
+                                </div>
+                            <div class="mb-3">
+                                <label for="senha-atual" class="form-label">Senha Atual</label>
+                                <input type="current-password" class="form-control" id="senha-atual" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="senha" class="form-label">Nova Senha</label>
+                                <input type="new-password" class="form-control" id="senha" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmar-senha" class="form-label">Confirmar Nova Senha</label>
+                                <input type="new-password" class="form-control" id="confirmar-senha" required>
+                            </div>                                
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Salvar Alterações</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+
+    <!-- Rodapé -->
+    <footer class="footer mt-5">
+        <div class="container text-center">
+            &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
+        </div>
+    </footer>
+
+    <script src="/FrontEnd/Perfil/perfil.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

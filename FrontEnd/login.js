@@ -56,9 +56,9 @@ async function makeRequest(endpoint, method, data) {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            const Error = new Error (errorData.error || `Erro HTTP ${response.status}`);
-            Error.status = response.status;
-            throw Error;
+            const error = new Error ( errorData.message ||errorData.error || `Erro HTTP ${response.status}`);
+            error.status = response.status;
+            throw error;
         }
 
     return await response.json(); // Sempre tenta parsear como JSON
@@ -121,7 +121,8 @@ if (loginForm) {
             localStorage.setItem('userData', JSON.stringify({
                 nome: response.user.nome,
                 username: response.user.username,
-                email: response.user.email
+                email: response.user.email,
+                password: response.user.password
             }));
             
             setTimeout(() => {
@@ -163,6 +164,27 @@ if (loginForm) {
     });
 }
 
+function validarCPF(cpf) {
+    cpf = cpf.replace(/[^\d]+/g, '');
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1+$/.test(cpf)) return false; // todos iguais
+
+    let soma = 0, resto;
+    for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+
+    soma = 0;
+    for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(10, 11))) return false;
+
+    return true;
+}
+
+
 // Evento de submit do formulário de registro
 document.getElementById('registerForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -178,6 +200,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
         const username = document.getElementById('new-username').value;
         const password = document.getElementById('new-password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
+        const cpf = document.getElementById('cpf').value;
 
         // Validar campos
         validarCampos({ nome, email, username, password, confirmPassword });
@@ -194,9 +217,14 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
             throw new Error('A senha deve ter pelo menos 3 caracteres');
         }
 
+        if (!validarCPF(cpf)) {
+            exibirMensagemErro('CPF inválido. Digite um CPF real, apenas números ou com pontos.');
+            return;
+}
+
         // Fazer requisição de registro
         const response = await makeRequest('/register', 'POST', {
-            nome, email, username, password, confirmPassword
+            nome, email, username, password, confirmPassword, cpf
         });
         
         exibirMensagemSucesso('Conta criada com sucesso! Faça login.');
@@ -237,14 +265,9 @@ document.getElementById('changePasswordForm')?.addEventListener('submit', async 
             throw new Error('A nova senha deve ter pelo menos 3 caracteres');
         }
         
-        // Fazer requisição de mudança de senha
-        await makeRequest('/change-password', 'POST', {
-            username, currentPassword, newPassword, confirmNewPassword
-        });
 
         exibirMensagemSucesso('Senha alterada com sucesso! Redirecionando para login...');
         
-        document.getElementById('change-password').style.display = 'none';
         document.getElementById('changePasswordForm').reset();
         
     setTimeout(() => {
@@ -265,23 +288,14 @@ document.getElementById('toggle-register')?.addEventListener('click', function(e
     e.preventDefault();
     document.getElementById('login').style.display = 'none';
     document.getElementById('criar-conta').style.display = 'block';
-    document.getElementById('change-password').style.display = 'none';
 });
 
-// Toggle entre login e mudança de senha
-document.getElementById('toggle-change-password')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('criar-conta').style.display = 'none';
-    document.getElementById('change-password').style.display = 'block';
-});
 
 // Voltar ao login a partir da mudança de senha
 document.getElementById('back-to-login')?.addEventListener('click', function(e) {
     e.preventDefault();
     document.getElementById('login').style.display = 'block';
     document.getElementById('criar-conta').style.display = 'none';
-    document.getElementById('change-password').style.display = 'none';
 });
 
 // Toggle entre registro e login
@@ -289,7 +303,6 @@ document.getElementById('toggle-login')?.addEventListener('click', function(e) {
     e.preventDefault();
     document.getElementById('login').style.display = 'block';
     document.getElementById('criar-conta').style.display = 'none';
-    document.getElementById('change-password').style.display = 'none';
 });
 
 // Função para redirecionar para a página de login

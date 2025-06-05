@@ -95,7 +95,11 @@ body {
     transition: var(--transition);
 }
 
-.si
+/* BTN HOME */
+a {
+    color: #009CFF;
+}
+
 /* Visualização de Projetos - Estilo Modernizado */
 .projects-container {
     display: grid;

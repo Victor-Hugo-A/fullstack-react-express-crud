@@ -1,13 +1,12 @@
 :root {
-    --primary-color: #004a8d;
+    --primary-color: #0056b3;
     --primary-dark: #003366;
     --primary-light: #336699;
     --secondary-color: #f8f9fa;
-    --accent-color: #ff6b00;
-    --accent-dark: #cc5500;
-    --text-dark: #212529;
-    --text-medium: #495057;
-    --text-light: #f8f9fa;
+    --accent-dark: #c66900;
+    --text-dark: #222;
+    --text-medium: #555;
+    --text-light: #fff;
     --info-alert: rgb(219, 7, 7);
     --border-radius: 8px;
     --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -15,9 +14,10 @@
 }
 
 body {
-    font-family: 'Montserrat', 'Open Sans', sans-serif;
+    font-family: 'Montserrat', 'Open Sans', sans-serif !important;
+    font-size: 1.01rem !important;
     background: linear-gradient(rgba(206, 205, 205, 0.9), rgba(94, 93, 93, 0.911)), 
-        url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png') center center;
+    url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png') center center;
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
@@ -33,6 +33,7 @@ body {
 /* Tipografia melhorada */
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Montserrat', sans-serif;
+    letter-spacing: 0.5px;
     font-weight: 600;
     margin-bottom: 1rem;
     color: var(--primary-dark);
@@ -69,9 +70,6 @@ h5 {
     transition: var(--transition);
 }
 
-.top-bar a:hover {
-    color: var(--accent-color);
-}
 
 /* Cabeçalho principal aprimorado */
 .main-header {
@@ -93,6 +91,11 @@ h5 {
 
 .img {
     width: 3rem;
+}
+
+.img-home {
+    width: 1.8rem;
+    margin-right: 0.3rem;
 }
 
 .user-menu {
@@ -120,8 +123,6 @@ h5 {
     color: white;
     border: none;
     padding: 0.2rem 0.5rem;
-    border-radius: var(--border-radius);
-    font-weight: 550;
     transition: var(--transition);
     display: flex;
     align-items: center;
@@ -223,23 +224,25 @@ h5 {
 
 
 /* Cards de acesso rápido melhorados */
-.quick-access {
-    margin: 2rem 0;
+.quick-access, .card {
+    margin-bottom: 1rem;
+    min-height: 260px;
+    justify-content: space-between;
 }
 
 .card {
     border: none;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: 0.2px 8px rgba(0, 0, 0, 0.8);
+    border-radius: 12px;
     transition: var(--transition);
     height: 100%;
     overflow: hidden;
-    border-top: 3px solid var(--primary-color);
+    border-top: 4px solid var(--primary-color);
 }
 
 .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.50);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 .card-icon {
@@ -265,10 +268,15 @@ h5 {
     min-height: 3rem;
 }
 
-.btn-outline-primary {
+.card, .btn, .nav-link, .footer-links a {
+    transition: all 0.2s cubic-bezier(.4,0,.2,1);
+}
+
+.btn-outline-primary, .logout-btn {
     border-color: var(--primary-color);
-    color: var(--primary-color);
-    transition: var(--transition);
+    border-radius: 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .btn-outline-primary:hover {
@@ -276,11 +284,17 @@ h5 {
     color: white;
 }
 
+a:focus, button:focus, .btn:focus {
+    outline: 2px solid var(--accent-dark);
+    outline-offset: 2px;
+}
+
 /* Rodapé redesenhado */
 .footer {
-    background-color: var(--primary-dark);
-    color: white;
-    padding: 2.5rem 0 0;
+    background: linear-gradient(90deg, var(--primary-dark) 60%, var(--primary-color) 100%);
+    color: #ccc;
+    padding: 3rem 0 0;
+    font-size: 1rem;
     margin-top: 3rem;
 }
 
@@ -303,10 +317,6 @@ h5 {
     align-items: center;
 }
 
-.footer-links a:hover {
-    color: var(--accent-color);
-    padding-left: 8px;
-}
 
 .footer-links a i {
     margin-right: 0.7rem;
@@ -325,10 +335,12 @@ h5 {
 }
 
 .copyright {
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 1.5rem;
+    color: #ccc;
+    background-color: #00050a;
+    background: none;
+    padding: 1.2rem 0 0.5rem 0;
     margin-top: 2rem;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 /* Botão voltar ao topo aprimorado */
@@ -366,6 +378,12 @@ h5 {
     color: var(--secondary-color);
 }
 
+
+.footer-links {
+    color: #009CFF;
+    margin-left: 0.2rem; 
+    margin-bottom: 0.19rem;
+}
 
 /* Responsividade aprimorada */
 @media (max-width: 992px) {
@@ -422,6 +440,14 @@ h5 {
         font-size: 1rem;
         bottom: 1rem;
         right: 1rem;
+    }
+
+    .main-content, .container {
+        padding: 0.5rem !important;
+    }
+
+    h3, h5 {
+        font-size: 1.1rem !important;
     }
 }
 

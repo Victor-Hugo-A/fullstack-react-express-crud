@@ -1456,10 +1456,27 @@ router.get('/check', async (req, res) => {
     }
 });
 
+function validarCPF(cpf) {
+    cpf = cpf.replace(/[^\d]+/g, '');
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1+$/.test(cpf)) return false;
+    let soma = 0, resto;
+    for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+    soma = 0;
+    for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(10, 11))) return false;
+    return true;
+}
+
 // Rotas de autenticação
 app.post('/register', async (req, res) => {
     try {
-        const { nome, email, username, password, confirmPassword } = req.body;
+        const { nome, cpf, email, username, password, confirmPassword } = req.body;
 
         if (password !== confirmPassword) {
             return res.status(400).json({ 
@@ -1467,6 +1484,8 @@ app.post('/register', async (req, res) => {
                 message: 'As senhas não coincidem' 
             });
         }
+
+        if(!cpf) missingFields.push('cpf')
 
         const missingFields = [];
         if (!nome) missingFields.push('nome');
@@ -1482,6 +1501,13 @@ app.post('/register', async (req, res) => {
                 missingFields 
             });
         }
+
+        if (!validarCPF(cpf)) {
+        return res.status(400).json({
+            success: false,
+            message: 'CPF inválido. Digite um CPF real, apenas números ou com pontos.'
+        });
+    }
 
         if (password.length < 3) {
             return res.status(400).json({ 
@@ -1509,6 +1535,7 @@ app.post('/register', async (req, res) => {
 
         const newUser = {
             nome: nome.trim(),
+            cpf: cpf.trim(),
             email: email.trim().toLowerCase(),
             username: username.trim().toLowerCase(),
             password: password
