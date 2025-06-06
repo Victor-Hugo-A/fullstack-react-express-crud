@@ -73,17 +73,24 @@ new Chart(document.getElementById('contratosStatusChart'), {
 
 
     // Projetos por Status (Bar)
+    const statusColors = {
+    'andamento': '#0288d1',    // azul
+    'concluido': '#43a047',    // verde
+    'planejamento': '#ed6c02', // amarelo
+    'suspenso': '#e53935'      // vermelho
+};
     const projetosStatus = await fetch(`${API_BASE_URL}/projects/groupby/status`).then(r => r.json()).catch(() => []);
+    const labels = projetosStatus.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1));
+    const data = projetosStatus.map(p => p.count);
+    const backgroundColors = projetosStatus.map(p => statusColors[p.status.toLowerCase()] || '#888'); // cor padrão se não existir
     new Chart(document.getElementById('projetosStatusChart'), {
         type: 'bar',
         data: {
-            labels: projetosStatus.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1)),
+            labels,
             datasets: [{
                 label: 'Projetos',
-                data: projetosStatus.map(p => p.count),
-                backgroundColor: [
-                    '#0288d1', '#43a047', '#fbc02d', '#e53935'
-                ],
+                data,
+                backgroundColor: backgroundColors,
                 borderRadius: 8,
                 maxBarThickness: 40
             }]

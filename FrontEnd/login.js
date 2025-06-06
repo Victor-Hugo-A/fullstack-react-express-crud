@@ -118,12 +118,7 @@ if (loginForm) {
             }
 
             localStorage.setItem('token', response.token); // Token puro, sem JSON.stringify
-            localStorage.setItem('userData', JSON.stringify({
-                nome: response.user.nome,
-                username: response.user.username,
-                email: response.user.email,
-                password: response.user.password
-            }));
+            localStorage.setItem('userData', JSON.stringify(response.user));
             
             setTimeout(() => {
                 window.location.href = 'Sistema/sistema.html'; // Caminho relativo à página atual

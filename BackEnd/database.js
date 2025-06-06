@@ -47,6 +47,9 @@ const createTables = () => {
         email TEXT UNIQUE NOT NULL,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
+        cpf TEXT NOT NULL,
+        departamento TEXT,
+        cargo TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`, 
@@ -114,9 +117,9 @@ const userRepository = {
 
     return new Promise((resolve, reject) => {
       db.run(
-        `INSERT INTO users (id, nome, email, username, password, created_at, updated_at) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [user.id, user.nome, user.email, user.username, user.password, user.created_at, user.updated_at],
+        `INSERT INTO users (id, nome, email, username, password, created_at, updated_at, cpf) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [user.id, user.nome, user.email, user.username, user.password, user.created_at, user.updated_at, user.cpf],
         function(err) {
           if (err) return reject(err);
           resolve(user);
@@ -128,7 +131,7 @@ const userRepository = {
   async findByUsername(username) {
     return new Promise((resolve, reject) => {
       db.get(
-        'SELECT * FROM users WHERE username = ?',
+        'SELECT id, nome, email, username, cpf, password, cargo, departamento FROM users WHERE username = ?',
         [username],
         (err, row) => {
           if (err) return reject(err);
@@ -164,6 +167,19 @@ const userRepository = {
         }
       );
     });
+  },
+
+    async updateProfile(username, departamento, cargo, cpf) {
+      return new Promise((resolve, reject) => {
+          db.run(
+              `UPDATE users SET departamento = ?, cargo = ?, cpf = ?, updated_at = ? WHERE username = ?`,
+              [departamento, cargo, cpf, new Date().toISOString(), username],
+              function(err) {
+                  if (err) return reject(err);
+                  resolve();
+              }
+          );
+      });
   },
 
   async getAll() {

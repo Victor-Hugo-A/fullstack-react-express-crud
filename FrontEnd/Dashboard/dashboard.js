@@ -56,15 +56,24 @@
 
 
         // Projetos por status
+        const statusColors = {
+            'concluido': '#2e7d32',
+            'andamento': '#0288d1',
+            'planejamento': '#ed6c02',
+            'suspenso': '#d32f2f'
+        }
         const projetos = await fetchProjetosPorStatus();
-        new Chart(document.getElementById('projetosChart'), {
+        const labels = projetos.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1));
+        const data = projetos.map(p => p.count);
+        const backgroundColors = projetos.map(p => statusColors[p.status.toLowerCase()] || '#888'); // cor padrão se não existir 
+           new Chart(document.getElementById('projetosChart'), {
             type: 'pie',
             data: {
-                labels: projetos.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1)),
+                labels,
                 datasets: [{
                     label: 'Quantidade',
-                    data: projetos.map(p => p.count),
-                    backgroundColor: ['#0288d1', '#2e7d32', '#ed6c02', '#d32f2f']
+                    data,
+                    backgroundColor: backgroundColors
                 }]
             },
         options: {

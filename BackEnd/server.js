@@ -1127,6 +1127,21 @@ router.delete('/projects/:id', async (req, res) => {
     });
 
 
+    // ROTA PERFIL  
+    app.put('/update-profile', async (req, res) => {
+    try {
+        const { username, departamento, cargo, cpf } = req.body;
+        if (!username) {
+            return res.status(400).json({ success: false, message: 'Usuário não informado' });
+        }
+        await userRepository.updateProfile(username, departamento, cargo, cpf);
+        const user = await userRepository.findByUsername(username);
+        res.json({ success: true, message: 'Perfil atualizado com sucesso', user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Erro ao atualizar perfil' });
+    }
+});
+
 // Funções de gerenciamento de token
 const tokenUtils = {
     // Verifica se o token existe e é válido
@@ -1365,7 +1380,10 @@ app.post('/login', async (req, res) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                nome: user.nome
+                nome: user.nome,
+                cpf: user.cpf,
+                departamento: user.departamento,
+                cargo: user.cargo
             }
         });
     } catch (error) {
@@ -1478,43 +1496,42 @@ app.post('/register', async (req, res) => {
     try {
         const { nome, cpf, email, username, password, confirmPassword } = req.body;
 
-        if (password !== confirmPassword) {
-            return res.status(400).json({ 
-                success: false,
-                message: 'As senhas não coincidem' 
-            });
-        }
-
-        if(!cpf) missingFields.push('cpf')
-
         const missingFields = [];
         if (!nome) missingFields.push('nome');
         if (!email) missingFields.push('email');
         if (!username) missingFields.push('username');
         if (!password) missingFields.push('password');
         if (!confirmPassword) missingFields.push('confirmPassword');
-
-        if (missingFields.length > 0) {
-            return res.status(400).json({ 
-                success: false,
-                message: 'Campos obrigatórios faltando',
-                missingFields 
+        if(!cpf) missingFields.push('cpf')
+            
+            if (missingFields.length > 0) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'Campos obrigatórios faltando',
+                    missingFields 
+                });
+            }
+            
+            if (password !== confirmPassword) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'As senhas não coincidem' 
+                });
+            }
+    
+            if (!validarCPF(cpf)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'CPF inválido. Digite um CPF real, apenas números ou com pontos.'
             });
         }
 
-        if (!validarCPF(cpf)) {
-        return res.status(400).json({
-            success: false,
-            message: 'CPF inválido. Digite um CPF real, apenas números ou com pontos.'
-        });
-    }
-
-        if (password.length < 3) {
-            return res.status(400).json({ 
-                success: false,
-                message: 'Senha deve ter pelo menos 3 caracteres' 
-            });
-        }
+            if (password.length < 3) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'Senha deve ter pelo menos 3 caracteres' 
+                });
+            }
 
         // Verifica se usuário ou email já existem
         const existingUser = await userRepository.findByUsername(username);
@@ -1557,7 +1574,8 @@ app.post('/register', async (req, res) => {
                 id: createdUser.id,
                 username: createdUser.username,
                 email: createdUser.email,
-                nome: createdUser.nome
+                nome: createdUser.nome,
+                cpf: createdUser.cpf
             }
         });
     } catch (error) {
