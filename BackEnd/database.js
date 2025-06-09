@@ -69,7 +69,8 @@ db.serialize(() => {
       cpf TEXT NOT NULL,
       endereco TEXT NOT NULL,
       perfil TEXT NOT NULL,
-      foto TEXT
+      foto TEXT,
+      created_at TEXT
       )
     `);
   });
