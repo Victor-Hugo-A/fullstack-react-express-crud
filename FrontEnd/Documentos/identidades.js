@@ -32,6 +32,7 @@ const IDENTIDADES_PER_PAGE = 5;
         document.getElementById('identity-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const cpfInput = document.getElementById('cpf');
+    const token = localStorage.getItem('token');
     const cpf = cpfInput.value.replace(/\D/g, ''); // Remove caracteres não numéricos
 
     const cpfFormatado = cpfValue(cpf);
@@ -45,7 +46,10 @@ const IDENTIDADES_PER_PAGE = 5;
     const formData = new FormData(this);
     const response = await fetch(API_URL, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
     });
     const data = await response.json();
     if(data.success) {
@@ -145,7 +149,14 @@ const IDENTIDADES_PER_PAGE = 5;
 
     window.deletarIdentidade = async function(id) {
         if(!confirm('Tem certeza que deseja excluir esta identidade?')) return;
-        const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/${id}`,
+            { 
+                method: 'DELETE', 
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
         const data = await res.json();
             if(data.success) {
                 SuccessMessage('Identidade excluída com sucesso!', 'success');

@@ -101,6 +101,30 @@ app.use(express.json());
 // Adicionar o router ao app
 app.use('/api', router);
 
+// Para proteger rotas Privadas como /POST
+function authenticateJWT(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: 'Token de acesso não fornecido'
+        })
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) {
+            return res.status(403).json({
+                success: false,
+                message: 'Token inválido ou expirado'
+            })
+        }
+        req.user = user;
+        next();
+    })
+}
+
 
 // RETORNA DASHBOARD PARA OS TIPOS, STATUS E PERFIL
 router.get('/contracts/groupby/type', (req, res) => {
@@ -193,14 +217,12 @@ app.post('/api/contracts/sync', (req, res) => {
 
 
 app.get('/api/user', async (req, res) => {
-    console.log('Headers recebidos:', req.headers);
 
     try {
         const authHeader = req.headers['authorization'];
         console.log('Authorization header:', authHeader);
 
         if (!authHeader) {
-            console.log('Nenhum header Authorization encontrado');
             return res.status(401).json({
                 success: false,
                 message: 'Token de acesso não fornecido'
@@ -211,7 +233,6 @@ app.get('/api/user', async (req, res) => {
         console.log('Token recebido:', token);
 
         if (!token) {
-            console.log('Token mal formatado');
             return res.status(401).json({
                 success: false,
                 message: 'Formato de token inválido'
@@ -227,8 +248,6 @@ app.get('/api/user', async (req, res) => {
                     error: err.message
                 });
             }
-
-            console.log('Token decodificado:', decoded);
 
             try {
                 console.log('Buscando usuário com ID:', decoded.userId);
@@ -324,7 +343,7 @@ function writeContracts(contracts) {
     }
 }
 
-app.delete('/api/contracts/clean-all', (req, res) => {
+app.delete('/api/contracts/clean-all', authenticateJWT, (req, res) => {
     try {
         // 1. Ler os contratos existentes para obter os nomes dos arquivos
         const contracts = readContracts();
@@ -404,7 +423,7 @@ function getContracts() {
 
 
 // Rota para cadastrar novo contrato
-app.post('/api/contracts', upload.single('file'), (req, res) => {
+app.post('/api/contracts', authenticateJWT, upload.single('file'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ 
@@ -509,7 +528,7 @@ app.get('/api/contracts', (req, res) => {
 });
 
 // Rota para obter metadados do contrato
-app.get('/api/contracts/:id', async (req, res) => {
+app.get('/api/contracts/:id', authenticateJWT, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -535,7 +554,7 @@ app.get('/api/contracts/:id', async (req, res) => {
 
 
 // Rota para download de contrato
-app.get('/api/contracts/:id/download', async (req, res) => {
+app.get('/api/contracts/:id/download', authenticateJWT, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -590,7 +609,7 @@ app.get('/api/contracts/:id/download', async (req, res) => {
 
 
 // Delete de contratos individuais
-app.delete('/api/contracts/:id', async (req, res) => {
+app.delete('/api/contracts/:id', authenticateJWT, async (req, res) => {
     try {
         const contracts = readContracts();
         const index = contracts.findIndex(c => c.id === req.params.id);
@@ -616,7 +635,7 @@ app.delete('/api/contracts/:id', async (req, res) => {
 });
 
 // Rota para visualização de contrato
-app.get('/api/contracts/:id/view', (req, res) => {
+app.get('/api/contracts/:id/view', authenticateJWT, (req, res) => {
     try {
         const { id } = req.params;
         const contracts = readContracts();
@@ -707,7 +726,7 @@ const projectsUpload = multer({
                                                        // PARTE DE PROJETOS // 
 
 // Rotas para projetos
-router.post('/projects', projectsUpload.array('files'), async (req, res) => {
+router.post('/projects', authenticateJWT, projectsUpload.array('files'), async (req, res) => {
         try {
         const projectData = JSON.parse(req.body.project);
 
@@ -830,7 +849,7 @@ router.get('/projects', async (req, res) => {
         }
     });
 
-router.get('/projects/:id', async (req, res) => {
+router.get('/projects/:id', authenticateJWT, async (req, res) => {
     try {
         const project = await new Promise((resolve, reject) => {
             db.get(
@@ -883,7 +902,7 @@ router.get('/project-files/:filename', async (req, res) => {
     }
 });
 
-router.delete('/project-files/:id', async (req, res) => {
+router.delete('/project-files/:id', authenticateJWT, async (req, res) => {
     try {
         // Primeiro obtém o arquivo para deletá-lo do sistema de arquivos
         const file = await new Promise((resolve, reject) => {
@@ -932,7 +951,7 @@ router.delete('/project-files/:id', async (req, res) => {
 });
 
 
-router.put('/projects/:id', projectsUpload.array('files'), async (req, res) => {
+router.put('/projects/:id', authenticateJWT, projectsUpload.array('files'), async (req, res) => {
         try {
         const projectData = JSON.parse(req.body.project);
 
@@ -1019,7 +1038,7 @@ router.put('/projects/:id', projectsUpload.array('files'), async (req, res) => {
     }
 });
 
-router.delete('/projects/:id', async (req, res) => {
+router.delete('/projects/:id', authenticateJWT, async (req, res) => {
     try {
         // Primeiro obtemos os arquivos para deletá-los do sistema de arquivos
         const files = await new Promise((resolve, reject) => {
@@ -1081,7 +1100,7 @@ router.delete('/projects/:id', async (req, res) => {
         limits: { fileSize: 5 * 1024 * 1024 }, // 5MB   
     });
 
-    app.post('/api/identities', identitiesUpload.single('foto'), (req, res) => {
+    app.post('/api/identities', authenticateJWT, identitiesUpload.single('foto'), (req, res) => {
         console.log('Recebido:', req.body, req.file);
         const {nome, cpf, endereco, perfil} = req.body;
         const foto = req.file ? `/uploads/identities/${req.file.filename}` : null;
@@ -1104,7 +1123,7 @@ router.delete('/projects/:id', async (req, res) => {
         });
     });
 
-    app.delete('/api/identities/:id', (req, res) => {
+    app.delete('/api/identities/:id', authenticateJWT, (req, res) => {
         const id = req.params.id;
 
         db.get(`SELECT foto FROM identities WHERE id = ?`, [id], (err, row) => {
@@ -1128,7 +1147,7 @@ router.delete('/projects/:id', async (req, res) => {
 
 
     // ROTA PERFIL  
-    app.put('/update-profile', async (req, res) => {
+    app.put('/update-profile', authenticateJWT, async (req, res) => {
     try {
         const { username, departamento, cargo, cpf } = req.body;
         if (!username) {
