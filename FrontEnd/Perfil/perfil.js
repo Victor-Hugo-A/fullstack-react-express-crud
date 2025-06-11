@@ -12,14 +12,14 @@
                 const usernameDisplay = document.getElementById('username-display')
                     if (usernameDisplay) {
                         usernameDisplay.textContent = usuario.nome || usuario.username || 'Usuário';
+            }
         }
-    }
     
  // Atualiza apenas a senha
 document.getElementById('perfil-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const usuario = JSON.parse(localStorage.getItem('userData'));
-    const username = usuario.username;
+    const username = usuario.username 
     const currentPassword = document.getElementById('senha-atual').value;
     const newPassword = document.getElementById('senha').value;
     const confirmNewPassword = document.getElementById('confirmar-senha').value;

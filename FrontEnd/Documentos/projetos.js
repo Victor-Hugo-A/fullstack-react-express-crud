@@ -214,7 +214,7 @@ function renderProjectsPage(page) {
           const errorText = await response.text();
           errorMsg = errorText || errorMsg;
         }
-        throw new Error(errorMsg);
+        throw new Error("Acesso restrito! Faça login para continuar.");
       }
 
       const data = await response.json();
@@ -458,7 +458,7 @@ function renderProjectsPage(page) {
       showProjectDetails(data.project);
     } catch (error) {
       console.error('Erro ao visualizar projeto:', error);
-      ErroMessage(error.message, 'error');
+      ErroMessage('Acesso restrito! Faça login para continuar.');
     }
   }
 
@@ -676,7 +676,7 @@ function renderProjectsPage(page) {
       
     } catch (error) {
       console.error('Erro ao editar projeto', error);
-      ErroMessage(error.message, 'error');
+      ErroMessage("Acesso restrito! Faça login para continuar.");
     } finally {
       if (editBtn) {
         editBtn.innerHTML = originalContent;
@@ -779,7 +779,7 @@ function renderProjectsPage(page) {
       SuccessMessage('Projeto excluído com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao excluir projeto:', error);
-      ErroMessage(error.message, 'error');
+      ErroMessage("Acesso restrito! Faça login para continuar.");
     } finally {
       if (deleteBtn) {
         deleteBtn.innerHTML = originalContent;

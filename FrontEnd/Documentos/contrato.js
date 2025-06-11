@@ -199,8 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.form.reset();
             loadContracts(); // Recarrega a lista de contratos
         } catch (error) {
-            console.error('Erro:', error);
-            showErrorMessage(error.message);
+            showErrorMessage('Acesso restrito! Faça login para continuar.');
         } finally {
             showLoading(false);
             submitButton.disabled = false;
@@ -393,7 +392,7 @@ async function loadContracts(filters = {}) {
             await loadContracts(); // Recarrega a lista de contratos
             showSuccessMessage('Contrato excluído com sucesso!');
         } catch (error) {
-            showErrorMessage(`Falha ao excluir contrato: ${error.message}`);
+            showErrorMessage('Acesso restrito! Faça login para continuar.');
         } finally {
             showLoading(false);
         }
@@ -421,7 +420,7 @@ async function viewContract(id) {
     try {
         showLoading(true);
         const token = localStorage.getItem('token');
-        if (!token) throw new Error('Autenticação necessária');
+        if (!token) throw new Error('Acesso restrito! Faça login para continuar.');
 
         // Pré-carrega o PDF em segundo plano
         const preloadResponse = await fetch(`${API_BASE_URL}/contracts/${id}/view`, {
@@ -442,7 +441,6 @@ async function viewContract(id) {
         setTimeout(() => URL.revokeObjectURL(pdfUrl), 10000);
 
     } catch (error) {
-        console.error('Erro:', error);
         showErrorMessage(error.message);
         
         // Fallback: Abre diretamente se o pré-carregamento falhar
@@ -521,8 +519,7 @@ async function viewContract(id) {
             }, 30000);
             
         } catch (error) {
-            console.error('Erro ao baixar contrato:', error);
-            showErrorMessage(`Erro ao baixar: ${error.message}`);
+            showErrorMessage('Acesso restrito! Faça login para continuar.');
         } finally {
             showLoading(false);
         }

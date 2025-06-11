@@ -57,7 +57,7 @@ const IDENTIDADES_PER_PAGE = 5;
         this.reset();
         carregarIdentidades();
     } else {
-        ErroMessage('Erro ao cadastrar identidade!', 'error');
+        ErroMessage('Acesso restrito! Faça login para continuar.', 'error');
     }
 
 });
@@ -162,7 +162,7 @@ const IDENTIDADES_PER_PAGE = 5;
                 SuccessMessage('Identidade excluída com sucesso!', 'success');
                 carregarIdentidades();
             } else {
-                ErroMessage('Erro ao excluir identidade!', 'error');
+                ErroMessage('Acesso restrito! Faça login para continuar.', 'error');
         }
     }
 
