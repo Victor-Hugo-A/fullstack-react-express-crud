@@ -864,7 +864,6 @@ tr:hover {
     cursor: pointer;
     transition: var(--transition);
     height: 2rem;
-    width: 5.9rem;
 }
 
 .btn-view:hover {

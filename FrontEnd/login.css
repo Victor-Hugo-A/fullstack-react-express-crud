@@ -21,8 +21,7 @@ body {
 
 
 .img {
-    width: 120px; 
-    height: 120px; 
+    width: 300px; 
     margin-bottom: 1rem;
 }
 
@@ -38,7 +37,6 @@ body {
 .auth-section {
     padding: 22px;
     width: 350px;
-    height: 350px;
     background-color: #f2f2f2;
     border-radius: 20px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
