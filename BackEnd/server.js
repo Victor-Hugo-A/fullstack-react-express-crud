@@ -2,8 +2,8 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_super_segura';
 const express = require('express');
+const keycloak = require('./keycloak-config')
 const session = require('express-session')
-const Keycloak = require('keycloak-connect')
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -30,48 +30,62 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
-// Configuração da sessão
-const memoryStore = new session.MemoryStore();
+// CONFIG KEYCLOAK
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'segredo-desenvolvimento',
+  secret: 'sua_chave_secreta_aleatoria', // Altere para um segredo forte
   resave: false,
   saveUninitialized: true,
-  store: memoryStore
+  store: keycloak.memoryStore
 }));
 
-// Configuração do Keycloak
-const keycloak = new Keycloak(
-  { store: memoryStore },
-  {
-    realm: process.env.KEYCLOAK_REALM,
-    'auth-server-url': process.env.KEYCLOAK_AUTH_SERVER_URL,
-    'ssl-required': 'external',
-    resource: process.env.KEYCLOAK_CLIENT_ID,
-    credentials: {
-      secret: process.env.KEYCLOAK_CLIENT_SECRET
-    },
-    'confidential-port': 0
-  }
-);
+app.use(keycloak.middleware()); // Deve vir ANTES das rotas
 
-app.use(keycloak.middleware());
-
-// Rotas
-app.get('/public', (req, res) => {
-  res.json({ message: 'Rota pública' });
+// Rotas de exemplo
+app.get('/', (req, res) => {
+  res.send('Página pública - <a href="/seguro">Área segura</a>');
 });
 
-app.get('/protected', keycloak.protect(), (req, res) => {
-  res.json({ 
-    message: 'Rota protegida',
-    user: req.kauth.grant.access_token.content 
+// Rota protegida para qualquer usuário autenticado
+app.get('/seguro', keycloak.protect(), (req, res) => {
+  try {
+    const token = req.kauth.grant.access_token.token;
+    if (!token) {
+      throw new Error('Token não encontrado');
+    }
+    
+    const redirectUrl = `http://127.0.0.1:5500/FrontEnd/Sistema/sistema.html?token=${encodeURIComponent(token)}`;
+    console.log('Redirecionando para:', redirectUrl);
+    res.redirect(redirectUrl);
+  } catch (error) {
+    console.error('Erro no redirecionamento:', error);
+    res.status(400).send('Erro no redirecionamento: ' + error.message);
+  }
+});
+
+// Rota apenas para usuários com role "admin"
+// Versão 1: Verifica a role do realm
+app.get('/admin', keycloak.protect('realm:admin'), (req, res) => {
+  res.json({
+    message: 'Área administrativa!',
+    user: req.kauth.grant.access_token.content
   });
 });
 
-app.get('/admin', keycloak.protect('realm:admin'), (req, res) => {
-  res.json({ message: 'Acesso apenas para administradores' });
+// OU Versão 2: Verifica a role do client específico
+app.get('/admin', keycloak.protect('client:nodejs-app:admin'), (req, res) => {
+  res.json({
+    message: 'Área administrativa!',
+    user: req.kauth.grant.access_token.content
+  });
 });
+
+// Logout
+app.get('/logout', (req, res) => {
+  const logoutUrl = keycloak.logoutUrl('http://localhost:3000');
+  res.redirect(logoutUrl);
+});
+
+app.listen(3000, () => console.log('Servidor rodando em http://localhost:3000'));
 
 
 // Configuração de diretórios
@@ -1701,21 +1715,30 @@ app.use((err, req, res, next) => {
     });
 });
 
+
 // Iniciar servidor
 async function startServer() {
     try {
         await initializeDatabase();
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`Servidor rodando na porta ${PORT}`);
             console.log(`Banco de dados: ${db.open ? 'Conectado' : 'Desconectado'}`);
             console.log(`Teste o endpoint de saúde em: http://localhost:${PORT}/health`);
+        });
+
+        server.on('error', (e) => {
+            if (e.code === 'EADDRINUSE') {
+                console.log(`Porta ${PORT} ocupada, tentando ${PORT + 1}...`);
+                setTimeout(() => {
+                    server.listen(PORT + 1);
+                }, 1000);
+            }
         });
     } catch (error) {
         console.error('Falha ao iniciar servidor:', error);
         process.exit(1);
     }
 }
-
 startServer();
 
 // Gerenciamento de encerramento
