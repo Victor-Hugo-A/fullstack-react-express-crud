@@ -10,7 +10,7 @@
          <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap">
             <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" >
-
+                    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
 </head>
 
 
@@ -43,7 +43,7 @@
                         <i class="fas fa-user-circle me-2"></i>
                         <span id="username-display">Usuário</span>  
                     </div>
-                    <button class="logout-btn" onclick="logout()">
+                    <button id="logout" class="logout-btn" onclick="logout()">
                     <i class="fas fa-sign-out-alt me-2"></i>Logout
                     </button>
                 </div>
@@ -179,5 +179,61 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/FrontEnd/Sistema/sistema.js"></script>
+
+
+
+    <script>
+        const keycloak = new Keycloak({
+      url: 'http://localhost:8080',
+      realm: 'meu-realm',
+      clientId: 'nodejs-app'
+    });
+
+    // 1. Tentar autenticar com token da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      keycloak.init({ token: token })
+        .then(authenticated => {
+          if (authenticated) {
+            document.getElementById('content').innerHTML = `
+              <p>Bem-vindo, ${keycloak.tokenParsed.name}!</p>
+              <button onclick="logout()">Logout</button>
+            `;
+            window.history.replaceState({}, '', window.location.pathname);
+          } else {
+            redirectToLogin();
+          }
+        })
+        .catch(() => redirectToLogin());
+    } 
+    // 2. Se não tiver token, verificar sessão
+    else {
+      keycloak.init({ onLoad: 'check-sso' })
+        .then(authenticated => {
+          if (!authenticated) {
+            redirectToLogin();
+          } else {
+            document.getElementById('content').innerHTML = `
+              <p>Bem-vindo de volta, ${keycloak.tokenParsed.name}!</p>
+              <button onclick="logout()">Logout</button>
+            `;
+          }
+        });
+    }
+
+    function redirectToLogin() {
+      keycloak.login({
+        redirectUri: window.location.href
+      });
+    }
+
+    function logout() {
+      keycloak.logout({
+        redirectUri: 'http://127.0.0.1:5500/FrontEnd/Sistema/sistema.html'
+      });
+    }
+    </script>
 </body>
 </html>

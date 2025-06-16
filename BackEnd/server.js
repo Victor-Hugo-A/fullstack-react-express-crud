@@ -32,7 +32,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // CONFIG KEYCLOAK
 app.use(session({
-  secret: 'sua_chave_secreta_aleatoria', // Altere para um segredo forte
+  secret: 'sua_chave_secreta_aleatoria', // Alterar para um segredo forte
   resave: false,
   saveUninitialized: true,
   store: keycloak.memoryStore
@@ -53,7 +53,7 @@ app.get('/seguro', keycloak.protect(), (req, res) => {
       throw new Error('Token não encontrado');
     }
     
-    const redirectUrl = `http://127.0.0.1:5500/FrontEnd/Sistema/sistema.html?token=${encodeURIComponent(token)}`;
+    const redirectUrl = `http://127.0.0.1:5500/FrontEnd/Sistema/sistema.html?token=${token}`;
     console.log('Redirecionando para:', redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
