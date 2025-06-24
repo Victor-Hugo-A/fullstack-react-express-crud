@@ -1,0 +1,453 @@
+:root {
+    --primary-color: #0056b3;
+    --primary-dark: #003366;
+    --primary-light: #336699;
+    --secondary-color: #f8f9fa;
+    --accent-dark: #c66900;
+    --text-dark: #222;
+    --text-medium: #555;
+    --text-light: #fff;
+    --info-alert: rgb(219, 7, 7);
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Montserrat', 'Open Sans', sans-serif !important;
+    font-size: 1.01rem !important;
+    background: linear-gradient(rgba(206, 205, 205, 0.9), rgba(94, 93, 93, 0.911)), 
+    url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png') center center;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: var(--text-dark);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Tipografia melhorada */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--primary-dark);
+}
+
+h3 {
+    font-size: 1.6rem !important;
+}
+
+h5 {
+    font-size: 1.1rem;
+    text-decoration: none;
+    border-bottom: 1px solid var(--primary-color);
+    padding-bottom: 0.4rem;
+    display: inline-block;
+}
+
+/* Barra superior redesenhada */
+.top-bar {
+    background-color: var(--primary-dark);
+    color: var(--secondary-color);
+    padding: 0.4rem 0;
+    font-size: 0.9rem;
+    display: contents;
+}
+
+.top-bar i {
+    color: var(--primary-color);
+}
+
+.top-bar a {
+    color: var(--text-light);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+
+/* Cabeçalho principal aprimorado */
+.main-header {
+    background-color: white;
+    box-shadow: var(--box-shadow);
+    padding: 0.3rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo-container {
+    height: 70px;
+    background-image: url(/FrontEnd/img/MJ.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+.img {
+    width: 3rem;
+}
+
+.img-home {
+    width: 1.8rem;
+    margin-right: 0.3rem;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.5rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    color: var(--text-medium);
+}
+
+.user-info i {
+    font-size: 1.7rem;
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+}
+
+.logout-btn {
+    background-color: var(--text-medium);
+    color: white;
+    border: none;
+    padding: 0.2rem 0.5rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1.3px);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Navegação modernizada */
+.main-nav {
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-nav {
+    width: 100%;
+    justify-content: space-around;
+}
+
+.nav-link {
+    color: white !important;
+    padding: 1rem 1.5rem !important;
+    font-weight: 500;
+    transition: var(--transition);
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 3px;
+}
+
+.nav-link i {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Conteúdo principal aprimorado */
+.main-content {
+    padding: 2rem 0;
+    flex: 1;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.welcome-card {
+    background-color: rgba(211, 210, 210, 0.349);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border-left: 3px solid var(--primary-dark);
+}
+
+.welcome-title {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.welcome-title i {
+    color: var(--primary-dark);
+    margin-right: 1rem;
+}
+
+.alert {
+    border-radius: var(--border-radius);
+    border: none !important;
+    padding: 1.2rem;
+    background-color: #e9e9e9 !important;
+    border-left: 2px solid var(--info-alert) !important
+}
+
+.alert i {
+    color: var(--info-alert);
+    margin-right: 0.8rem;
+}
+
+
+/* Cards de acesso rápido melhorados */
+.quick-access, .card {
+    margin-bottom: 1rem;
+    min-height: 260px;
+    justify-content: space-between;
+}
+
+.card {
+    border: none;
+    box-shadow: 0.2px 8px rgba(0, 0, 0, 0.8);
+    border-radius: 12px;
+    transition: var(--transition);
+    height: 100%;
+    overflow: hidden;
+    border-top: 4px solid var(--primary-color);
+}
+
+.card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.card-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin: 1.3rem 0;
+    transition: var(--transition);
+}
+
+.card:hover .card-icon {
+    transform: scale(1.09);
+    color: var(--text-dark);
+}
+
+.card-title {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.card-text {
+    color: var(--text-medium);
+    margin-bottom: 1rem;
+    min-height: 3rem;
+}
+
+.card, .btn, .nav-link, .footer-links a {
+    transition: all 0.2s cubic-bezier(.4,0,.2,1);
+}
+
+.btn-outline-primary, .logout-btn {
+    border-color: var(--primary-color);
+    border-radius: 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+a:focus, button:focus, .btn:focus {
+    outline: 2px solid var(--accent-dark);
+    outline-offset: 2px;
+}
+
+/* Rodapé redesenhado */
+.footer {
+    background: linear-gradient(90deg, var(--primary-dark) 60%, var(--primary-color) 100%);
+    color: #ccc;
+    padding: 3rem 0 0;
+    font-size: 1rem;
+    margin-top: 3rem;
+}
+
+.footer h5 {
+    color: var(--secondary-color);
+    border-bottom: 1.5px solid var(--primary-light);
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-links a {
+    color: var(--text-light);
+    text-decoration: none;
+    margin-bottom: 0.8rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+}
+
+
+.footer-links a i {
+    margin-right: 0.7rem;
+    font-size: 0.9rem;
+}
+
+.footer p {
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+}
+
+.footer p i {
+    margin-right: 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.copyright {
+    color: #ccc;
+    background-color: #00050a;
+    background: none;
+    padding: 1.2rem 0 0.5rem 0;
+    margin-top: 2rem;
+    font-size: 0.95rem;
+}
+
+/* Botão voltar ao topo aprimorado */
+.back-to-top {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-light);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: var(--transition);
+    z-index: 99;
+    font-size: 1.2rem;
+    border: none;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+}
+
+.back-to-top:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-3px) scale(1.1);
+}
+
+.col-md-4 {
+    color: var(--secondary-color);
+}
+
+
+.footer-links {
+    color: #009CFF;
+    margin-left: 0.2rem; 
+    margin-bottom: 0.19rem;
+}
+
+/* Responsividade aprimorada */
+@media (max-width: 992px) {
+    .navbar-nav {
+        flex-direction: column;
+    }
+    
+    .nav-link {
+        padding: 0.8rem 1rem !important;
+    }
+    
+    .user-menu {
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .quick-access .col-md-3 {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .top-bar .col-md-6 {
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .logo-container {
+        background-position: center;
+        margin-bottom: 1rem;
+    }
+    
+    .footer .col-md-4, .footer .col-md-2 {
+        margin-bottom: 2rem;
+    }
+    
+    .welcome-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .footer-links a {
+        margin-bottom: 0.6rem;
+    }
+    
+    .back-to-top {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        bottom: 1rem;
+        right: 1rem;
+    }
+
+    .main-content, .container {
+        padding: 0.5rem !important;
+    }
+
+    h3, h5 {
+        font-size: 1.1rem !important;
+    }
+}
+

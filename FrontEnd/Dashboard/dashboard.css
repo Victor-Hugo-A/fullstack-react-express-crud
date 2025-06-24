@@ -1,0 +1,112 @@
+body {
+    background-image: 
+        linear-gradient(rgba(180, 180, 180, 0.911), rgba(134, 134, 134, 0.911)),
+        url('https://www.gov.br/senappen/pt-br/assuntos/noticias/nova-estrutura-da-secretaria-nacional-de-politicas-penais-senappen-vigora-hoje/senappen_marca_final_prancheta_1_copia.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+}
+
+.app-container {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1 0 auto;
+}
+
+.dashboard-container { 
+    max-width: 95vw; 
+    width: 100%;
+    margin: 55px auto; 
+    padding: 2rem 1rem;
+    box-sizing: border-box;
+}
+
+.chart-box { 
+    background: #fff; 
+    border-radius: 14px; 
+    box-shadow: 0 4px 16px rgba(224, 224, 224, 0.133); 
+    padding: 2rem; 
+    margin-bottom: 2rem; 
+    margin-left: auto;
+    margin-right: auto;
+    width: 60%;
+    height: 60%;
+    transition: box-shadow 0.4s;
+}
+.chart-box:hover {
+    box-shadow: 0 8px 32px #0003;
+    /* Melhoria: efeito hover */
+}
+
+.page-title {
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
+}
+
+.chart-title { 
+    margin-bottom: 1rem; 
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #222;
+    letter-spacing: 0.5px;
+    /* Melhoria: destaque no título */
+}
+
+.row { 
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background-color: rgba(238, 238, 238, 0.048);
+}
+
+.gflinha {
+    width: 3rem;
+    height: 3rem;
+    margin-left: 0.5rem;
+}
+
+.copyright {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.footer {
+    flex-shrink: 0;
+    padding: 1rem 0;
+    width: 100%;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem 0.5rem;
+    }
+    .chart-box {
+        padding: 1rem;
+        max-width: 100%;
+    }
+    .row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manuais</title>
+    <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
+    <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" >
+    <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
+</head>
+<body>
+<!-- Barra superior -->
+<div class="top-bar" id="inicio">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <i class="fas fa-phone-alt me-2"></i> (61) 2025-0000 <strong>|</strong> 
+                <i class="fas fa-envelope ms-3 me-2"></i> contato@portal.gov.br <strong>|</strong>
+                <i class="fas fa-calendar-alt me-2" style="margin-left: 2.5%;"></i><span id="current-date"></span>
+            </div>
+            <div class="col-md-6 text-end"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Cabeçalho principal -->
+<header class="main-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="logo-container"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="user-menu">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <span id="username-display">Usuário</span>  
+                    </div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Navegação -->
+<nav class="main-nav navbar navbar-expand-lg">
+    <div class="container">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <i class="fas fa-bars text-white"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/FrontEnd/Sistema/sistema.html"><img class="img-home" src="/FrontEnd/img/house.png" alt="HomeBack"> Início</a>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/FrontEnd/Manuais/manuais.html"><img class="img-home" src="/FrontEnd/img/manual.png" alt="Manuais">Manuais</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Conteúdo principal -->
+<main class="main-content">
+    <div class="container">
+        <h2 class="mt-4 mb-3"><i class="fas fa-book me-2"></i>Manuais</h2>
+        <p>Aqui você encontra os manuais institucionais para consulta e download.</p>
+        <ul class="list-group mb-4">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Manual do Usuário - Sistema
+                <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-download me-1"></i>Baixar</a>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Manual de Procedimentos Internos
+                <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-download me-1"></i>Baixar</a>
+            </li>
+        </ul>
+    </div>
+</main>
+
+<!-- Rodapé -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h5>Sobre o Sistema <a id="sobre"><i class="fas fa-cog fa-pulse"></i></a></h5>
+                <p>Plataforma integrada de Gestão Institucional sendo desenvolvida para facilitar o acesso á informação e otimizações de processos.</p>
+            </div>
+            <div class="col-md-2 mb-4">
+                <div class="footer-links">
+                    <h5>Links Úteis</h5>
+                    <a href="https://www.gov.br/mj/pt-br" target="_blank">Portal MJ</a>
+                    <a href="/FrontEnd/Normativos/normativos.html">Normativos</a>
+                    <a href="/FrontEnd/Manuais/manuais.html">Manuais</a>
+                    <a href="#">FAQ</a>
+                </div>
+            </div>
+            <div class="col-md-2 mb-4">
+                <div class="footer-links">
+                    <h5>Ajuda</h5>
+                    <a href="#">Suporte</a>
+                    <a href="#">Tutoriais</a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <h5><a class="footer-links" id="contatos"><i class="fas fa-users me-2"></i></a></h5>
+                <p><i class="fas fa-map-marker-alt me-2"></i> Esplanada dos Ministérios, Bloco T, Brasília/DF</p>
+                <p><i class="fas fa-phone-alt me-2"></i> (61) 2025-0000</p>
+                <p><i class="fas fa-envelope me-2"></i> contato@portal.gov.br</p>
+            </div>
+        </div>
+    </div>
+    <div class="copyright text-center">
+        <div class="container">
+            &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
+        </div>
+    </div>
+</footer>
+
+<a class="back-to-top" href="#"><i class="fa-solid fa-arrow-up"></i></a>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/FrontEnd/Sistema/sistema.js"></script>
+</body>
+</html>

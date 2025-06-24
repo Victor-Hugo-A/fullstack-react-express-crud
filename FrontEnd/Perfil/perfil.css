@@ -1,0 +1,68 @@
+.perfil-img {
+    width: 1.8rem;
+    margin-right: 0.4rem;
+}
+
+.btn {
+    height: 2.3rem;
+}
+
+.btn:hover{
+    background-color: rgb(2, 6, 253);
+}
+
+.chart-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.chart-container {
+    display: flex; 
+    width: 25rem;
+    position: absolute;
+    top: 220px; 
+    left: 10px;
+}
+
+p {
+    color: rgb(87, 86, 86);
+    background-color: rgba(235, 235, 235, 0.514);
+    border-radius: 10px;
+}
+
+
+@media (max-width: 1500px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+    }
+    
+    .dashboard-container,
+    .chart-container {
+        width: 20%;
+    }
+    
+    .chart-container {
+        margin-top: 30px;
+    }
+}
+
+.main-content {
+    padding: 0;
+}
+
+@media (max-width: 1350px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+    }
+    
+    .dashboard-container,
+    .chart-container {
+        width: 20%;
+    }
+    
+    .chart-container {
+        margin-top: 30px;
+    }
+}
