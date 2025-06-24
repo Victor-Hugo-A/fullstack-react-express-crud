@@ -988,8 +988,8 @@ svg{
 
 .badge {
     color: rgba(136, 134, 134, 0.932);
-    font-size: 0.8rem;
-    font-family:cursive
+    font-size: 0.65rem;
+    font-family:  em; /* Fonte em itálico */
 }
 
 /* Exemplo de cores para cada tipo */
