@@ -1462,6 +1462,22 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Rota protegida para download (valida o token antes de gerar o gráfico)
+app.post('/api/generate-chart', authenticateJWT, (req, res) => {
+  const { year } = req.body;
+  
+  // Simulação: gere um gráfico (substitua por um gerador real, como canvas/chart.js)
+  const chartImage = "base64_simulado_do_grafico"; // Exemplo: "iVBORw0KGgoAAAANSUhEUgAA..."
+
+  // Envie a imagem como resposta
+  console.log('Enviando esposta:', { image: chartImage });
+  res.json({
+    success: true,
+    image: chartImage // Certifique-se de que é um base64 válido
+  });
+});
+
+
 app.post('/upload', upload.single('file'), (req, res) => {
     try {
         if (!req.file) {

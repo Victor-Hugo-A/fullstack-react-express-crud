@@ -182,12 +182,42 @@ document.getElementById('yearSelect').addEventListener('change', function() {
         renderDashboard(this.value);
     });
 
-    document.getElementById('downloadChart').addEventListener('click', function() {
-        const link = document.createElement('a');
-        link.href = chart.toBase64Image();
-        link.download = `dashboard-${document.getElementById('yearSelect').value}.png`;
-        link.click();
+document.getElementById('downloadChart').addEventListener('click', async () => {
+  const token = localStorage.getItem('token');
+  const year = document.getElementById('yearSelect').value;
+
+  try {
+    const response = await fetch('http://localhost:3000/api/generate-chart', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ year })
     });
 
-    // Inicialização
+    if (!response.ok) {
+      throw new Error('Erro ao gerar gráfico');
+    }
+
+    const data = await response.json();
+
+    // Verifique se a resposta contém a imagem em base64
+    if (!data.image) {
+      throw new Error('Resposta inválida do servidor');
+    }
+
+    // Cria o link de download
+    const link = document.createElement('a');
+    link.href = `data:image/png;base64,${data.image}`; // Prefixo correto para base64
+    link.download = `dashboard-${year}.png`;
+    link.click();
+
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('Falha ao baixar o gráfico: ' + error.message);
+  }
+});
+
+// Inicialização
     renderDashboard(document.getElementById('yearSelect').value);
