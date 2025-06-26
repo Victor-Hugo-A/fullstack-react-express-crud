@@ -1,26 +1,33 @@
+/* =========================
+   Paleta institucional e acessibilidade
+   ========================= */
 :root {
-    --primary-color: #0056b3;
-    --primary-dark: #003366;
-    --primary-light: #336699;
-    --secondary-color: #f8f9fa;
-    --accent-dark: #c66900;
+    --primary-color: #003366;      /* Azul escuro institucional */
+    --primary-dark: #002244;       /* Azul ainda mais escuro */
+    --primary-light: #336699;      /* Azul claro */
+    --secondary-color: #f4f6fa;    /* Cinza quase branco */
+    --accent-dark: #ed6c02;        /* Laranja institucional para destaques */
+    --success-color: #2e7d32;      /* Verde acessível */
+    --danger-color: #d32f2f;       /* Vermelho acessível */
+    --warning-color: #fbc02d;      /* Amarelo institucional */
     --text-dark: #222;
-    --text-medium: #555;
+    --text-medium: #444;
     --text-light: #fff;
-    --info-alert: rgb(219, 7, 7);
+    --info-alert: #005b9f;         /* Azul para alertas/info */
     --border-radius: 8px;
-    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     --transition: all 0.3s ease;
+    --focus-outline: 2px solid #ed6c02;
 }
 
+/* =========================
+   Fundo institucional limpo
+   ========================= */
 body {
-    font-family: 'Montserrat', 'Open Sans', sans-serif !important;
-    font-size: 1.01rem !important;
-    background: linear-gradient(rgba(206, 205, 205, 0.9), rgba(94, 93, 93, 0.911)), 
-    url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png') center center;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+    font-family: 'Montserrat', 'Open Sans', Arial, sans-serif !important;
+    font-size: 1.05rem !important;
+    background: var(--secondary-color) url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png') no-repeat 98% 2.5rem;
+    background-size: 120px auto;
     color: var(--text-dark);
     line-height: 1.6;
     margin: 0;
@@ -30,9 +37,15 @@ body {
     flex-direction: column;
 }
 
-/* Tipografia melhorada */
+.col-md-6 {
+    color: var(--primary-color);
+}
+
+/* =========================
+   Tipografia
+   ========================= */
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     letter-spacing: 0.5px;
     font-weight: 600;
     margin-bottom: 1rem;
@@ -51,7 +64,14 @@ h5 {
     display: inline-block;
 }
 
-/* Barra superior redesenhada */
+p {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+/* =========================
+   Barra superior
+   ========================= */
 .top-bar {
     background-color: var(--primary-dark);
     color: var(--secondary-color);
@@ -70,10 +90,12 @@ h5 {
     transition: var(--transition);
 }
 
-
-/* Cabeçalho principal aprimorado */
+/* =========================
+   Cabeçalho principal
+   ========================= */
 .main-header {
-    background-color: white;
+    font-size: 1rem;
+    background-color: var(--text-light);
     box-shadow: var(--box-shadow);
     padding: 0.3rem 0;
     position: sticky;
@@ -119,26 +141,30 @@ h5 {
 }
 
 .logout-btn {
-    background-color: var(--text-medium);
+    background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 0.2rem 0.5rem;
+    border-radius: 20px;
     transition: var(--transition);
     display: flex;
     align-items: center;
     cursor: pointer;
 }
 
-.logout-btn:hover {
-    background-color: var(--primary-dark);
+.logout-btn:hover, .btn-outline-primary:hover {
+    background-color: var(--accent-dark);
+    color: white;
     transform: translateY(-1.3px);
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Navegação modernizada */
+/* =========================
+   Navegação
+   ========================= */
 .main-nav {
     background-color: var(--primary-color);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .navbar-nav {
@@ -156,8 +182,10 @@ h5 {
     align-items: center;
 }
 
-.nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+.nav-link:hover, .nav-link:focus {
+    background-color: var(--primary-light);
+    color: var(--accent-dark) !important;
+    outline: var(--focus-outline);
 }
 
 .nav-link.active::after {
@@ -168,6 +196,7 @@ h5 {
     transform: translateX(-50%);
     width: 80%;
     height: 3px;
+    background: var(--accent-dark);
 }
 
 .nav-link i {
@@ -175,7 +204,9 @@ h5 {
     font-size: 1.1rem;
 }
 
-/* Conteúdo principal aprimorado */
+/* =========================
+   Conteúdo principal
+   ========================= */
 .main-content {
     padding: 2rem 0;
     flex: 1;
@@ -188,7 +219,7 @@ h5 {
 }
 
 .welcome-card {
-    background-color: rgba(211, 210, 210, 0.349);
+    background-color: #e3eaf2;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     padding: 2rem;
@@ -209,12 +240,34 @@ h5 {
     margin-right: 1rem;
 }
 
+/* =========================
+   Alertas e feedback
+   ========================= */
 .alert {
     border-radius: var(--border-radius);
     border: none !important;
     padding: 1.2rem;
     background-color: #e9e9e9 !important;
-    border-left: 2px solid var(--info-alert) !important
+    border-left: 4px solid var(--info-alert) !important;
+    color: var(--primary-dark);
+}
+
+.alert-success {
+    background-color: #e8f5e9 !important;
+    border-left: 4px solid var(--success-color) !important;
+    color: var(--success-color);
+}
+
+.alert-error {
+    background-color: #ffebee !important;
+    border-left: 4px solid var(--danger-color) !important;
+    color: var(--danger-color);
+}
+
+.alert-warning {
+    background-color: #fffde7 !important;
+    border-left: 4px solid var(--warning-color) !important;
+    color: #b28704;
 }
 
 .alert i {
@@ -222,8 +275,9 @@ h5 {
     margin-right: 0.8rem;
 }
 
-
-/* Cards de acesso rápido melhorados */
+/* =========================
+   Cards de acesso rápido
+   ========================= */
 .quick-access, .card {
     margin-bottom: 1rem;
     min-height: 260px;
@@ -232,12 +286,13 @@ h5 {
 
 .card {
     border: none;
-    box-shadow: 0.2px 8px rgba(0, 0, 0, 0.8);
+    box-shadow: 0.2px 8px rgba(0, 0, 0, 0.08);
     border-radius: 12px;
     transition: var(--transition);
     height: 100%;
     overflow: hidden;
     border-top: 4px solid var(--primary-color);
+    background: var(--text-light);
 }
 
 .card:hover {
@@ -246,7 +301,7 @@ h5 {
 }
 
 .card-icon {
-    font-size: 3rem;
+    font-size: 2rem;
     color: var(--primary-color);
     margin: 1.3rem 0;
     transition: var(--transition);
@@ -254,7 +309,14 @@ h5 {
 
 .card:hover .card-icon {
     transform: scale(1.09);
-    color: var(--text-dark);
+    color: var(--accent-dark);
+}
+
+.card-icon img,
+.card-icon i {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 2rem;
 }
 
 .card-title {
@@ -279,17 +341,24 @@ h5 {
     letter-spacing: 0.5px;
 }
 
+.btn-outline-primary {
+    background: var(--text-light);
+    color: var(--primary-color);
+}
+
 .btn-outline-primary:hover {
     background-color: var(--primary-color);
     color: white;
 }
 
 a:focus, button:focus, .btn:focus {
-    outline: 2px solid var(--accent-dark);
+    outline: var(--focus-outline);
     outline-offset: 2px;
 }
 
-/* Rodapé redesenhado */
+/* =========================
+   Rodapé
+   ========================= */
 .footer {
     background: linear-gradient(90deg, var(--primary-dark) 60%, var(--primary-color) 100%);
     color: #ccc;
@@ -309,7 +378,7 @@ a:focus, button:focus, .btn:focus {
 }
 
 .footer-links a {
-    color: var(--text-light);
+    color: var(--primary-light);
     text-decoration: none;
     margin-bottom: 0.8rem;
     transition: var(--transition);
@@ -317,10 +386,14 @@ a:focus, button:focus, .btn:focus {
     align-items: center;
 }
 
+.footer-links a:hover, .footer-links a:focus {
+    color: var(--accent-dark);
+    text-decoration: underline;
+}
 
 .footer-links a i {
     margin-right: 0.7rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .footer p {
@@ -332,6 +405,7 @@ a:focus, button:focus, .btn:focus {
 .footer p i {
     margin-right: 0.8rem;
     margin-top: 0.3rem;
+    font-size: 1rem;
 }
 
 .copyright {
@@ -343,7 +417,9 @@ a:focus, button:focus, .btn:focus {
     font-size: 0.95rem;
 }
 
-/* Botão voltar ao topo aprimorado */
+/* =========================
+   Botão voltar ao topo
+   ========================= */
 .back-to-top {
     position: fixed;
     bottom: 1rem;
@@ -369,15 +445,15 @@ a:focus, button:focus, .btn:focus {
     opacity: 1;
 }
 
-.back-to-top:hover {
+.back-to-top:hover, .back-to-top:focus {
     background-color: var(--primary-color);
     transform: translateY(-3px) scale(1.1);
+    outline: var(--focus-outline);
 }
 
 .col-md-4 {
     color: var(--secondary-color);
 }
-
 
 .footer-links {
     color: #009CFF;
@@ -385,21 +461,20 @@ a:focus, button:focus, .btn:focus {
     margin-bottom: 0.19rem;
 }
 
-/* Responsividade aprimorada */
+/* =========================
+   Responsividade
+   ========================= */
 @media (max-width: 992px) {
     .navbar-nav {
         flex-direction: column;
     }
-    
     .nav-link {
         padding: 0.8rem 1rem !important;
     }
-    
     .user-menu {
         justify-content: center;
         margin-top: 1rem;
     }
-    
     .quick-access .col-md-3 {
         margin-bottom: 1.5rem;
     }
@@ -410,16 +485,13 @@ a:focus, button:focus, .btn:focus {
         text-align: center;
         margin-bottom: 0.5rem;
     }
-    
     .logo-container {
         background-position: center;
         margin-bottom: 1rem;
     }
-    
     .footer .col-md-4, .footer .col-md-2 {
         margin-bottom: 2rem;
     }
-    
     .welcome-title {
         font-size: 1.5rem;
     }
@@ -429,11 +501,9 @@ a:focus, button:focus, .btn:focus {
     .card {
         margin-bottom: 1.5rem;
     }
-    
     .footer-links a {
         margin-bottom: 0.6rem;
     }
-    
     .back-to-top {
         width: 40px;
         height: 40px;
@@ -441,13 +511,10 @@ a:focus, button:focus, .btn:focus {
         bottom: 1rem;
         right: 1rem;
     }
-
     .main-content, .container {
         padding: 0.5rem !important;
     }
-
     h3, h5 {
         font-size: 1.1rem !important;
     }
 }
-

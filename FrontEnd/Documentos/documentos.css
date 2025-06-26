@@ -1,17 +1,17 @@
+/* Cores atualizadas para melhor contraste e acessibilidade */
 :root {
-    /* Cores atualizadas para melhor contraste e acessibilidade */
-    --primary-color: #005b9f; /* Azul mais suave */
+    --primary-color: #003366; /* Azul institucional */
     --secondary-color: #f8f9fa;
-    --accent-color: #ff7b25; /* Laranja mais acessível */
+    --accent-color: #ed6c02;  /* Laranja institucional */
     --text-dark: #2d3748;
-    --text-light: #f8f9fa;
+    --text-light: #fff;
     --success-color: #2e7d32;
     --warning-color: #ed6c02;
     --danger-color: #d32f2f;
     --info-color: #0288d1;
     --sidebar-width: 250px;
     --header-height: 70px;
-    --focus-outline: 2px solid #005b9f;
+    --focus-outline: 2px solid #003366;
     --border-radius: 8px;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s ease;
@@ -32,7 +32,6 @@ body {
     min-height: 100vh;
     line-height: 1.6;
 }
-
 
 /* Menu expansível */
 .has-submenu > .nav-link {
@@ -587,6 +586,7 @@ th, td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 th {
@@ -892,13 +892,12 @@ tr:hover {
 }
 
 #downloadChart {
-    height: 1.5rem;
     width: 7rem;
     font-size: 0.9rem;
     float: inline-end;
 }
 
-svg{
+svg {
     width: 1.5rem;
 }
 
@@ -1054,7 +1053,7 @@ svg{
 }
 
 .card-title {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: var(--primary-color);
@@ -1213,7 +1212,6 @@ label {
 .other .card-icon {
     color: var(--info-color);
 }
-
 
 /* Estilo para cada perfil de usuário */
 .perfil-administrador {

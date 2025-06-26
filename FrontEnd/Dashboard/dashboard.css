@@ -1,13 +1,8 @@
 body {
-    background-image: 
-        linear-gradient(rgba(180, 180, 180, 0.911), rgba(134, 134, 134, 0.911)),
-        url('https://www.gov.br/senappen/pt-br/assuntos/noticias/nova-estrutura-da-secretaria-nacional-de-politicas-penais-senappen-vigora-hoje/senappen_marca_final_prancheta_1_copia.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+    background: #f8f9fa url(/FrontEnd/img/senappenLogo.png) no-repeat right 2.5rem top 5.5rem;
+    background-size: 110px auto;
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Montserrat', 'Open Sans', Arial, Helvetica, sans-serif;
     justify-content: center;
     align-items: center;
     display: flex;
@@ -71,8 +66,8 @@ body {
 }
 
 .gflinha {
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
     margin-left: 0.5rem;
 }
 
