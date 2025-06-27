@@ -26,7 +26,7 @@
 body {
     font-family: 'Montserrat', 'Open Sans', Arial, sans-serif !important;
     font-size: 1.05rem !important;
-    background: var(--secondary-color) url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png') no-repeat 98% 2.5rem;
+    background: var(--secondary-color) url('https://www.gov.br/senappen/pt-br/centrais-de-conteudo/download-logos/senappen_logo_aplicacoes_af-16.png') no-repeat 100% 2.5rem;
     background-size: 120px auto;
     color: var(--text-dark);
     line-height: 1.6;
@@ -104,7 +104,7 @@ p {
 }
 
 .logo-container {
-    height: 70px;
+    height: 80px;
     background-image: url(/FrontEnd/img/MJ.png);
     background-size: contain;
     background-repeat: no-repeat;
@@ -153,7 +153,7 @@ p {
 }
 
 .logout-btn:hover, .btn-outline-primary:hover {
-    background-color: var(--accent-dark);
+    background-color: var(--info-alert);
     color: white;
     transform: translateY(-1.3px);
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
@@ -196,7 +196,7 @@ p {
     transform: translateX(-50%);
     width: 80%;
     height: 3px;
-    background: var(--accent-dark);
+    background: var(--primary-light);
 }
 
 .nav-link i {
@@ -309,7 +309,7 @@ p {
 
 .card:hover .card-icon {
     transform: scale(1.09);
-    color: var(--accent-dark);
+    color: var();
 }
 
 .card-icon img,

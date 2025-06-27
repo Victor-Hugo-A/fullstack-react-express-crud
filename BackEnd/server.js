@@ -1193,7 +1193,7 @@ router.delete('/projects/:id', authenticateJWT, async (req, res) => {
 
 
     // ROTA PERFIL  
-    app.put('/update-profile', authenticateJWT, async (req, res) => {
+    app.put('/update-profile', async (req, res) => {
     try {
         const { username, departamento, cargo, cpf } = req.body;
         if (!username) {
