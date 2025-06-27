@@ -118,6 +118,8 @@
                     </div>
                 </div>
 
+                    
+
                 <!-- Gráficos -->
                 <div class="row g-4 mb-4">
                 <div class="col-md-6">
@@ -138,6 +140,11 @@
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title">Identidade por Perfil</h5>
+                                <div id="perfil-filtros">
+                                    <label><input type="checkbox" value="administrador" checked> Administrador</label>
+                                    <label><input type="checkbox" value="usuário" checked> Usuário</label>
+                                    <label><input type="checkbox" value="visitante" checked> Visitante</label>
+                                </div>
                                 <canvas id="identidadesChart" aria-label="Gráfico de Identidades"></canvas>
                             </div>
                         </div>

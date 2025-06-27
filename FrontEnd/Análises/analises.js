@@ -14,8 +14,23 @@ async function fetchResumo() {
     document.getElementById('identidades-cadastradas').textContent = identidades.count || 0;  
 }
 
+function getStatusSelecionados() {
+    return Array.from(document.querySelectorAll('#status-filtros input[type="checkbox"]:checked'))
+        .map(cb => cb.value);
+}
+
+function getPerfisSelecionados() {
+    return Array.from(document.querySelectorAll('#perfil-filtros input[type="checkbox"]:checked'))
+        .map(cb => cb.value.toLowerCase());
+}
+
+let contratosChart = null;
+let projetosChart = null;
+let identidadesChart = null;
+
 async function fetchGraficos() {
     // Contratos por Tipo (Pie)
+    if (contratosChart) contratosChart.destroy();
     const contratoColors = {
         fornecimento: '#4caf50',
         servicos: '#2196f3',
@@ -24,7 +39,7 @@ async function fetchGraficos() {
         outro: '#607d8b'
     };
     const contratosTipo = await fetch(`${API_BASE_URL}/contracts/groupby/type`).then(r => r.json()).catch(() => []);
-    new Chart(document.getElementById('contratosStatusChart'), {
+    contratosChart = new Chart(document.getElementById('contratosStatusChart'), {
         type: 'pie',
         data: {
             labels: contratosTipo.map(c => (c.tipo ? c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1) : '-')),
@@ -77,6 +92,7 @@ async function fetchGraficos() {
     });
 
     // Projetos por Status (Bar)
+    if (projetosChart) projetosChart.destroy();
     const statusColors = {
         andamento: '#0288d1',    // azul
         concluido: '#2e7d32',    // verde
@@ -84,16 +100,16 @@ async function fetchGraficos() {
         suspenso: '#d32f2f'      // vermelho
     };
     const projetosStatus = await fetch(`${API_BASE_URL}/projects/groupby/status`).then(r => r.json()).catch(() => []);
-    const labels = projetosStatus.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1));
-    const data = projetosStatus.map(p => p.count);
+    const labelsProjetos = projetosStatus.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1));
+    const dataProjetos = projetosStatus.map(p => p.count);
     const backgroundColors = projetosStatus.map(p => statusColors[p.status?.toLowerCase()] || '#888');
-    new Chart(document.getElementById('projetosStatusChart'), {
+    projetosChart = new Chart(document.getElementById('projetosStatusChart'), {
         type: 'bar',
         data: {
-            labels,
+            labels: labelsProjetos,
             datasets: [{
                 label: 'Projetos',
-                data,
+                data: dataProjetos,
                 backgroundColor: backgroundColors,
                 borderRadius: 8,
                 maxBarThickness: 40
@@ -132,30 +148,45 @@ async function fetchGraficos() {
         plugins: [ChartDataLabels]
     });
 
-    // Identidades por Perfil (Line)
+    // Identidades por Perfil (Bar) - cada perfil é uma barra
+    if (identidadesChart) identidadesChart.destroy();
+    const perfilColors = { 
+        administrador: '#1565c0', // azul escuro
+        usuário: '#1b5e20',       // verde forte
+        visitante: '#f57c00'      // laranja forte
+    };
+
     const identidadesPerfil = await fetch(`${API_BASE_URL}/identities/groupby/perfil`).then(r => r.json()).catch(() => []);
-    new Chart(document.getElementById('identidadesChart'), {
-        type: 'line',
+    const perfisSelecionados = getPerfisSelecionados();
+
+    // Filtra os perfis selecionados
+    const labelsI = perfisSelecionados.map(perfil => perfil.charAt(0).toUpperCase() + perfil.slice(1));
+    const dataI = perfisSelecionados.map(perfil => {
+        const dadosPerfil = identidadesPerfil.find(i => i.perfil.toLowerCase() === perfil);
+        return dadosPerfil ? dadosPerfil.count : 0;
+    });
+    const backgroundColorsI = perfisSelecionados.map(perfil => perfilColors[perfil] || '#888');
+
+    identidadesChart = new Chart(document.getElementById('identidadesChart'), {
+        type: 'bar',
         data: {
-            labels: identidadesPerfil.map(i => i.perfil.charAt(0).toUpperCase() + i.perfil.slice(1)),
+            labels: labelsI,
             datasets: [{
-                label: 'Quantidade',
-                data: identidadesPerfil.map(i => i.count),
-                fill: true,
-                borderColor: '#1976d2',
-                backgroundColor: 'rgba(25, 118, 210, 0.15)',
-                pointBackgroundColor: '#1976d2',
-                tension: 0.4
+                label: 'Identidades',
+                data: dataI,
+                backgroundColor: backgroundColorsI,
+                borderColor: backgroundColorsI,
+                borderWidth: 2
             }]
         },
         options: {
             responsive: true,
             plugins: {
-                    datalabels: {
-                    achor: 'center',
+                datalabels: {
+                    anchor: 'end',
                     align: 'top',
-                    font: { weight: 'bold', size: 12 },
-                    color: '#1976d2'
+                    font: { weight: 'bold', size: 14 },
+                    color: ctx => ctx.dataset.backgroundColor
                 },
                 title: {
                     display: true,
@@ -164,12 +195,11 @@ async function fetchGraficos() {
                     padding: { top: 0, bottom: 26 }
                 },
                 legend: {
-                    display: true, position: 'bottom',
-                    labels: { font: { size: 14 } }
+                    display: false
                 },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `Quantidade: ${ctx.parsed.y}`,
+                        label: ctx => `${ctx.label}: ${ctx.raw}`
                     }
                 }
             },
@@ -183,6 +213,8 @@ async function fetchGraficos() {
     });
 }
 
+// Atualiza o gráfico ao mudar os checkboxes
+document.getElementById('perfil-filtros').addEventListener('change', fetchGraficos);
 
 async function fetchAnalisesRecentes() {
     // Busca últimas análises ( contratos, projetos, identidades )
