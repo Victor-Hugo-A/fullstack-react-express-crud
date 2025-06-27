@@ -151,9 +151,9 @@ async function fetchGraficos() {
     // Identidades por Perfil (Bar) - cada perfil é uma barra
     if (identidadesChart) identidadesChart.destroy();
     const perfilColors = { 
-        administrador: '#1565c0', // azul escuro
-        usuário: '#1b5e20',       // verde forte
-        visitante: '#f57c00'      // laranja forte
+        administrador: '#2196f3', // azul escuro
+        usuário: '#43a047',       // verde forte
+        visitante: '#fbc02d'      // laranja forte
     };
 
     const identidadesPerfil = await fetch(`${API_BASE_URL}/identities/groupby/perfil`).then(r => r.json()).catch(() => []);
