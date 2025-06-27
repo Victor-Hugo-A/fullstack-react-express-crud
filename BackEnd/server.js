@@ -120,7 +120,6 @@ app.get('/logout', keycloak.protect(), (req, res) => {
 app.listen(3000, () => console.log('Servidor rodando em http://localhost:3000'));
 
 
-
 // Configuração de diretórios
 const uploadsDir = path.join(__dirname, 'uploads', 'contracts');
 const DATA_FILE = path.join(__dirname, 'data', 'contracts.json');
