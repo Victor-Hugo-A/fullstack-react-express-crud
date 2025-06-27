@@ -16,73 +16,77 @@ async function fetchResumo() {
 
 async function fetchGraficos() {
     // Contratos por Tipo (Pie)
+    const contratoColors = {
+        fornecimento: '#4caf50',
+        servicos: '#2196f3',
+        aditivo: '#ff9800',
+        convenio: '#9c27b0',
+        outro: '#607d8b'
+    };
     const contratosTipo = await fetch(`${API_BASE_URL}/contracts/groupby/type`).then(r => r.json()).catch(() => []);
-new Chart(document.getElementById('contratosStatusChart'), {
-    type: 'pie',
-    data: {
-        labels: contratosTipo.map(c => (c.tipo ? c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1) : '-')),
-        datasets: [{
-            data: contratosTipo.map(c => c.count),
-            backgroundColor: [
-                '#1976d2', '#43a047', '#fbc02d', '#e53935', '#8e24aa'
-            ],
-            borderColor: '#fff',
-            borderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            datalabels: {
-                achor: 'end',
-                align: 'top',
-                offset: 12,
-                padding: { top: 10, bottom: 0 },
-                font: { weight: 'bold', size: 18 },
-                color: '#333'
-            },
-            title: {
-                display: true,
-                text: 'Contratos por Tipo',
-                font: { size: 18 },
-                padding: { top: 0, bottom: 23 }
-            },
-            legend: {
-                display: true,
-                position: 'bottom',
-                labels: {
-                    font: { size: 14 },
-                    padding: 20
-            }
+    new Chart(document.getElementById('contratosStatusChart'), {
+        type: 'pie',
+        data: {
+            labels: contratosTipo.map(c => (c.tipo ? c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1) : '-')),
+            datasets: [{
+                data: contratosTipo.map(c => c.count),
+                backgroundColor: contratosTipo.map(c => contratoColors[c.tipo?.toLowerCase()] || '#888'),
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
         },
-            tooltip: {
-                callbacks: {
-                    label: function(ctx) {
-                        const valor = ctx.parsed;
-                        const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                        const porcentagem = total ? ((valor / total) * 100).toFixed(1) : 0;
-                        return `${ctx.label}: ${valor} (${porcentagem}%)`;
+        options: {
+            responsive: true,
+            plugins: {
+                datalabels: {
+                    anchor: 'center',
+                    align: 'center',
+                    offset: 12,
+                    padding: { top: 10, bottom: 0 },
+                    font: { weight: 'bold', size: 14 },
+                    color: '#fff'
+                },
+                title: {
+                    display: true,
+                    text: 'Contratos por Tipo',
+                    font: { size: 18 },
+                    padding: { top: 0, bottom: 23 }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 14 },
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const valor = ctx.parsed;
+                            const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            const porcentagem = total ? ((valor / total) * 100).toFixed(1) : 0;
+                            return `${ctx.label}: ${valor} (${porcentagem}%)`;
+                        }
                     }
                 }
-            }
+            },
+            animation: { animateRotate: true, animateScale: true }
         },
-        animation: { animateRotate: true, animateScale: true }
-    },
-    plugins: [ChartDataLabels]
-});
-
+        plugins: [ChartDataLabels]
+    });
 
     // Projetos por Status (Bar)
     const statusColors = {
-    'andamento': '#0288d1',    // azul
-    'concluido': '#43a047',    // verde
-    'planejamento': '#ed6c02', // amarelo
-    'suspenso': '#e53935'      // vermelho
-};
+        andamento: '#0288d1',    // azul
+        concluido: '#2e7d32',    // verde
+        planejamento: '#ed6c02', // laranja
+        suspenso: '#d32f2f'      // vermelho
+    };
     const projetosStatus = await fetch(`${API_BASE_URL}/projects/groupby/status`).then(r => r.json()).catch(() => []);
     const labels = projetosStatus.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1));
     const data = projetosStatus.map(p => p.count);
-    const backgroundColors = projetosStatus.map(p => statusColors[p.status.toLowerCase()] || '#888'); // cor padrão se não existir
+    const backgroundColors = projetosStatus.map(p => statusColors[p.status?.toLowerCase()] || '#888');
     new Chart(document.getElementById('projetosStatusChart'), {
         type: 'bar',
         data: {
@@ -99,14 +103,11 @@ new Chart(document.getElementById('contratosStatusChart'), {
             responsive: true,
             plugins: {
                 datalabels: {
-                    achor: 'end',
-                    align: 'top',
+                    anchor: 'center',
+                    align: 'center',
                     offset: 12,
-                    padding: {
-                        top: 10,
-                        bottom: 0
-                    },
-                    font: { weight: 'bold', size: 11 },
+                    padding: { top: 10, bottom: 0 },
+                    font: { weight: 'bold', size: 14 },
                     color: '#333'
                 },
                 title: {
@@ -118,18 +119,13 @@ new Chart(document.getElementById('contratosStatusChart'), {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `Projetos: ${ctx.parsed.y}`
+                        label: ctx => `Projetos: ${ctx.raw}`
                     }
                 }
             },
             scales: {
-                x: {
-                    ticks: { font: { size: 14 } }
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1, font: { size: 14 } }
-                }
+                x: { ticks: { font: { size: 14 } } },
+                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 14 } } }
             },
             animation: { duration: 1000, easing: 'easeOutBounce' }
         },
@@ -156,10 +152,10 @@ new Chart(document.getElementById('contratosStatusChart'), {
             responsive: true,
             plugins: {
                     datalabels: {
-                    achor: 'end',
+                    achor: 'center',
                     align: 'top',
-                    font: { weight: 'bold', size: 10 },
-                    color: '#333'
+                    font: { weight: 'bold', size: 12 },
+                    color: '#1976d2'
                 },
                 title: {
                     display: true,

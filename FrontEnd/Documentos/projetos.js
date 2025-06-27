@@ -197,6 +197,7 @@ function renderProjectsPage(page) {
         formData.append('files', filesInput.files[i]);
       }
 
+      console.log('Enviando dados do projeto:', projectData);
       const response = await fetch(`${API_URL}/projects`, {
         method: 'POST',
         headers: {
@@ -214,7 +215,7 @@ function renderProjectsPage(page) {
           const errorText = await response.text();
           errorMsg = errorText || errorMsg;
         }
-        throw new Error("Acesso restrito! Faça login para continuar.");
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
@@ -222,7 +223,6 @@ function renderProjectsPage(page) {
       await loadProjects();
       SuccessMessage('Projeto criado com sucesso!', 'success');
     } catch (error) {
-      console.error('Erro ao criar projeto:', error);
       const errorMsg = error.message.includes('<!DOCTYPE html>') 
         ? 'Erro no servidor - Verifique a conexão com a API' 
         : error.message;
