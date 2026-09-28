@@ -1,107 +1,61 @@
 body {
-    background: #f8f9fa url(/FrontEnd/img/senappenLogo.png) no-repeat right 2.5rem top 5.5rem;
-    background-size: 110px auto;
-    margin: 0;
-    font-family: 'Montserrat', 'Open Sans', Arial, Helvetica, sans-serif;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    height: 100%;
-    flex-direction: column;
+    background: #f5f7fa;
+    font-family: 'Montserrat', 'Open Sans', Arial, sans-serif;
 }
 
-.app-container {
-    flex: 1 0 auto;
-    display: flex;
-    flex-direction: column;
+.dashboard-charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    width: min(100%, 1200px);
+    margin: 0 auto;
 }
 
-.main-content {
-    flex: 1 0 auto;
+.chart-box {
+    min-width: 0;
+    min-height: 360px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
 }
 
-.dashboard-container { 
-    max-width: 95vw; 
-    width: 100%;
-    margin: 55px auto; 
-    padding: 2rem 1rem;
-    box-sizing: border-box;
+.chart-box:first-child {
+    grid-column: 1 / -1;
 }
 
-.chart-box { 
-    background: #fff; 
-    border-radius: 14px; 
-    box-shadow: 0 4px 16px rgba(224, 224, 224, 0.133); 
-    padding: 2rem; 
-    margin-bottom: 2rem; 
-    margin-left: auto;
-    margin-right: auto;
-    width: 60%;
-    height: 60%;
-    transition: box-shadow 0.4s;
-}
-.chart-box:hover {
-    box-shadow: 0 8px 32px #0003;
-    /* Melhoria: efeito hover */
+.chart-title {
+    margin-bottom: 1rem;
+    color: #183b56;
+    font-size: 1.2rem;
+    font-weight: 700;
 }
 
-.page-title {
-    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
-}
-
-.chart-title { 
-    margin-bottom: 1rem; 
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #222;
-    letter-spacing: 0.5px;
-    /* Melhoria: destaque no título */
-}
-
-.row { 
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    background-color: rgba(238, 238, 238, 0.048);
+.chart-box canvas {
+    max-width: 100%;
 }
 
 .gflinha {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2rem;
+    height: 2rem;
     margin-left: 0.5rem;
+    vertical-align: middle;
 }
 
-.copyright {
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 1.5rem;
-    margin-top: 2rem;
-    font-size: 0.9rem;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-}
-
-.footer {
-    flex-shrink: 0;
-    padding: 1rem 0;
-    width: 100%;
-}
-
-/* Responsividade para telas menores */
-@media (max-width: 768px) {
-    .dashboard-container {
-        padding: 1rem 0.5rem;
+@media (max-width: 900px) {
+    .dashboard-charts {
+        grid-template-columns: 1fr;
     }
+
+    .chart-box:first-child {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 576px) {
     .chart-box {
+        min-height: 300px;
         padding: 1rem;
-        max-width: 100%;
-    }
-    .row {
-        flex-direction: column;
-        gap: 0.5rem;
     }
 }
-

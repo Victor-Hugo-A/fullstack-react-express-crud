@@ -4,20 +4,20 @@ Aplicação local com API em Express e SQLite e interface em HTML, CSS e JavaScr
 
 ## Pré-requisitos
 
-- Node.js 20.17+ e npm
+- `node.exe` extraído do ZIP (Node.js 20.17+)
+- `BackEnd/node_modules` já presente e compatível com essa versão do Node, pois a API usa Express, SQLite e outras bibliotecas
 - Portas 3000 (API) e 5500 (frontend) livres
 - Acesso à internet para carregar as bibliotecas usadas por CDN nas páginas
 
-No PowerShell do Windows, use `npm.cmd` se a política de execução bloquear `npm.ps1`.
+Não é necessário instalar pacotes para iniciar esta cópia do projeto. Os comandos abaixo chamam o Node portátil diretamente; substitua o caminho de exemplo pelo caminho real do seu `node.exe`.
 
 ## Preparação
 
-Na raiz do projeto:
+No PowerShell, na raiz do projeto:
 
 ```powershell
-npm.cmd ci
-npm.cmd ci --prefix BackEnd
-Copy-Item BackEnd/.env.example BackEnd/.env
+$nodeExe = 'C:\caminho\para\node.exe'
+if (-not (Test-Path .\BackEnd\.env)) { Copy-Item .\BackEnd\.env.example .\BackEnd\.env }
 ```
 
 Edite `BackEnd/.env` e substitua `SECRET_KEY` e `SESSION_SECRET` por valores aleatórios distintos e longos. O arquivo local fica fora do Git. O banco SQLite e as pastas de dados/uploads são criados ou usados pelo backend na pasta `BackEnd`.
@@ -25,23 +25,29 @@ Edite `BackEnd/.env` e substitua `SECRET_KEY` e `SESSION_SECRET` por valores ale
 ## Executar os dois no mesmo terminal
 
 ```powershell
-npm.cmd run dev
+& $nodeExe .\scripts\dev.js
 ```
 
-O comando inicia API e servidor estático juntos. Abra http://localhost:5500/FrontEnd/login.html. Pare os dois com Ctrl+C.
+O comando inicia API e servidor estático juntos. Abra http://localhost:5500/FrontEnd/login.html (ou http://localhost:5500, que redireciona para o login). O servidor estático publica somente a pasta `FrontEnd`; os arquivos do `BackEnd`, inclusive `.env`, não ficam acessíveis por essa porta. Pare os dois com Ctrl+C.
+
+### Executar pelo WebStorm
+
+Em **Run | Edit Configurations**, selecione **Portal - front e back** (tipo **Node.js**) e clique em **Run**. A configuração em `.run/Portal - front e back.run.xml` usa o Node portátil em `Downloads/node-v24.21.0-win-x64/node-v24.21.0-win-x64` e executa `scripts/dev.js` diretamente, sem chamar npm. Se você mover a pasta do Node, atualize o campo **Node runtime** nessa configuração. Depois, abra http://localhost:5500/FrontEnd/login.html. Use **Stop** no WebStorm para encerrar os dois servidores.
 
 ## Executar separadamente
 
 Terminal 1, na raiz:
 
 ```powershell
-npm.cmd run back
+$nodeExe = 'C:\caminho\para\node.exe'
+& $nodeExe .\scripts\run-back.js
 ```
 
 Terminal 2, na raiz:
 
 ```powershell
-npm.cmd run front
+$nodeExe = 'C:\caminho\para\node.exe'
+& $nodeExe .\scripts\serve-front.js
 ```
 
 A API responde em http://localhost:3000/health e o frontend em http://localhost:5500/FrontEnd/login.html. O JavaScript do frontend está configurado para chamar a API na porta 3000.
@@ -49,7 +55,7 @@ A API responde em http://localhost:3000/health e o frontend em http://localhost:
 Para executar os testes de autenticação em um banco temporário:
 
 ```powershell
-npm.cmd test --prefix BackEnd
+& $nodeExe --test .\BackEnd\test\server.test.js
 ```
 
 O login principal usa os usuários do SQLite. As rotas experimentais `/seguro` e `/logout` usam Keycloak em localhost:8080 e exigem uma instância configurada separadamente.

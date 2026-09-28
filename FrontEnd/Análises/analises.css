@@ -30,10 +30,6 @@
     width: 1.9rem;
 }
 
-.col-md-6 {
-    width: 700px;
-}
-
 .margim {
     margin-top: 3rem;
 }
@@ -54,7 +50,8 @@
 }
 
 .table-hover tbody tr:hover {
-  background-color: #067cf1;
+  --bs-table-hover-bg: #e8f2fa;
+  --bs-table-hover-color: #173d58;
 }
 
 .table, .table th, .table td {
@@ -62,7 +59,7 @@
 }
 
 .table th {
-    color: #009CFF;
+    color: #e4f4ff;
 }
 
 /*  CONTRATOS RECENTES  */

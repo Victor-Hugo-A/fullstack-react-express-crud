@@ -85,22 +85,20 @@
         </header>
 
 
-        </aside>
-        <main class="flex-fill p-4">
-            <div class="row g-4">
-                <div class="col-md-6 chart-box">
+        <section class="dashboard-charts" aria-label="Indicadores gerais">
+                <div class="chart-box">
                     <h4 id="tipo" class="chart-title">Contratos por Tipo</h4>
                     <canvas id="contratosChart" aria-label="Gráfico de contratos por tipo" role="img"></canvas>
                 </div>
-                <div class="col-md-6 chart-box">
+                <div class="chart-box">
                     <h4 id="status" class="chart-title">Projetos por Status</h4>
                     <canvas id="projetosChart" aria-label="Gráfico de projetos por status" role="img"></canvas>
                 </div>
-                <div class="col-md-6 chart-box">
+                <div class="chart-box">
                     <h4 id="perfil" class="chart-title">Identidades por Perfil</h4>
                     <canvas id="identidadesChart" aria-label="Gráfico de identidades por perfil" role="img"></canvas>
                 </div>
-            </div>
+        </section>
         </main>
     </div>
     
@@ -126,14 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Recupera o token do localStorage (armazenado durante o login)
         const token = localStorage.getItem('token');
         if (!token) {
-            usernameElement.textContent = 'Visitante'
-            console.warn('Token não encontrado no LocalStorage')
-            return;
-        }
-
-        if (token.length < 30) {
-            console.error('Token parece inválido', token)
-            usernameElement.textContent = 'Usuário';
+            window.location.assign('/FrontEnd/login.html');
             return;
         }
 
@@ -147,10 +138,10 @@ document.addEventListener('DOMContentLoaded', function() {
             credentials: 'include'
         });
 
-        if (response.status === 403) {
-            console.error('Acesso proibido - token pode estar inválido ou expirado');
-            localStorage.removeItem('token'); // Remove token inválido
-            window.location.href = '/login.html'; // Redireciona para login
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            window.location.assign('/FrontEnd/login.html');
             return;
         }
              

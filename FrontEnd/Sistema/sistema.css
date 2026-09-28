@@ -77,7 +77,7 @@ p {
     color: var(--secondary-color);
     padding: 0.4rem 0;
     font-size: 0.9rem;
-    display: contents;
+    display: block;
 }
 
 .top-bar i {

@@ -1,64 +1,61 @@
-document.addEventListener('DOMContentLoaded', function() {
-
-// Atualiza a data atual
- function updateCurrentDate() {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR', options);
-}
-
-
-    
-    const userData = localStorage.getItem('userData');
-    const { nome, username } = JSON.parse(userData);
-
-    const usernameDisplay = document.getElementById('username-display')
-        if (usernameDisplay) {
-            usernameDisplay.textContent = nome || username;
-    }
-    
-        const dateSpan = document.getElementById('current-date');
-        const hoje = new Date();
-        const dia = String(hoje.getDate()).padStart(2, '0');
-        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-        const ano = hoje.getFullYear();
-            dateSpan.textContent = `${dia}/${mes}/${ano}`;
-});
-
-
-
-// Função de logout
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    window.location.href = '../login.html';
-}
-
+const LOGIN_URL = '/FrontEnd/login.html';
 
 function redirectToLogin() {
-    // Remove os itens de autenticação
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
-    
-    // Usa um caminho relativo confiável
-    window.location.href = window.location.href.includes('Sistema') 
-        ? '../login.html' 
-        : 'login.html';
+    window.location.assign(LOGIN_URL);
 }
 
-// Verificação de elementos DOM:
-function getElementOrThrow(id) {
-    const element = document.getElementById(id);
-        if (!element) {
-        throw new Error(`Elemento com ID ${id} não encontrado`);
+function logout() {
+    redirectToLogin();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        redirectToLogin();
+        return;
     }
-    return element;
-}
 
-window.addEventListener('scroll', function() {
+    const usernameDisplay = document.getElementById('username-display');
+    try {
+        const cachedUser = JSON.parse(localStorage.getItem('userData'));
+        if (usernameDisplay && cachedUser) {
+            usernameDisplay.textContent = cachedUser.nome || cachedUser.username || 'Usuário';
+        }
+    } catch {
+        // O nome será obtido da API abaixo.
+    }
+
+    const dateSpan = document.getElementById('current-date');
+    if (dateSpan) {
+        dateSpan.textContent = new Date().toLocaleDateString('pt-BR');
+    }
+
     const backToTop = document.querySelector('.back-to-top');
-        if (window.pageYOffset > 300) {
-        backToTop.classList.add('visible');
-    }   else {
-        backToTop.classList.remove('visible');
+    if (backToTop) {
+        const updateBackToTop = () => {
+            backToTop.classList.toggle('visible', window.scrollY > 300);
+        };
+        window.addEventListener('scroll', updateBackToTop, { passive: true });
+        updateBackToTop();
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/user', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.status === 401 || response.status === 403 || response.status === 404) {
+            redirectToLogin();
+            return;
+        }
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (usernameDisplay && data.success && data.user) {
+            usernameDisplay.textContent = data.user.nome || data.user.username || 'Usuário';
+        }
+    } catch (error) {
+        console.warn('Não foi possível confirmar os dados do usuário.', error);
     }
 });

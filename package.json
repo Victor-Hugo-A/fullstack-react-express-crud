@@ -2,12 +2,8 @@
   "name": "fullstack-react-express-crud",
   "private": true,
   "scripts": {
-    "back": "npm --prefix BackEnd start",
-    "front": "http-server . -p 5500 -a 127.0.0.1 -c-1",
-    "dev": "concurrently -k \"npm:back\" \"npm:front\""
-  },
-  "devDependencies": {
-    "concurrently": "^10.0.5",
-    "http-server": "^14.1.1"
+    "back": "node scripts/run-back.js",
+    "front": "node scripts/serve-front.js",
+    "dev": "node scripts/dev.js"
   }
 }
