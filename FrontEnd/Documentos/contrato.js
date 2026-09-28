@@ -359,7 +359,7 @@ async function loadContracts(filters = {}) {
                 <button class="btn-download" title="Baixar contrato" data-id="${escapeHTML(contract.id)}">
                     <i class="fas fa-download"></i> Download
                 </button>
-                <button class="btn-delete" title="Excluir contrato" data-id="${escapeHTML(contract.id)}">
+                <button class="btn-delete" type="button" title="Excluir contrato" data-admin-only data-id="${escapeHTML(contract.id)}">
                     <i class="fas fa-trash"></i> Excluir
                 </button>
             </div>
@@ -389,13 +389,13 @@ async function loadContracts(filters = {}) {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao excluir contrato');
+                throw new Error(errorData.message || errorData.error || 'Erro ao excluir contrato');
             }
 
             await loadContracts(); // Recarrega a lista de contratos
             showSuccessMessage('Contrato excluído com sucesso!');
         } catch (error) {
-            showErrorMessage('Acesso restrito! Faça login para continuar.');
+            showErrorMessage(error.message);
         } finally {
             showLoading(false);
         }

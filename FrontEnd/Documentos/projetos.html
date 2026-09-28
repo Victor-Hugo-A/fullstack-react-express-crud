@@ -244,6 +244,7 @@
     
         if (data.success && data.user) {
             usernameElement.textContent = data.user.nome || data.user.username;
+            document.body.dataset.isAdmin = data.user.isAdmin === true ? 'true' : 'false';
         } else {
             throw new Error(data.message || 'Erro ao obter dados do usuário:');
         }

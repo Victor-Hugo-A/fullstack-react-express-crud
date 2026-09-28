@@ -655,7 +655,7 @@ app.get('/api/contracts/:id/download', authenticateJWT, async (req, res) => {
 
 
 // Delete de contratos individuais
-app.delete('/api/contracts/:id', authenticateJWT, async (req, res) => {
+app.delete('/api/contracts/:id', authenticateJWT, requireAdmin, async (req, res) => {
     try {
         const contracts = readContracts();
         const index = contracts.findIndex(c => c.id === req.params.id);
@@ -951,7 +951,7 @@ router.get('/project-files/:filename', authenticateJWT, async (req, res) => {
     }
 });
 
-router.delete('/project-files/:id', authenticateJWT, async (req, res) => {
+router.delete('/project-files/:id', authenticateJWT, requireAdmin, async (req, res) => {
     try {
         // Primeiro obtém o arquivo para deletá-lo do sistema de arquivos
         const file = await new Promise((resolve, reject) => {
@@ -968,13 +968,11 @@ router.delete('/project-files/:id', authenticateJWT, async (req, res) => {
         if (!file) {
             return res.status(404).json({ success: false, message: 'Arquivo não encontrado' });
         }
-        console.log('DEBUG file:', file);
-
         // Deleta o arquivo do sistema de arquivos
-        const filePath = path.join('uploads', 'projects', file.filename)
-           if (fs.existsSync(filePath)) {
+        const filePath = path.join(__dirname, 'uploads', 'projects', file.filename);
+        if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
-           }
+        }
 
         // Depois deleta o registro do banco de dados
         await new Promise((resolve, reject) => {
@@ -1087,8 +1085,18 @@ router.put('/projects/:id', authenticateJWT, projectsUpload.array('files'), asyn
     }
 });
 
-router.delete('/projects/:id', authenticateJWT, async (req, res) => {
+router.delete('/projects/:id', authenticateJWT, requireAdmin, async (req, res) => {
     try {
+        const project = await new Promise((resolve, reject) => {
+            db.get('SELECT id FROM projects WHERE id = ?', [req.params.id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+        if (!project) {
+            return res.status(404).json({ success: false, message: 'Projeto não encontrado' });
+        }
+
         // Primeiro obtemos os arquivos para deletá-los do sistema de arquivos
         const files = await new Promise((resolve, reject) => {
             db.all(
@@ -1104,7 +1112,8 @@ router.delete('/projects/:id', authenticateJWT, async (req, res) => {
         // Deleta os arquivos do sistema de arquivos
         for (const file of files) {
             try {
-                fs.unlinkSync(path.join('uploads/projects', file.filename));
+                const filePath = path.join(__dirname, 'uploads', 'projects', file.filename);
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
             } catch (err) {
                 console.error('Erro ao deletar arquivo:', err);
             }
@@ -1171,7 +1180,7 @@ router.delete('/projects/:id', authenticateJWT, async (req, res) => {
         });
     });
 
-    app.delete('/api/identities/:id', authenticateJWT, (req, res) => {
+    app.delete('/api/identities/:id', authenticateJWT, requireAdmin, (req, res) => {
         const id = req.params.id;
 
         db.get(`SELECT foto FROM identities WHERE id = ?`, [id], (err, row) => {
@@ -1180,9 +1189,15 @@ router.delete('/projects/:id', authenticateJWT, async (req, res) => {
 
             // Deletar o arquivo físico
             if (row && row.foto) {
-                const filePath = path.join(__dirname, row.foto); 
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
+                try {
+                    if (!/^\/uploads\/identities\/[^/\\]+$/.test(row.foto)) {
+                        return res.status(500).json({ success: false, message: 'Caminho da foto inválido' });
+                    }
+                    const filePath = path.join(__dirname, 'uploads', 'identities', path.basename(row.foto));
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                } catch (fileError) {
+                    console.error('Erro ao excluir foto da identidade:', fileError);
+                    return res.status(500).json({ success: false, message: 'Erro ao excluir foto da identidade' });
                 }
             }
                 // Deletar do banco de dados

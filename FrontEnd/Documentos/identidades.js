@@ -130,8 +130,9 @@ async function loadIdentityPhoto(img, filePath) {
                 <img src="/FrontEnd/img/profile.png" alt="Foto da identidade" style="width:80px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;" />
             </td>
             <td>${dataCriacao}</td>
-            <td>
-                <button class="btn btn-danger btn-sm btn-excluir" title="Excluir identidade">Excluir</button>
+            <td class="identity-actions">
+                <button class="btn btn-danger btn-sm btn-excluir" type="button" data-admin-only title="Excluir identidade">Excluir</button>
+                <span class="readonly-label">Somente leitura</span>
             </td>
         `;
 
@@ -179,20 +180,19 @@ async function loadIdentityPhoto(img, filePath) {
 
     window.deletarIdentidade = async function(id) {
         if(!confirm('Tem certeza que deseja excluir esta identidade?')) return;
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/${id}`,
-            { 
-                method: 'DELETE', 
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+        try {
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
-        const data = await res.json();
-            if(data.success) {
-                SuccessMessage('Identidade excluída com sucesso!', 'success');
-                carregarIdentidades();
-            } else {
-                ErroMessage('Acesso restrito! Faça login para continuar.', 'error');
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || data.error || 'Erro ao excluir identidade');
+            }
+            SuccessMessage('Identidade excluída com sucesso!', 'success');
+            await carregarIdentidades();
+        } catch (error) {
+            ErroMessage(error.message, 'error');
         }
     }
 

@@ -101,7 +101,7 @@ function renderProjectsPage(page) {
       <td class="actions">
         <button class="btn-view project" data-id="${project.id}" title="Visualizar Projeto"><i class="fas fa-eye"></i></button>
         <button class="btn-edit project" data-id="${project.id}" title="Editar Projeto"><i class="fas fa-edit"></i></button>
-        <button class="btn-delete project" data-id="${project.id}" title="Excluir Projeto"><i class="fas fa-trash-alt"></i></button>
+        <button class="btn-delete project" type="button" data-admin-only data-id="${project.id}" title="Excluir projeto" aria-label="Excluir projeto"><i class="fas fa-trash-alt"></i></button>
       </td>
     `;
     tbody.appendChild(row);
@@ -358,7 +358,7 @@ function renderProjectsPage(page) {
         <td class="actions">
           <button class="btn-view project" data-id="${project.id}" title="Visualizar Projeto"><i class="fas fa-eye"></i></button>
           <button class="btn-edit project" data-id="${project.id}" title="Editar Projeto"><i class="fas fa-edit"></i></button>
-          <button class="btn-delete project" data-id="${project.id}" title="Excluir Projeto"><i class="fas fa-trash-alt"></i></button>
+          <button class="btn-delete project" type="button" data-admin-only data-id="${project.id}" title="Excluir projeto" aria-label="Excluir projeto"><i class="fas fa-trash-alt"></i></button>
         </td>
       `;
       tbody.appendChild(row);
@@ -517,7 +517,7 @@ function renderProjectsPage(page) {
                       <button class="btn-download-file" data-file-url="${fileUrl}" data-filename="${utils.sanitize(file.originalname)}" title="Download do projeto">
                         <i class="fas fa-download"></i>
                       </button>
-                      <button class="btn-delete-file" data-file-id="${file._id || file.id}" data-project-id="${project.id}" title="Excluir o arquivo">
+                      <button class="btn-delete-file" type="button" data-admin-only data-file-id="${file._id || file.id}" data-project-id="${project.id}" title="Excluir o arquivo" aria-label="Excluir o arquivo">
                         <i class="fas fa-trash"></i>
                       </button>
                     </div>
@@ -794,11 +794,13 @@ function renderProjectsPage(page) {
   }
 
   async function deleteProject(projectId) {
+    const deleteBtn = document.querySelector(`.btn-delete[data-id="${projectId}"]`);
+    const originalContent = deleteBtn?.innerHTML;
     try {
-      const deleteBtn = document.querySelector(`.btn-delete[data-id="${projectId}"]`);
-      const originalContent = deleteBtn.innerHTML;
-      deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-      deleteBtn.disabled = true;
+      if (deleteBtn) {
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        deleteBtn.disabled = true;
+      }
 
       const response = await fetch(`${API_URL}/projects/${projectId}`, {
         method: 'DELETE',
@@ -808,19 +810,17 @@ function renderProjectsPage(page) {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Erro ao excluir projeto');
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Erro ao excluir projeto');
       }
 
-      const data = await response.json();
-      data.project = data.project || data;
       await loadProjects();
       SuccessMessage('Projeto excluído com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao excluir projeto:', error);
-      ErroMessage("Acesso restrito! Faça login para continuar.");
+      ErroMessage(error.message, 'error');
     } finally {
-      if (deleteBtn) {
+      if (deleteBtn?.isConnected) {
         deleteBtn.innerHTML = originalContent;
         deleteBtn.disabled = false;
       }

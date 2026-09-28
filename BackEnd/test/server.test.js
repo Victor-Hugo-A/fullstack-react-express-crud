@@ -209,12 +209,65 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     assert.equal(contracts.status, 200);
-    assert.equal((await contracts.json()).length, 1);
+    const [contract] = await contracts.json();
+    assert.ok(contract?.id);
+    const contractFilePath = path.join(tempDir, 'uploads', 'contracts', contract.fileName);
+    assert.equal(fs.existsSync(contractFilePath), true);
+
+    const projectForm = new FormData();
+    projectForm.set('project', JSON.stringify({
+      name: 'Projeto de teste', code: `projeto-${suffix}`, manager: 'Equipe de teste',
+      start_date: '2026-01-01', end_date: null, status: 'planejamento', description: 'Projeto temporário'
+    }));
+    projectForm.append('files', new Blob(['primeiro']), 'primeiro.txt');
+    projectForm.append('files', new Blob(['segundo']), 'segundo.txt');
+    const projectResponse = await fetch(`${base}/api/projects`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: projectForm
+    });
+    const projectBody = await projectResponse.json();
+    assert.equal(projectResponse.status, 200, JSON.stringify(projectBody));
+    const { projectId } = projectBody;
+    const projectDetails = await fetch(`${base}/api/projects/${projectId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const projectFiles = (await projectDetails.json()).project.files;
+    assert.equal(projectFiles.length, 2);
+    const projectUploadDir = path.join(tempDir, 'uploads', 'projects');
+
+    const identityForm = new FormData();
+    identityForm.set('nome', 'Identidade de teste');
+    identityForm.set('cpf', '529.982.247-25');
+    identityForm.set('endereco', 'Endereço de teste');
+    identityForm.set('perfil', 'Usuário');
+    identityForm.set('foto', new Blob(['imagem'], { type: 'image/png' }), 'foto.png');
+    const identityResponse = await fetch(`${base}/api/identities`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: identityForm
+    });
+    const identity = await identityResponse.json();
+    assert.equal(identityResponse.status, 200, JSON.stringify(identity));
+    assert.ok(identity.id);
+    const identityPhoto = path.join(tempDir, 'uploads', 'identities', path.basename(identity.foto));
+    assert.equal(fs.existsSync(identityPhoto), true);
 
     const regularUser = await fetch(`${base}/api/user`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     assert.equal((await regularUser.json()).user.isAdmin, false);
+    const individualDeletes = [
+      `/api/contracts/${contract.id}`,
+      `/api/project-files/${projectFiles[0].id}`,
+      `/api/projects/${projectId}`,
+      `/api/identities/${identity.id}`
+    ];
+    for (const route of individualDeletes) {
+      assert.equal((await fetch(base + route, { method: 'DELETE' })).status, 401, route);
+      assert.equal((await fetch(base + route, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+      })).status, 403, route);
+    }
+    assert.equal(fs.existsSync(path.join(projectUploadDir, projectFiles[0].filename)), true);
+    assert.equal(fs.existsSync(identityPhoto), true);
+    assert.equal(fs.existsSync(contractFilePath), true);
     assert.equal((await postJson('/api/contracts/sync', {}, token)).status, 403);
     assert.equal((await fetch(`${base}/api/contracts/clean-all`, {
       method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
@@ -229,6 +282,46 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     });
     assert.equal((await adminUser.json()).user.isAdmin, true);
     assert.equal((await postJson('/api/contracts/sync', {}, token)).status, 200);
+
+    const deleteContract = await fetch(`${base}/api/contracts/${contract.id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(deleteContract.status, 200, await deleteContract.text());
+    assert.equal(fs.existsSync(contractFilePath), false);
+    assert.equal((await fetch(`${base}/api/contracts`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json())).length, 0);
+
+    const deleteProjectFile = await fetch(`${base}/api/project-files/${projectFiles[0].id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(deleteProjectFile.status, 200, await deleteProjectFile.text());
+    assert.equal(fs.existsSync(path.join(projectUploadDir, projectFiles[0].filename)), false);
+    const deleteProject = await fetch(`${base}/api/projects/${projectId}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(deleteProject.status, 200, await deleteProject.text());
+    assert.equal(fs.existsSync(path.join(projectUploadDir, projectFiles[1].filename)), false);
+    assert.equal((await fetch(`${base}/api/projects/${projectId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })).status, 404);
+
+    const deleteIdentity = await fetch(`${base}/api/identities/${identity.id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(deleteIdentity.status, 200, await deleteIdentity.text());
+    assert.equal(fs.existsSync(identityPhoto), false);
+
+    const finalContractForm = new FormData();
+    finalContractForm.set('type', 'servico');
+    finalContractForm.set('number', `final-${suffix}`);
+    finalContractForm.set('date', '2026-01-01');
+    finalContractForm.set('description', 'Contrato para limpeza em massa');
+    finalContractForm.set('file', new Blob(['%PDF-1.4'], { type: 'application/pdf' }), 'final.pdf');
+    const finalUpload = await fetch(`${base}/api/contracts`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: finalContractForm
+    });
+    assert.equal(finalUpload.status, 201, await finalUpload.text());
     const cleanAll = await fetch(`${base}/api/contracts/clean-all`, {
       method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
     });
@@ -244,6 +337,11 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     assert.equal((await revokedUser.json()).user.isAdmin, false);
+    for (const route of individualDeletes) {
+      assert.equal((await fetch(base + route, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+      })).status, 403, route);
+    }
 
     const update = await fetch(`${base}/update-profile`, {
       method: 'PUT',

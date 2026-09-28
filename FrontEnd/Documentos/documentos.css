@@ -969,6 +969,25 @@ svg {
     transform: translateY(-1px);
 }
 
+body:not([data-is-admin="true"]) [data-admin-only] {
+    display: none !important;
+}
+
+.readonly-label {
+    display: none;
+    color: var(--text-muted, #64748b);
+    font-size: 0.875rem;
+}
+
+body[data-is-admin="false"] .readonly-label {
+    display: inline-block;
+}
+
+[data-admin-only]:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 3px;
+}
+
 /* Cards de documentos */
 .documents-section {
     margin-top: 2rem;

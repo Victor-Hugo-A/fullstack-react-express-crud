@@ -265,6 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (data.success && data.user) {
             usernameElement.textContent = data.user.nome || data.user.username;
+            document.body.dataset.isAdmin = data.user.isAdmin === true ? 'true' : 'false';
             const cleanAllButton = document.getElementById('clean-all-button');
             if (cleanAllButton) cleanAllButton.hidden = data.user.isAdmin !== true;
             } else {
