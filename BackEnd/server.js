@@ -169,7 +169,7 @@ function authenticateJWT(req, res, next) {
 
 
 // RETORNA DASHBOARD PARA OS TIPOS, STATUS E PERFIL
-router.get('/contracts/groupby/type', (req, res) => {
+router.get('/contracts/groupby/type', authenticateJWT, (req, res) => {
     const contracts = readContracts();
     const counts = {};
     contracts.forEach(c => {
@@ -180,7 +180,7 @@ router.get('/contracts/groupby/type', (req, res) => {
 });
 
 // Identidades por status
-router.get('/projects/groupby/status', (req, res) => {
+router.get('/projects/groupby/status', authenticateJWT, (req, res) => {
     db.all('SELECT status, COUNT(*) as count FROM projects GROUP BY status', [], (err, rows) => {
         if (err) return res.status(500).json([]);
         res.json(rows);
@@ -188,7 +188,7 @@ router.get('/projects/groupby/status', (req, res) => {
 });
 
 // Identidades por perfil
-router.get('/identities/groupby/perfil', (req, res) => {
+router.get('/identities/groupby/perfil', authenticateJWT, (req, res) => {
     db.all('SELECT perfil, COUNT(*) as count FROM identities GROUP BY perfil', [], (err, rows) => {
         if (err) return res.status(500).json([]);
         res.json(rows);
@@ -197,7 +197,7 @@ router.get('/identities/groupby/perfil', (req, res) => {
 
 
 // ATUALIZAÇÃO DO BADGE - REGISTROS
-router.get('/contracts/count', (req, res) => {
+router.get('/contracts/count', authenticateJWT, (req, res) => {
     try {
         const year = req.query.year;
         const contracts = readContracts();
@@ -210,7 +210,7 @@ router.get('/contracts/count', (req, res) => {
     }
 });
 
-router.get('/projects/count', (req, res) => {
+router.get('/projects/count', authenticateJWT, (req, res) => {
     const year = req.query.year;
     let sql = 'SELECT COUNT(*) as count FROM projects';
     let params = [];
@@ -224,7 +224,7 @@ router.get('/projects/count', (req, res) => {
     });
 });
 
-router.get('/identities/count', (req, res) => {
+router.get('/identities/count', authenticateJWT, (req, res) => {
     const year = req.query.year;
     let sql = 'SELECT COUNT(*) as count FROM identities';
     let params = [];
@@ -1399,11 +1399,46 @@ app.get('/health', async (req, res) => {
     }
 });
 
-app.post('/login', async (req, res) => {
-    try {
-        const { username, password } = req.body;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const MAX_LOGIN_FAILURES = 10;
+const loginFailures = new Map();
+const nonexistentUserHash = bcrypt.hashSync('invalid-account-placeholder', 10);
 
-        if (!username || !password) {
+function limitLoginAttempts(req, res, next) {
+    const key = req.ip;
+    const entry = loginFailures.get(key);
+    if (entry && entry.expiresAt <= Date.now()) loginFailures.delete(key);
+
+    const activeEntry = loginFailures.get(key);
+    if (activeEntry && activeEntry.count >= MAX_LOGIN_FAILURES) {
+        res.set('Retry-After', String(Math.ceil((activeEntry.expiresAt - Date.now()) / 1000)));
+        return res.status(429).json({ success: false, message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' });
+    }
+    next();
+}
+
+function recordLoginFailure(ip) {
+    const now = Date.now();
+    const entry = loginFailures.get(ip);
+    if (!entry || entry.expiresAt <= now) {
+        loginFailures.set(ip, { count: 1, expiresAt: now + LOGIN_WINDOW_MS });
+    } else {
+        entry.count += 1;
+    }
+
+    if (loginFailures.size > 1000) {
+        for (const [key, value] of loginFailures) {
+            if (value.expiresAt <= now) loginFailures.delete(key);
+        }
+    }
+}
+
+app.post('/login', limitLoginAttempts, async (req, res) => {
+    try {
+        const { username, password } = req.body || {};
+
+        if (typeof username !== 'string' || typeof password !== 'string' ||
+            !username.trim() || !password || username.length > 100 || password.length > 1024) {
             return res.status(400).json({
                 success: false,
                 error: 'missing_fields', 
@@ -1411,23 +1446,15 @@ app.post('/login', async (req, res) => {
             });
         }
 
-        const user = await userRepository.findByUsername(username);
+        const user = await userRepository.findByUsername(username.trim().toLowerCase());
+        const isPasswordValid = await bcrypt.compare(password, user?.password || nonexistentUserHash);
 
-        if (!user) {
-            return res.status(404).json({ 
-                success: false,
-                error: 'user_not_found',
-                message: 'Usuário não encontrado'
-            });
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordValid) {
+        if (!user || !isPasswordValid) {
+            recordLoginFailure(req.ip);
             return res.status(401).json({ 
                 success: false,
-                error: 'invalid_password',
-                message: 'Senha incorreta'
+                error: 'invalid_credentials',
+                message: 'Usuário ou senha inválidos'
             });
         }
 

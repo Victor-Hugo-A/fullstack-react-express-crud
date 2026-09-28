@@ -72,6 +72,12 @@ test('autenticação e atualização de perfil em banco isolado', async () => {
       '/api/identities',
       '/api/contracts',
       '/api/projects',
+      '/api/contracts/count',
+      '/api/projects/count',
+      '/api/identities/count',
+      '/api/contracts/groupby/type',
+      '/api/projects/groupby/status',
+      '/api/identities/groupby/perfil',
       '/uploads/identities/test-image.png',
       '/project-files/test-file.pdf'
     ]) {
@@ -110,9 +116,29 @@ test('autenticação e atualização de perfil em banco isolado', async () => {
       assert.equal(response.status, 201, await response.text());
     }
 
+    const unknownUser = await postJson('/login', { username: `ausente-${suffix}`, password });
+    const wrongPassword = await postJson('/login', { username: first, password: 'senha-incorreta' });
+    assert.equal(unknownUser.status, 401);
+    assert.equal(wrongPassword.status, 401);
+    const unknownBody = await unknownUser.json();
+    assert.equal(unknownBody.error, 'invalid_credentials');
+    assert.deepEqual(await wrongPassword.json(), unknownBody);
+
     const login = await postJson('/login', { username: first, password });
     assert.equal(login.status, 200);
     const { token } = await login.json();
+    for (const route of [
+      '/api/contracts/count',
+      '/api/projects/count',
+      '/api/identities/count',
+      '/api/contracts/groupby/type',
+      '/api/projects/groupby/status',
+      '/api/identities/groupby/perfil'
+    ]) {
+      assert.equal((await fetch(base + route, {
+        headers: { Authorization: `Bearer ${token}` }
+      })).status, 200, route);
+    }
     assert.equal((await fetch(`${base}/api/contracts/check?number=nenhum`, {
       headers: { Authorization: `Bearer ${token}` }
     })).status, 200);
@@ -176,6 +202,13 @@ test('autenticação e atualização de perfil em banco isolado', async () => {
     assert.equal(changePassword.status, 200);
     assert.equal((await postJson('/login', { username: first, password: newPassword })).status, 200);
     assert.equal((await postJson('/login', { username: second, password })).status, 200);
+
+    for (let attempt = 0; attempt < 8; attempt++) {
+      assert.equal((await postJson('/login', { username: first, password: 'senha-incorreta' })).status, 401);
+    }
+    const blockedLogin = await postJson('/login', { username: first, password: newPassword });
+    assert.equal(blockedLogin.status, 429);
+    assert.ok(Number(blockedLogin.headers.get('retry-after')) > 0);
   } finally {
     if (processHandle.exitCode === null) {
       processHandle.kill();

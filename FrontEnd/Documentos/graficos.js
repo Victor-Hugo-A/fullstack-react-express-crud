@@ -1,6 +1,5 @@
-    const API_BASE_URL = 'http://localhost:3000/api';
-
     async function fetchCounts(year) {
+        document.getElementById('graficos-error').hidden = true;
         const endpoints = [
             { label: 'Contratos', endpoint: `contracts/count?year=${year}` },
             { label: 'Projetos', endpoint: `projects/count?year=${year}` },
@@ -9,11 +8,11 @@
         const results = [];
         for (const item of endpoints) {
             try {
-                const res = await fetch(`${API_BASE_URL}/${item.endpoint}`);
-                const data = await res.json();
-                results.push(data.count || 0);
+                const data = await apiGet(`/api/${item.endpoint}`);
+                results.push(data.count ?? null);
             } catch {
-                results.push(0);
+                document.getElementById('graficos-error').hidden = false;
+                results.push(null);
             }
         }
         return results;

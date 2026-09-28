@@ -52,8 +52,6 @@ async function makeRequest(endpoint, method, data) {
             credentials: 'include'
         });
 
-        clearTimeout(timeout);
-
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             const error = new Error ( errorData.message ||errorData.error || `Erro HTTP ${response.status}`);
@@ -64,11 +62,11 @@ async function makeRequest(endpoint, method, data) {
     return await response.json(); // Sempre tenta parsear como JSON
         } catch (error) {
         console.error(`Erro na requisição ${endpoint}:`, error);
-        throw new Error(
-            error.name === 'AbortError' ? 'Tempo limite excedido' :
-            error.message === 'Failed to fetch' ? 'Falha na conexão com o servidor' :
-            error.message || 'Erro desconhecido'
-        );
+        if (error.name === 'AbortError') throw new Error('tempo limite excedido');
+        if (error instanceof TypeError) throw new Error('Falha na conexão com o servidor');
+        throw error;
+    } finally {
+        clearTimeout(timeout);
     }
 } 
 
@@ -109,10 +107,6 @@ if (loginForm) {
             // Fazer requisição de login
             const response = await makeRequest('/login', 'POST', { username, password });
 
-            if (response.ok) {
-            console.log('Login realizado com sucesso:', response);
-            }
-
             if (!response.success) {
                 throw new Error(response.error || 'invalid_response')
             }
@@ -127,30 +121,19 @@ if (loginForm) {
             exibirMensagemSucesso(response.message || 'Login realizado com sucesso!');
             
         } catch (error) {
-            switch(error.message) {
-            case 'user_not_found':
-                exibirMensagemErro('Usuário não registrado!');
-                break;
-            case 'invalid_password':
-                exibirMensagemErro('Senha inválida. Tente novamente.');
-                break;
-            case 'missing_fields':
+            if (error.status === 401) {
+                exibirMensagemErro('Usuário ou senha inválidos.');
+            } else if (error.status === 429) {
+                exibirMensagemErro('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
+            } else if (error.message === 'missing_fields') {
                 exibirMensagemErro('Nome de usuário e senha são obrigatórias.');
-                break;
-            case 'tempo limite excedido':
+            } else if (error.message === 'tempo limite excedido') {
                 exibirMensagemErro('Servidor demorou a responder. Tente novamente');
-                break;
-            case 'failed to fetch':
+            } else if (error.message === 'Falha na conexão com o servidor') {
                 exibirMensagemErro('Não foi possível conectar ao servidor.');
-                break;
-            default:
+            } else {
                 console.error('Erro no login', error);
-                exibirMensagemErro('Erro ao fazer login. Tente Novamente.')
-            }
-            if (error.message === 'user_not_found') {
-                setTimeout(() => {
-                    document.getElementById('toggle-register')?.click();
-                }, 1500);
+                exibirMensagemErro('Erro ao fazer login. Tente novamente.');
             }
         } finally {
             button.textContent = buttonText;

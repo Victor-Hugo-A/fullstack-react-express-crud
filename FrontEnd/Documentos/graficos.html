@@ -104,6 +104,7 @@
                 <option value="2027">2027</option>
             </select>
         </div>
+        <p id="graficos-error" class="alert alert-warning" role="alert" hidden>Alguns dados não puderam ser carregados. Verifique a conexão com a API e atualize a página.</p>
         <div id="dashboardChart-container">
             <canvas id="dashboardChart"></canvas>
         </div>
@@ -217,6 +218,7 @@ if (menuToggle && sidebar) {
 });
 
     </script>
+    <script src="/FrontEnd/api.js"></script>
     <script src="/FrontEnd/Documentos/graficos.js"></script>
 
 </body>

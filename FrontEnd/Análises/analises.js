@@ -1,20 +1,29 @@
 
 document.addEventListener('DOMContentLoaded', () => {
-const API_BASE_URL = 'http://localhost:3000/api';
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
 
+async function safeGet(path, fallback) {
+    try {
+        return await apiGet(path);
+    } catch (error) {
+        console.error('Erro ao carregar indicador:', error);
+        document.getElementById('analises-error').hidden = false;
+        return fallback;
+    }
+}
+
 async function fetchResumo() {
     // Busca contadores
     const[contratos, projetos, identidades] = await Promise.all([
-        fetch(`${API_BASE_URL}/contracts/count`).then(r => r.json()).catch(() => ({ count: 0 })),
-        fetch(`${API_BASE_URL}/projects/count`).then(r => r.json()).catch(() => ({ count: 0 })),
-        fetch(`${API_BASE_URL}/identities/count`).then(r => r.json()).catch(() => ({ count: 0 })),
+        safeGet('/api/contracts/count', { count: '—' }),
+        safeGet('/api/projects/count', { count: '—' }),
+        safeGet('/api/identities/count', { count: '—' }),
     ]);  
-    document.getElementById('contratos-ativos').textContent = contratos.count || 0;  
-    document.getElementById('projetos-andamento').textContent = projetos.count || 0;  
-    document.getElementById('identidades-cadastradas').textContent = identidades.count || 0;  
+    document.getElementById('contratos-ativos').textContent = contratos.count ?? '—';
+    document.getElementById('projetos-andamento').textContent = projetos.count ?? '—';
+    document.getElementById('identidades-cadastradas').textContent = identidades.count ?? '—';
 }
 
 function getStatusSelecionados() {
@@ -41,7 +50,7 @@ async function fetchGraficos() {
         convenio: '#9c27b0',
         outro: '#607d8b'
     };
-    const contratosTipo = await fetch(`${API_BASE_URL}/contracts/groupby/type`).then(r => r.json()).catch(() => []);
+    const contratosTipo = await safeGet('/api/contracts/groupby/type', []);
     contratosChart = new Chart(document.getElementById('contratosStatusChart'), {
         type: 'pie',
         data: {
@@ -102,7 +111,7 @@ async function fetchGraficos() {
         planejamento: '#ed6c02', // laranja
         suspenso: '#d32f2f'      // vermelho
     };
-    const projetosStatus = await fetch(`${API_BASE_URL}/projects/groupby/status`).then(r => r.json()).catch(() => []);
+    const projetosStatus = await safeGet('/api/projects/groupby/status', []);
     const labelsProjetos = projetosStatus.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1));
     const dataProjetos = projetosStatus.map(p => p.count);
     const backgroundColors = projetosStatus.map(p => statusColors[p.status?.toLowerCase()] || '#888');
@@ -159,7 +168,7 @@ async function fetchGraficos() {
         visitante: '#fbc02d'      // laranja forte
     };
 
-    const identidadesPerfil = await fetch(`${API_BASE_URL}/identities/groupby/perfil`).then(r => r.json()).catch(() => []);
+    const identidadesPerfil = await safeGet('/api/identities/groupby/perfil', []);
     const perfisSelecionados = getPerfisSelecionados();
 
     // Filtra os perfis selecionados
@@ -222,9 +231,9 @@ document.getElementById('perfil-filtros').addEventListener('change', fetchGrafic
 async function fetchAnalisesRecentes() {
     // Busca últimas análises ( contratos, projetos, identidades )
     const[contratos, projetos, identidades] = await Promise.all([
-        fetch(`${API_BASE_URL}/contracts`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).catch(() => []),
-        fetch(`${API_BASE_URL}/projects`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).catch(() => []),
-        fetch(`${API_BASE_URL}/identities`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).catch(() => []),
+        safeGet('/api/contracts', []),
+        safeGet('/api/projects', []),
+        safeGet('/api/identities', []),
     ]);
 
 
@@ -285,17 +294,8 @@ async function fetchAnalisesRecentes() {
 // FUNÇÃO PARA MOSTRAR NOME DE USUÁRIO
 async function displayUsername() {
     const usernameElement = document.getElementById('username-display');
-    const token = localStorage.getItem('token');
-    if (!token) {
-        usernameElement.textContent = 'Visitante';
-        return;
-    }
     try {
-        const response = await fetch(`${API_BASE_URL}/user`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) throw new Error();
-        const data = await response.json();
+        const data = await apiGet('/api/user');
         usernameElement.textContent = data.user?.nome || data.user?.username || 'Usuário';
     } catch {
         usernameElement.textContent = 'Usuário';

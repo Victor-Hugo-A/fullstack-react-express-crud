@@ -1,20 +1,14 @@
-const API_BASE_URL = 'http://localhost:3000/api';
-
 // Funções para buscar dados agrupados do backend
 async function fetchContratosPorTipo() {
-    // Exemplo de resposta esperada: [{ tipo: 'aditivo', count: 5 }, ...]
-    const res = await fetch(`${API_BASE_URL}/contracts/groupby/type`);
-    return res.ok ? await res.json() : [];
+    return apiGet('/api/contracts/groupby/type');
 }
 
 async function fetchProjetosPorStatus() {
-    const res = await fetch(`${API_BASE_URL}/projects/groupby/status`);
-    return res.ok ? await res.json() : [];
+    return apiGet('/api/projects/groupby/status');
 }
 
 async function fetchIdentidadesPorPerfil() {
-    const res = await fetch(`${API_BASE_URL}/identities/groupby/perfil`);
-    return res.ok ? await res.json() : [];
+    return apiGet('/api/identities/groupby/perfil');
 }
 
 // Renderização dos gráficos
@@ -154,4 +148,9 @@ async function renderCharts() {
 }
 
 // Chame a função ao carregar a página
-window.addEventListener('DOMContentLoaded', renderCharts);
+window.addEventListener('DOMContentLoaded', () => {
+    renderCharts().catch(error => {
+        console.error('Erro ao carregar os gráficos:', error);
+        document.getElementById('dashboard-error').hidden = false;
+    });
+});
