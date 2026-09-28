@@ -1,5 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Portal - front e back" type="NodeJSConfigurationType" path-to-node="$USER_HOME$/Downloads/node-v24.21.0-win-x64/node-v24.21.0-win-x64/node" path-to-js-file="$PROJECT_DIR$/scripts/dev.js" working-dir="$PROJECT_DIR$">
-    <method v="2" />
-  </configuration>
-</component>
