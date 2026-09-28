@@ -11,6 +11,7 @@ function logout() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('logout')?.addEventListener('click', logout);
     const token = localStorage.getItem('token');
     if (!token) {
         redirectToLogin();
@@ -29,7 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const dateSpan = document.getElementById('current-date');
     if (dateSpan) {
-        dateSpan.textContent = new Date().toLocaleDateString('pt-BR');
+        const today = new Date();
+        dateSpan.textContent = today.toLocaleDateString('pt-BR');
+        dateSpan.dateTime = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     }
 
     const backToTop = document.querySelector('.back-to-top');

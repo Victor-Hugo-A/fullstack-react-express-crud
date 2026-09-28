@@ -1,186 +1,115 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Sistema - Página Inicial </title>
-<link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
-<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap">
-            <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" >
-                        <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
+    <title>Início | Portal institucional SENAPPEN</title>
+    <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
+    <link rel="icon" href="data:,">
 </head>
+<body id="inicio">
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-
-<body>
-<!-- Barra superior -->
-<div class="top-bar" id="inicio">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <i class="fas fa-phone-alt me-2"></i> (61) 2025-0000 <strong>|</strong> 
-                <i class="fas fa-envelope ms-3 me-2"></i> Contato@portal.gov.br <strong>|</strong>
-                <i class="fas fa-calendar-alt me-2" style="margin-left: 2.5%;"></i><span id="current-date"></span>
-            </div>
-            <div class="col-md-6 text-end">
-            </div>
+    <div class="top-bar">
+        <div class="page-container">
+            <span>Portal institucional SENAPPEN</span>
+            <time id="current-date"></time>
         </div>
     </div>
-</div>
 
-<!-- Cabeçalho principal -->
-<header class="main-header">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="logo-container"></div>
-            </div>
-            <div class="col-md-6">
-                <div class="user-menu">
-                    <div class="user-info">
-                        <i class="fas fa-user-circle me-2"></i>
-                        <span id="username-display">Usuário</span>  
-                    </div>
-                    <button id="logout" class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                    </button>
-                </div>
+    <header class="main-header">
+        <div class="page-container header-content">
+            <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Portal institucional SENAPPEN, início">
+                <img src="/FrontEnd/img/senappenLogo.png" alt="SENAPPEN">
+                <span>Portal institucional</span>
+            </a>
+            <div class="user-menu">
+                <span class="user-info">Olá, <strong id="username-display">Usuário</strong></span>
+                <button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button>
             </div>
         </div>
-    </div>
-</header>
+    </header>
 
-<!-- Navegação -->
-<nav class="main-nav navbar navbar-expand-lg">
-    <div class="container">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <i class="fas fa-bars text-white"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link active" href="/FrontEnd/Sistema/sistema.html"> <img class="img-home" src="/FrontEnd/img/botao-home.png" alt="HomeBack"></i> Início</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#contatos"><img class="img-home" src="/FrontEnd/img/contact-us.png" alt="Contatos"></i>Contatos</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#sobre"><img class="img-home" src="/FrontEnd/img/info.png" alt="About"></i>Sobre</a>
-                </li>
-            </ul>
+    <nav class="main-nav" aria-label="Navegação principal">
+        <div class="page-container nav-links">
+            <a href="/FrontEnd/Sistema/sistema.html" aria-current="page">Início</a>
+            <a href="#acesso-rapido">Ferramentas</a>
+            <a href="#sobre">Sobre</a>
+            <a href="#contatos">Contatos</a>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<!-- Conteúdo principal -->
-<main class="main-content">
-    <div class="container">
-        <div class="welcome-card">
-            <h2 class="welcome-title"><i class="fas fa-user-circle me-2" style="font-size: 2.1rem;"></i>Bem-vindo ao Portal Institucional</h2>
-            <p>Este é o sistema de gestão integrada da instituição. Aqui você pode acessar todas as ferramentas e recursos disponíveis para o seu perfil.</p>
-            
-            <div class="alert alert-info mt-4">
-                <i class="fas fa-info-circle me-2" style="font-size: 1.2rem;"></i> Verifique se o seu perfil tem permissão para o uso da Plataforma.
+    <main id="conteudo" class="main-content page-container">
+        <section class="welcome-card" aria-labelledby="welcome-title">
+            <div class="welcome-copy">
+                <span class="eyebrow">ÁREA DE TRABALHO</span>
+                <h1 id="welcome-title">Bem-vindo ao portal</h1>
+                <p>Encontre documentos, acompanhe projetos e consulte informações em um único espaço.</p>
+                <a class="hero-link" href="#acesso-rapido">Explorar ferramentas <span aria-hidden="true">↓</span></a>
             </div>
-        </div>
-        
-        <h3 class="mb-4"><i class="fa fa-arrow-circle-down"></i> Acesso Rápido </h3>
-        
-        <div class="row quick-access">
-            <div class="col-md-3 mb-4">
-                <div class="card text-center p-4">
-                    <div class="card-icon">
-                        <img class="img" src="/FrontEnd/img/documento.png" alt="dashboardGeral">
-                    </div>
-                    <h5 class="card-title"> Documentos </h5>
-                    <p class="card-text" >Acesse e gerencie documentos</p>
-                    <a href="/FrontEnd/Documentos/documentos.html" class="btn btn-sm btn-outline-primary">Acessar</a>
-                    
+            <img class="welcome-seal" src="/FrontEnd/img/logo_dipen.png" alt="" aria-hidden="true">
+        </section>
+
+        <section id="acesso-rapido" class="tools-section" aria-labelledby="tools-title">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">NAVEGAÇÃO</span>
+                    <h2 id="tools-title">Acesso rápido</h2>
                 </div>
+                <p>Escolha uma área para continuar.</p>
             </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card text-center p-4">
-                    <div class="card-icon">
-                        <img class="img" src="/FrontEnd/img/relatorio.png" alt="dashboardGeral">
-                    </div>
-                    <h5 class="card-title"> DashBoard </h5>
-                    <p class="card-text">Consulte os DashBoards</p>
-                    <a href="/FrontEnd/Dashboard/dashboard.html" class="btn btn-sm btn-outline-primary">Acessar</a>
-                </div>
+
+            <div class="quick-access">
+                <a class="portal-card" href="/FrontEnd/Documentos/documentos.html">
+                    <span class="card-icon"><img src="/FrontEnd/img/documento.png" alt=""></span>
+                    <span class="card-title">Documentos</span>
+                    <span class="card-text">Consulte contratos, projetos e identidades.</span>
+                    <span class="card-action">Abrir área <span aria-hidden="true">↗</span></span>
+                </a>
+                <a class="portal-card" href="/FrontEnd/Dashboard/dashboard.html">
+                    <span class="card-icon"><img src="/FrontEnd/img/relatorio.png" alt=""></span>
+                    <span class="card-title">Dashboard</span>
+                    <span class="card-text">Acompanhe indicadores e resumos.</span>
+                    <span class="card-action">Abrir área <span aria-hidden="true">↗</span></span>
+                </a>
+                <a class="portal-card" href="/FrontEnd/Análises/analises.html">
+                    <span class="card-icon"><img src="/FrontEnd/img/analise-de-dados.png" alt=""></span>
+                    <span class="card-title">Análises</span>
+                    <span class="card-text">Explore as informações disponíveis.</span>
+                    <span class="card-action">Abrir área <span aria-hidden="true">↗</span></span>
+                </a>
+                <a class="portal-card" href="/FrontEnd/Perfil/perfil.html">
+                    <span class="card-icon"><img src="/FrontEnd/img/profile.png" alt=""></span>
+                    <span class="card-title">Perfil</span>
+                    <span class="card-text">Atualize seus dados e sua senha.</span>
+                    <span class="card-action">Abrir área <span aria-hidden="true">↗</span></span>
+                </a>
             </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card text-center p-4">
-                    <div class="card-icon">
-                        <img class="img" src="/FrontEnd/img/analise-de-dados.png" alt="Análises Geral">
-                    </div>
-                    <h5 class="card-title"> Análises </h5>
-                    <p class="card-text"> Informações das Análises </p>
-                    <a href="/FrontEnd/Análises/analises.html" class="btn btn-sm btn-outline-primary">Acessar</a>
-                </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="page-container footer-grid">
+            <div id="sobre">
+                <h2>Sobre o portal</h2>
+                <p>Um espaço de acesso às ferramentas de trabalho da SENAPPEN.</p>
             </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card text-center p-4">
-                    <div class="card-icon">
-                        <img class="img" src="/FrontEnd/img/profile.png" alt="Análises Geral">
-                    </div>
-                    <h5 class="card-title">Perfil</h5>
-                    <p class="card-text">Gerencie suas informações pessoais</p>
-                    <a href="/FrontEnd/Perfil/perfil.html" class="btn btn-sm btn-outline-primary">Acessar</a>
-                </div>
+            <div>
+                <h2>Links institucionais</h2>
+                <a href="https://www.gov.br/mj/pt-br" target="_blank" rel="noopener noreferrer">Portal MJ</a>
+                <a href="/FrontEnd/Normativos/normativos.html">Normativos</a>
+                <a href="/FrontEnd/Manuais/manuais.html">Manuais</a>
+            </div>
+            <div id="contatos">
+                <h2>Contato e ajuda</h2>
+                <a href="https://www.gov.br/senappen/pt-br/canais_atendimento/contact-info" target="_blank" rel="noopener noreferrer">Canais de atendimento</a>
+                <a href="https://www.gov.br/senappen/pt-br/acesso-a-informacao/participacao-social/ouvidoria" target="_blank" rel="noopener noreferrer">Ouvidoria</a>
             </div>
         </div>
-    </div>
-</main>
+        <div class="page-container footer-bottom">SENAPPEN · Portal institucional</div>
+    </footer>
 
-<!-- Rodapé -->
-<footer class="footer">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <h5>Sobre o Sistema <a id="sobre"><i class="fas fa-cog fa-pulse"></i></a></h5>
-                <p>Plataforma integrada de Gestão Institucional sendo desenvolvida para facilitar o acesso á informação e otimizações de processos.</p>
-            </div>
-            <div class="col-md-2 mb-4">
-                <div class="footer-links">
-                    <h5>Links Úteis</h5>
-                    <a href="https://www.gov.br/mj/pt-br" target="_blank">Portal MJ</a>
-                    <a href="/FrontEnd/Normativos/normativos.html">Normativos</a>
-                    <a href="/FrontEnd/Manuais/manuais.html">Manuais</a>
-                    <a href="https://www.gov.br/senappen/pt-br/acesso-a-informacao/participacao-social/ouvidoria" target="_blank">Ouvidoria</a>
-                </div>
-            </div>
-            <div class="col-md-2 mb-4">
-                <div class="footer-links">
-                    <h5>Ajuda</h5>
-                    <a href="https://www.gov.br/senappen/pt-br/canais_atendimento/contact-info" target="_blank">Suporte</a>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <h5><a class="footer-links" id="contatos"><i class="fas fa-users me-2"></i></a></h5>
-                <p><i class="fas fa-map-marker-alt me-2"></i> Esplanada dos Ministérios, Bloco T, Brasília/DF</p>
-                <p><i class="fas fa-phone-alt me-2"></i> (61) 2025-0000</p>
-                <p><i class="fas fa-envelope me-2"></i> senappen@mj.gov.br</p>
-            </div>
-        </div>
-    </div>
-    <div class="copyright text-center">
-        <div class="container">
-            &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
-        </div>
-    </div>
-</footer>
-
-<a class="back-to-top" href="#"><i class="fa-solid fa-arrow-up"></i></a>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <a class="back-to-top" href="#inicio" aria-label="Voltar ao início">↑</a>
     <script src="/FrontEnd/Sistema/sistema.js"></script>
-
-
-
 </body>
 </html>

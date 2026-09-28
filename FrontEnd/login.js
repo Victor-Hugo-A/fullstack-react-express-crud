@@ -1,39 +1,22 @@
 // URL base da API
 const API_BASE_URL = 'http://localhost:3000';
 
-// Função para exibir mensagem de sucesso
-function exibirMensagemSucesso(mensagem) {
-    const mensagemElemento = document.getElementById('mensagem-login');
-    
-    if (mensagemElemento) {
-        mensagemElemento.textContent = mensagem;
-        mensagemElemento.style.color = 'green';
-        mensagemElemento.style.backgroundColor = '#e6ffe6';
-        mensagemElemento.style.border = '2px solid #a3e8a3';
-        mensagemElemento.style.display = 'block';
-        
-        setTimeout(() => {
-            mensagemElemento.style.display = 'none';
-        }, 2300);
+let mensagemTimer;
+function mostrarMensagem(mensagem, tipo) {
+    const elemento = document.getElementById('mensagem-login');
+    if (!elemento) return;
+    clearTimeout(mensagemTimer);
+    elemento.textContent = mensagem;
+    elemento.hidden = !mensagem;
+    elemento.className = `form-message ${tipo}`;
+    elemento.setAttribute('role', tipo === 'error' ? 'alert' : 'status');
+    if (mensagem && tipo === 'success') {
+        mensagemTimer = setTimeout(() => { elemento.hidden = true; }, 6000);
     }
 }
 
-// Função para exibir mensagem de erro
-function exibirMensagemErro(mensagem) {
-    const mensagemElemento = document.getElementById('mensagem-login');
-    
-    if (mensagemElemento) {
-        mensagemElemento.textContent = mensagem;
-        mensagemElemento.style.color = 'red';
-        mensagemElemento.style.backgroundColor = '#ffe6e6';
-        mensagemElemento.style.border = '2px solid #ffb3b3';
-        mensagemElemento.style.display = 'block';
-        
-        setTimeout(() => {
-            mensagemElemento.style.display = 'none';
-        }, 2300);
-    }
-}
+function exibirMensagemSucesso(mensagem) { mostrarMensagem(mensagem, 'success'); }
+function exibirMensagemErro(mensagem) { mostrarMensagem(mensagem, 'error'); }
 
 
 // Função para fazer requisições à API
@@ -88,7 +71,8 @@ if (loginForm) {
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const button = e.target.querySelector('button[type="submit"]');
-        const buttonText = button.textContent;
+        const buttonContent = button.innerHTML;
+        let loginSucceeded = false;
         
         try {
             // Mostrar estado de carregamento
@@ -113,6 +97,7 @@ if (loginForm) {
 
             localStorage.setItem('token', response.token); // Token puro, sem JSON.stringify
             localStorage.setItem('userData', JSON.stringify(response.user));
+            loginSucceeded = true;
             
             setTimeout(() => {
                 window.location.href = 'Sistema/sistema.html'; // Caminho relativo à página atual
@@ -136,8 +121,10 @@ if (loginForm) {
                 exibirMensagemErro('Erro ao fazer login. Tente novamente.');
             }
         } finally {
-            button.textContent = buttonText;
-            button.disabled = false;
+            if (!loginSucceeded) {
+                button.innerHTML = buttonContent;
+                button.disabled = false;
+            }
         }
     });
 }
@@ -167,7 +154,7 @@ function validarCPF(cpf) {
 document.getElementById('registerForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const button = e.target.querySelector('button[type="submit"]');
-    const buttonText = button.textContent;
+    const buttonContent = button.innerHTML;
     
     try {
         button.disabled = true;
@@ -206,37 +193,44 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
         });
         
         exibirMensagemSucesso('Conta criada com sucesso! Faça login.');
-        document.getElementById('login').style.display = 'block';
-        document.getElementById('criar-conta').style.display = 'none';
+        mostrarSecao('login');
+        document.getElementById('username').value = username;
         document.getElementById('registerForm').reset();
     } catch (error) {
         exibirMensagemErro(`Erro ao criar conta: ${error.message}`);
     } finally {
-        button.textContent = buttonText;
+        button.innerHTML = buttonContent;
         button.disabled = false;
     }
 });
 
+function mostrarSecao(secao) {
+    document.getElementById('login').hidden = secao !== 'login';
+    document.getElementById('criar-conta').hidden = secao !== 'criar-conta';
+    const primeiroCampo = secao === 'login' ? 'username' : 'nome';
+    document.getElementById(primeiroCampo).focus();
+}
+
 // Toggle entre login e registro
 document.getElementById('toggle-register')?.addEventListener('click', function(e) {
     e.preventDefault();
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('criar-conta').style.display = 'block';
+    exibirMensagemErro('');
+    mostrarSecao('criar-conta');
 });
 
 
 // Voltar ao login a partir da mudança de senha
 document.getElementById('back-to-login')?.addEventListener('click', function(e) {
     e.preventDefault();
-    document.getElementById('login').style.display = 'block';
-    document.getElementById('criar-conta').style.display = 'none';
+    exibirMensagemErro('');
+    mostrarSecao('login');
 });
 
 // Toggle entre registro e login
 document.getElementById('toggle-login')?.addEventListener('click', function(e) {
     e.preventDefault();
-    document.getElementById('login').style.display = 'block';
-    document.getElementById('criar-conta').style.display = 'none';
+    exibirMensagemErro('');
+    mostrarSecao('login');
 });
 
 // Função para redirecionar para a página de login

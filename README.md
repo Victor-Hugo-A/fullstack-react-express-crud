@@ -34,6 +34,8 @@ O comando inicia API e servidor estático juntos. Abra http://localhost:5500/Fro
 
 Em **Run | Edit Configurations**, selecione **Portal - front e back** (tipo **Node.js**) e clique em **Run**. A configuração em `.run/Portal - front e back.run.xml` usa o Node portátil em `Downloads/node-v24.21.0-win-x64/node-v24.21.0-win-x64` e executa `scripts/dev.js` diretamente, sem chamar npm. Se você mover a pasta do Node, atualize o campo **Node runtime** nessa configuração. Depois, abra http://localhost:5500/FrontEnd/login.html. Use **Stop** no WebStorm para encerrar os dois servidores.
 
+As configurações em `.run/` são locais desta máquina e ficam fora do Git porque guardam o caminho pessoal do Node. Em outro computador, configure o Node no WebStorm ou use os comandos acima com o caminho do `node.exe` daquele computador.
+
 ## Executar separadamente
 
 Terminal 1, na raiz:
@@ -79,4 +81,4 @@ O login principal usa os usuários do SQLite. As rotas experimentais `/seguro` e
 
 ## Dados locais e Git
 
-`BackEnd/.env`, bancos SQLite, `BackEnd/data`, `BackEnd/uploads` e `node_modules` são ignorados nos próximos commits. Se algum deles já foi publicado, removê-lo do índice do Git não apaga cópias do histórico remoto. Troque imediatamente chaves e senhas reais que tenham sido expostas. A limpeza do histórico exige uma operação separada e coordenada com quem já clonou o repositório.
+`BackEnd/.env`, bancos SQLite, `BackEnd/data`, `BackEnd/uploads`, `node_modules` e `.run/` são ignorados nos próximos commits. Se algum dado sensível já foi publicado, removê-lo do índice do Git não apaga cópias do histórico remoto. Troque imediatamente chaves e senhas reais que tenham sido expostas. A limpeza do histórico exige uma operação separada e coordenada com quem já clonou o repositório.
