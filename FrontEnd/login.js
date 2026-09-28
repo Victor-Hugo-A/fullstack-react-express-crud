@@ -234,50 +234,6 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
     }
 });
 
-// Evento de submit do formulário de mudança de senha
-document.getElementById('changePasswordForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const button = e.target.querySelector('button[type="submit"]');
-    const buttonText = button.textContent;
-        
-    try {
-        button.disabled = true;
-        
-        // Obter valores dos campos
-        const username = document.getElementById('change-username').value;
-        const currentPassword = document.getElementById('current-password').value;
-        const newPassword = document.getElementById('new-password-change').value;
-        const confirmNewPassword = document.getElementById('confirm-new-password').value;
-
-        // Validar campos
-        validarCampos({ username, currentPassword, newPassword, confirmNewPassword });
-        
-        if (newPassword !== confirmNewPassword) {
-            throw new Error('As novas senhas não coincidem!');
-        }
-
-        if (newPassword.length < 8) {
-            throw new Error('A nova senha deve ter pelo menos 8 caracteres');
-        }
-        
-
-        exibirMensagemSucesso('Senha alterada com sucesso! Redirecionando para login...');
-        
-        document.getElementById('changePasswordForm').reset();
-        
-    setTimeout(() => {
-        window.location.href = 'login.html';
-    },  2000); /// 2 Segundos
-
-    } catch (error) {
-        exibirMensagemErro(`Erro ao alterar senha: ${error.message}`);
-    } finally {
-        button.textContent = buttonText;
-        button.disabled = false;
-    }
-
-});
-
 // Toggle entre login e registro
 document.getElementById('toggle-register')?.addEventListener('click', function(e) {
     e.preventDefault();

@@ -52,6 +52,16 @@ $nodeExe = 'C:\caminho\para\node.exe'
 
 A API responde em http://localhost:3000/health e o frontend em http://localhost:5500/FrontEnd/login.html. O JavaScript do frontend está configurado para chamar a API na porta 3000.
 
+## Redefinir senha de um cadastro local
+
+As senhas do sistema são armazenadas como hash; não é possível consultar a senha antiga. Este projeto ainda não envia links de recuperação por e-mail. Para redefinir um cadastro do banco **local** usando o e-mail já registrado, pare os servidores e selecione **Redefinir senha local** em **Run | Edit Configurations** no WebStorm. Clique em **Run**, digite o e-mail no console e pressione Enter. O script mostra o **nome de usuário** e uma **senha temporária** uma única vez. Entre com esses dados em http://localhost:5500/FrontEnd/login.html e troque a senha em **Perfil**. Esse procedimento é administrativo e exige acesso ao arquivo local `BackEnd/database.sqlite`.
+
+Pelo terminal, com o Node portátil:
+
+```powershell
+& $nodeExe .\scripts\reset-local-password.js
+```
+
 Para executar os testes de autenticação em um banco temporário:
 
 ```powershell
