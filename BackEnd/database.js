@@ -18,6 +18,7 @@ const initializeDatabase = async () => {
   try {
     await dbConfigure();
     await createTables();
+    await ensureAdminColumn();
     await createIndexes();
     console.log('Banco de dados inicializado com sucesso');
   } catch (error) {
@@ -50,6 +51,7 @@ const createTables = () => {
         cpf TEXT NOT NULL,
         departamento TEXT,
         cargo TEXT,
+        is_admin INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`, 
@@ -59,6 +61,18 @@ const createTables = () => {
     });
   });
 };
+
+// Mantém os cadastros existentes ao atualizar bancos criados antes das permissões.
+const ensureAdminColumn = () => new Promise((resolve, reject) => {
+  db.all('PRAGMA table_info(users)', (error, columns) => {
+    if (error) return reject(error);
+    if (columns.some(column => column.name === 'is_admin')) return resolve();
+    db.run('ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0', error => {
+      if (error) return reject(error);
+      resolve();
+    });
+  });
+});
 
 //Cria a tabela de identidades se não existir
 db.serialize(() => {

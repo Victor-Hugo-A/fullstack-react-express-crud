@@ -168,6 +168,21 @@ function authenticateJWT(req, res, next) {
 }
 
 
+async function requireAdmin(req, res, next) {
+    try {
+        const user = await userRepository.findById(req.user.userId);
+        if (!user || user.is_admin !== 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'Acesso permitido apenas a administradores'
+            });
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
 // RETORNA DASHBOARD PARA OS TIPOS, STATUS E PERFIL
 router.get('/contracts/groupby/type', authenticateJWT, (req, res) => {
     const contracts = readContracts();
@@ -239,7 +254,7 @@ router.get('/identities/count', authenticateJWT, (req, res) => {
 });
 
 
-app.post('/api/contracts/sync', authenticateJWT, (req, res) => {
+app.post('/api/contracts/sync', authenticateJWT, requireAdmin, (req, res) => {
     try {
         // Atualiza a lista de contratos com o sistema de arquivos
         const files = fs.readdirSync(path.join(__dirname, 'uploads/contracts'));
@@ -307,7 +322,8 @@ app.get('/api/user', authenticateJWT, async (req, res) => {
                         id: user.id,
                         username: user.username,
                         nome: user.nome || user.username,
-                        email: user.email
+                        email: user.email,
+                        isAdmin: user.is_admin === 1
                     }
                 });
             } catch (error) { // Corrigido: variável Error para error
@@ -372,7 +388,7 @@ function readContracts() {
     }
 }
 
-app.delete('/api/contracts/clean-all', authenticateJWT, (req, res) => {
+app.delete('/api/contracts/clean-all', authenticateJWT, requireAdmin, (req, res) => {
     try {
         // 1. Ler os contratos existentes para obter os nomes dos arquivos
         const contracts = readContracts();
@@ -403,11 +419,7 @@ app.delete('/api/contracts/clean-all', authenticateJWT, (req, res) => {
         }
 
         // 3. Limpar o arquivo contracts.json de forma atômica
-        const contractsPath = path.join(__dirname, 'data', 'contracts.json');
-        fs.writeFileSync(contractsFilePath, JSON.stringify([], null, 2), 'utf8')
-        
-        // Força a escrita no disco
-        fs.fsyncSync(fs.openSync(contractsPath, 'r+'));
+        saveContracts([]);
 
         // 4. Responder com sucesso
         res.json({ 

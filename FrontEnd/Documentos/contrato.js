@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Clean Button - Limpar todos os contratos
-    document.getElementById('clean-all-button')?.addEventListener('click', async () => {
+    elements.cleanAllButton?.addEventListener('click', async () => {
         if (!confirm('Tem certeza que deseja apagar TODOS os contratos? Esta ação não pode ser desfeita.')) {
             showSuccessMessage('Operação cancelada pelo usuário');
             return;
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (!response.ok) {
-                throw new Error(result.error || 'Erro ao limpar contratos');
+                throw new Error(result.message || result.error || 'Erro ao limpar contratos');
             }
 
         // Atualiza a interface do usuário

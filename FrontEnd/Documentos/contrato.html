@@ -176,12 +176,15 @@
                         <label for="search-contract">Pesquisar:</label>
                         <div class="search-input">
                             <input type="text" id="search-contract" class="form-control" placeholder="Número ou descrição...">
-                                <button class="search-btn"><i class="fas fa-search"></i></button>
-                                    <button id="clean-all-button" title="Limpar todos os contratos" class="btn btn-danger">
-                                    <i class="fas fa-trash" title="Limpar"></i> Limpar Todos os Contratos
-                            </button>
+                            <button class="search-btn" type="button" aria-label="Pesquisar contratos"><i class="fas fa-search"></i></button>
                         </div>
                     </div>
+                </div>
+
+                <div class="contract-actions">
+                    <button id="clean-all-button" type="button" title="Limpar todos os contratos" class="btn btn-danger" hidden>
+                        <i class="fas fa-trash" aria-hidden="true"></i> Limpar todos os contratos
+                    </button>
                 </div>
 
 
@@ -262,6 +265,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (data.success && data.user) {
             usernameElement.textContent = data.user.nome || data.user.username;
+            const cleanAllButton = document.getElementById('clean-all-button');
+            if (cleanAllButton) cleanAllButton.hidden = data.user.isAdmin !== true;
             } else {
                 throw new Error(data.message || 'Dados do usuário não encontrados');
             }

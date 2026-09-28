@@ -954,6 +954,16 @@ svg {
     height: 1.9rem;
 }
 
+#clean-all-button[hidden] {
+    display: none;
+}
+
+.contract-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0.75rem 0 1rem;
+}
+
 #clean-all-button:hover {
     background-color: #e6e4e3dc;
     transform: translateY(-1px);

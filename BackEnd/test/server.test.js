@@ -34,10 +34,11 @@ async function waitForHealth(url, processHandle, getOutput) {
   throw new Error('A API não iniciou dentro do prazo: ' + getOutput());
 }
 
-test('autenticação e atualização de perfil em banco isolado', async () => {
+test('autenticação, permissões e perfil em banco isolado', async () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'crud-smoke-'));
   const port = await freePort();
   const backendDir = path.resolve(__dirname, '..');
+  const sqlite3 = require(path.join(backendDir, 'node_modules', 'sqlite3'));
   for (const file of ['server.js', 'database.js', 'keycloak-config.js']) {
     fs.copyFileSync(path.join(backendDir, file), path.join(tempDir, file));
   }
@@ -46,6 +47,43 @@ test('autenticação e atualização de perfil em banco isolado', async () => {
     `SECRET_KEY=${crypto.randomBytes(32).toString('hex')}`,
     `SESSION_SECRET=${crypto.randomBytes(32).toString('hex')}`
   ].join('\n'));
+
+  // Simula o banco de uma instalação anterior, ainda sem a coluna de administrador.
+  const oldDatabase = new sqlite3.Database(path.join(tempDir, 'database.sqlite'));
+  await new Promise((resolve, reject) => oldDatabase.exec(`
+    CREATE TABLE users (
+      id TEXT PRIMARY KEY,
+      nome TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      cpf TEXT NOT NULL,
+      departamento TEXT,
+      cargo TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `, error => error ? reject(error) : resolve()));
+  await new Promise((resolve, reject) => oldDatabase.close(error => error ? reject(error) : resolve()));
+
+  async function manageAdmin(email, revoke = false) {
+    const script = path.resolve(backendDir, '..', 'scripts', 'manage-local-admin.js');
+    const args = revoke ? [script, '--revoke'] : [script];
+    const child = spawn(process.execPath, args, {
+      env: { ...process.env, ADMIN_DB_PATH: path.join(tempDir, 'database.sqlite') },
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+    let output = '';
+    child.stdout.on('data', chunk => { output += chunk.toString(); });
+    child.stderr.on('data', chunk => { output += chunk.toString(); });
+    child.stdin.end(`${email}\n`);
+    const exitCode = await new Promise((resolve, reject) => {
+      child.once('error', reject);
+      child.once('close', resolve);
+    });
+    assert.equal(exitCode, 0, output);
+  }
 
   const processHandle = spawn(process.execPath, ['server.js'], {
     cwd: tempDir,
@@ -99,6 +137,9 @@ test('autenticação e atualização de perfil em banco isolado', async () => {
         body: JSON.stringify(body)
       });
     }
+
+    assert.equal((await postJson('/api/contracts/sync', {})).status, 401);
+    assert.equal((await fetch(`${base}/api/contracts/clean-all`, { method: 'DELETE' })).status, 401);
 
     const suffix = crypto.randomBytes(4).toString('hex');
     const first = `teste-${suffix}-1`;
@@ -169,6 +210,40 @@ test('autenticação e atualização de perfil em banco isolado', async () => {
     });
     assert.equal(contracts.status, 200);
     assert.equal((await contracts.json()).length, 1);
+
+    const regularUser = await fetch(`${base}/api/user`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal((await regularUser.json()).user.isAdmin, false);
+    assert.equal((await postJson('/api/contracts/sync', {}, token)).status, 403);
+    assert.equal((await fetch(`${base}/api/contracts/clean-all`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    })).status, 403);
+    assert.equal((await fetch(`${base}/api/contracts`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json())).length, 1);
+
+    await manageAdmin(`${first}@example.test`);
+    const adminUser = await fetch(`${base}/api/user`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal((await adminUser.json()).user.isAdmin, true);
+    assert.equal((await postJson('/api/contracts/sync', {}, token)).status, 200);
+    const cleanAll = await fetch(`${base}/api/contracts/clean-all`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(cleanAll.status, 200, await cleanAll.text());
+    assert.equal((await fetch(`${base}/api/contracts`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json())).length, 0);
+    await manageAdmin(`${first}@example.test`, true);
+    assert.equal((await fetch(`${base}/api/contracts/clean-all`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    })).status, 403);
+    const revokedUser = await fetch(`${base}/api/user`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal((await revokedUser.json()).user.isAdmin, false);
 
     const update = await fetch(`${base}/update-profile`, {
       method: 'PUT',
