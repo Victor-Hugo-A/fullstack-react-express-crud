@@ -1,6 +1,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 const API_BASE_URL = 'http://localhost:3000/api';
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[char]));
 
 async function fetchResumo() {
     // Busca contadores
@@ -219,9 +222,9 @@ document.getElementById('perfil-filtros').addEventListener('change', fetchGrafic
 async function fetchAnalisesRecentes() {
     // Busca últimas análises ( contratos, projetos, identidades )
     const[contratos, projetos, identidades] = await Promise.all([
-        fetch(`${API_BASE_URL}/contracts`).then(r => r.json()).catch(() => []),
-        fetch(`${API_BASE_URL}/projects`).then(r => r.json()).catch(() => []),
-        fetch(`${API_BASE_URL}/identities`).then(r => r.json()).catch(() => []),
+        fetch(`${API_BASE_URL}/contracts`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).catch(() => []),
+        fetch(`${API_BASE_URL}/projects`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).catch(() => []),
+        fetch(`${API_BASE_URL}/identities`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).catch(() => []),
     ]);
 
 
@@ -235,10 +238,10 @@ async function fetchAnalisesRecentes() {
     return `
         <tr>
             <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
-            <td>${c.number || '-'}</td>
-            <td><span class="badge ${c.type === 'aditivo'? 'aditivo' : c.type === 'convenio'? 'convenio' : c.type === 'fornecimento'? 'fornecimento' : c.type}">
-            ${c.type || '-'}</span></td>
-            <td>${c.description || '-'}</td>
+            <td>${escapeHTML(c.number || '-')}</td>
+            <td><span class="badge ${c.type === 'aditivo'? 'aditivo' : c.type === 'convenio'? 'convenio' : c.type === 'fornecimento'? 'fornecimento' : ''}">
+            ${escapeHTML(c.type || '-')}</span></td>
+            <td>${escapeHTML(c.description || '-')}</td>
         </tr>
     `}).join('');
 
@@ -253,11 +256,11 @@ async function fetchAnalisesRecentes() {
     return `
         <tr>
             <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
-            <td>${p.name || '-'}</td>
-            <td>${p.code || '-'}</td>
+            <td>${escapeHTML(p.name || '-')}</td>
+            <td>${escapeHTML(p.code || '-')}</td>
             <td><span class="badge ${p.status === 'planejamento'?'plan': p.status === 'andamento'?'and': p.status === 'suspenso'?'susp' : p.status === 'concluido'?'conc': 
-            ''}">${p.status || '-'}</span></td>
-            <td>${p.manager || '-'}</td>
+            ''}">${escapeHTML(p.status || '-')}</span></td>
+            <td>${escapeHTML(p.manager || '-')}</td>
         </tr>
     `}).join('');
 
@@ -271,9 +274,9 @@ async function fetchAnalisesRecentes() {
     return `
         <tr>
             <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
-            <td>${i.cpf || '-'}</td>
-            <td>${i.nome || '-'}</td> 
-            <td><span class="badge ${i.perfil === 'Administrador'?'admin' : i.perfil === 'Usuário'?'user' : i.perfil === 'Visitante'?'vis' : ''}">${i.perfil || '-'}</span></td>
+            <td>${escapeHTML(i.cpf || '-')}</td>
+            <td>${escapeHTML(i.nome || '-')}</td>
+            <td><span class="badge ${i.perfil === 'Administrador'?'admin' : i.perfil === 'Usuário'?'user' : i.perfil === 'Visitante'?'vis' : ''}">${escapeHTML(i.perfil || '-')}</span></td>
         </tr>
     `}).join('');
 }

@@ -208,8 +208,8 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
             throw new Error ('O usuário deve conter pelo menos 3 letras')
         }
 
-        if (password.length < 3) {
-            throw new Error('A senha deve ter pelo menos 3 caracteres');
+        if (password.length < 8) {
+            throw new Error('A senha deve ter pelo menos 8 caracteres');
         }
 
         if (!validarCPF(cpf)) {
@@ -256,8 +256,8 @@ document.getElementById('changePasswordForm')?.addEventListener('submit', async 
             throw new Error('As novas senhas não coincidem!');
         }
 
-        if (newPassword.length < 3) {
-            throw new Error('A nova senha deve ter pelo menos 3 caracteres');
+        if (newPassword.length < 8) {
+            throw new Error('A nova senha deve ter pelo menos 8 caracteres');
         }
         
 

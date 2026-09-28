@@ -1,13 +1,10 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "database.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "clean:uploads": "rm -rf uploads/* || if exist uploads del /q uploads\\*",
-    "clean:contracts": "rm -rf uploads/contracts/* && node scripts/cleanContracts.js || if exist uploads\\contracts del /s /q uploads\\contracts\\* && node scripts/cleanContracts.js",
-    "reset:contracts": "npm run clean:contracts && mkdir -p uploads/contracts || mkdir uploads\\contracts"
+    "test": "node --test test/*.test.js"
   },
   "keywords": [],
   "author": "",
@@ -30,7 +27,7 @@
     "passport-keycloak": "^0.0.7",
     "path-to-regexp": "^6.2.0",
     "router": "2.2.0",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^6.0.1",
     "uuid": "^11.1.0",
     "validator": "^13.15.0"
   }

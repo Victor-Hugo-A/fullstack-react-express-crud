@@ -1,4 +1,7 @@
 const API_BASE_URL = 'http://localhost:3000/api';
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[char]));
 
 document.addEventListener('DOMContentLoaded', function() {
     const elements = {
@@ -328,7 +331,7 @@ async function loadContracts(filters = {}) {
         console.error('Erro ao carregar contratos:', error);
         elements.documentsContainer.innerHTML = `
             <div class="alert alert-danger">
-                Erro ao carregar contratos: ${error.message}
+                Erro ao carregar contratos: ${escapeHTML(error.message)}
             </div>`;
     } finally {
         showLoading(false);
@@ -337,26 +340,26 @@ async function loadContracts(filters = {}) {
 
 
     function createContractElement(contract) {
-        const typeClass = `badge-${(contract.type || 'outro').toLowerCase()}`;
+        const typeClass = `badge-${(contract.type || 'outro').toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
         const element = document.createElement('div');
         element.className = 'document-card contracts';
         element.innerHTML = `
             <div class="document-header">
-                <span class="document-type badge ${typeClass}">${getContractTypeName(contract.type)}</span>
-                <span class="document-number"> N° ${contract.number}</span>
+                <span class="document-type badge ${typeClass}">${escapeHTML(getContractTypeName(contract.type))}</span>
+                <span class="document-number"> N° ${escapeHTML(contract.number)}</span>
             </div>
             <div class="document-body">
-                <p class="document-date"><i class="far fa-calendar-alt me-2"></i>${formatDisplayDate(contract.date)}</p>
-                <p class="document-description">Informações: ${contract.description || 'Sem descrição'}</p>
+                <p class="document-date"><i class="far fa-calendar-alt me-2"></i>${escapeHTML(formatDisplayDate(contract.date))}</p>
+                <p class="document-description">Informações: ${escapeHTML(contract.description || 'Sem descrição')}</p>
             </div>
             <div class="document-actions">
-                <button class="btn-view" title="Visualizar contrato" data-id="${contract.id}">
+                <button class="btn-view" title="Visualizar contrato" data-id="${escapeHTML(contract.id)}">
                     <i class="fas fa-eye"></i> Visualizar
                 </button>
-                <button class="btn-download" title="Baixar contrato "data-id="${contract.id}">
+                <button class="btn-download" title="Baixar contrato" data-id="${escapeHTML(contract.id)}">
                     <i class="fas fa-download"></i> Download
                 </button>
-                <button class="btn-delete" title="Excluir contrato" data-id="${contract.id}">
+                <button class="btn-delete" title="Excluir contrato" data-id="${escapeHTML(contract.id)}">
                     <i class="fas fa-trash"></i> Excluir
                 </button>
             </div>
@@ -417,10 +420,13 @@ async function loadContracts(filters = {}) {
 
     // Visualizar contrato
 async function viewContract(id) {
+    let newWindow;
     try {
         showLoading(true);
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Acesso restrito! Faça login para continuar.');
+        newWindow = window.open('', '_blank');
+        if (!newWindow) throw new Error('Permita a abertura de janelas para visualizar o contrato.');
 
         // Pré-carrega o PDF em segundo plano
         const preloadResponse = await fetch(`${API_BASE_URL}/contracts/${id}/view`, {
@@ -434,17 +440,14 @@ async function viewContract(id) {
         const pdfUrl = URL.createObjectURL(blob);
 
         // Abre em nova aba com a URL em cache
-        const newWindow = window.open('', '_blank');
         newWindow.location.href = pdfUrl;
 
-        // Limpa a memória após 10 segundos (opcional)
-        setTimeout(() => URL.revokeObjectURL(pdfUrl), 10000);
+        setTimeout(() => URL.revokeObjectURL(pdfUrl), 60000);
 
     } catch (error) {
         showErrorMessage(error.message);
         
-        // Fallback: Abre diretamente se o pré-carregamento falhar
-        window.open(`${API_BASE_URL}/contracts/${id}/view`, '_blank');
+        newWindow?.close();
     } finally {
         showLoading(false);
     }

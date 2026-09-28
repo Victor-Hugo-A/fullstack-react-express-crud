@@ -229,11 +229,6 @@ db.on('error', (err) => {
   console.error('Erro no banco de dados:', err.message);
 });
 
-// Inicializa o banco de dados quando o módulo é carregado
-initializeDatabase().catch(err => {
-  console.error('Falha na inicialização do banco de dados:', err);
-});
-
 module.exports = {
   db,
   userRepository,

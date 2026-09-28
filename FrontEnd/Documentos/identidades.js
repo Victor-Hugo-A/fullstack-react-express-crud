@@ -4,6 +4,31 @@ const API_URL = 'http://localhost:3000/api/identities';
 let allIdentidades = [];
 let currentPage = 1;
 const IDENTIDADES_PER_PAGE = 5;
+const activeImageUrls = new Set();
+const BACKEND_URL = 'http://localhost:3000';
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[char]));
+
+async function loadIdentityPhoto(img, filePath) {
+    if (!/^\/uploads\/identities\/[^/]+$/.test(filePath || '')) return;
+    try {
+        const response = await fetch(`${BACKEND_URL}${filePath}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) return;
+        const imageUrl = URL.createObjectURL(await response.blob());
+        if (!img.isConnected) {
+            URL.revokeObjectURL(imageUrl);
+            return;
+        }
+        activeImageUrls.add(imageUrl);
+        img.src = imageUrl;
+        img.addEventListener('click', () => abrirModalImagem(imageUrl));
+    } catch (error) {
+        console.error('Falha ao carregar foto:', error);
+    }
+}
 
     
     function cpfValue(cpf) {
@@ -23,7 +48,9 @@ const IDENTIDADES_PER_PAGE = 5;
         }
         
         async function cpfJaCadastrado(cpf) {
-            const response = await fetch (API_URL)
+            const response = await fetch(API_URL, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
             if (!response.ok) return false;
             const identidades = await response.json();
             return identidades.some(id => id.cpf.replace(/\D/g, '') === cpf);
@@ -64,7 +91,9 @@ const IDENTIDADES_PER_PAGE = 5;
 
 
     async function carregarIdentidades() {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
         if(!response.ok) {
             ErroMessage('Erro ao carregar identidades!', 'error');
             return;
@@ -74,6 +103,8 @@ const IDENTIDADES_PER_PAGE = 5;
 
     function renderIdentidadesPage(page) {
     const tbody = document.getElementById('identities-table').querySelector('tbody');
+    activeImageUrls.forEach(url => URL.revokeObjectURL(url));
+    activeImageUrls.clear();
     tbody.innerHTML = '';
     const start = (page - 1) * IDENTIDADES_PER_PAGE;
     const end = start + IDENTIDADES_PER_PAGE;
@@ -85,19 +116,18 @@ const IDENTIDADES_PER_PAGE = 5;
   }
 
     identidadesToShow.forEach(id => {
-        const BACKEND_URL = 'http://localhost:3000';
-        const perfilClass = `perfil-${(id.perfil || '').toLowerCase()}`;
+        const perfilClass = `perfil-${(id.perfil || '').toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
         const dataCriacao = id.created_at
         ? new Date(id.created_at).toLocaleDateString('pt-BR')
         : '—';
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${id.nome}</td>
-            <td>${id.cpf}</td>
-            <td>${id.endereco}</td>
-            <td><span class="${perfilClass}">${id.perfil}</span></td>
+            <td>${escapeHTML(id.nome)}</td>
+            <td>${escapeHTML(id.cpf)}</td>
+            <td>${escapeHTML(id.endereco)}</td>
+            <td><span class="${perfilClass}">${escapeHTML(id.perfil)}</span></td>
             <td>
-                <img src="${BACKEND_URL}${id.foto}" alt="Foto 3x4" style="width:80px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;" />
+                <img src="/FrontEnd/img/profile.png" alt="Foto da identidade" style="width:80px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;" />
             </td>
             <td>${dataCriacao}</td>
             <td>
@@ -106,7 +136,7 @@ const IDENTIDADES_PER_PAGE = 5;
         `;
 
         // Evento para abrir modal da imagem
-        tr.querySelector('img').addEventListener('click', () => abrirModalImagem(`${BACKEND_URL}${id.foto}`));
+        loadIdentityPhoto(tr.querySelector('img'), id.foto);
         // Evento para excluir identidade
         tr.querySelector('.btn-excluir').addEventListener('click', () => deletarIdentidade(id.id));
         tbody.appendChild(tr);

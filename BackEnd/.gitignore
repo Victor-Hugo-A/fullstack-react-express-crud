@@ -1,8 +1,5 @@
-node_modules
+node_modules/
 .env
-uploads
-data
-database.sqlite
-contracts.json
-package-lock.json
-package.json
+uploads/
+data/
+*.sqlite

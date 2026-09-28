@@ -33,8 +33,8 @@ document.getElementById('perfil-form').addEventListener('submit', function(e) {
         exibirMensagemErro('A nova senha deve ser diferente da atual.');
         return;
     }
-    if (newPassword.length < 3) {
-        exibirMensagemErro('A senha deve conter pelo menos 3 caracteres.');
+    if (newPassword.length < 8) {
+        exibirMensagemErro('A senha deve conter pelo menos 8 caracteres.');
         return;
     }
     if (confirmNewPassword !== newPassword) {
@@ -73,7 +73,10 @@ document.getElementById('perfil-form').addEventListener('submit', function(e) {
             // Atualiza o cargo e departamento
             fetch('http://localhost:3000/update-profile', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ username, departamento, cargo, cpf })
         })
         .then(res => res ? res.json() : null)

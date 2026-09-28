@@ -1,6 +1,12 @@
-require('dotenv').config();
-const PORT = process.env.PORT || 3000;
-const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_super_segura';
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+const PORT = Number(process.env.PORT) || 3000;
+const SECRET_KEY = process.env.SECRET_KEY;
+if (!SECRET_KEY) {
+    throw new Error('Configure SECRET_KEY em BackEnd/.env antes de iniciar a API');
+}
+if (!process.env.SESSION_SECRET) {
+    throw new Error('Configure SESSION_SECRET em BackEnd/.env antes de iniciar a API');
+}
 const express = require('express');
 const keycloak = require('./keycloak-config')
 const session = require('express-session')
@@ -28,7 +34,7 @@ const corsOptions = {
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', authenticateJWT, express.static(path.join(__dirname, 'uploads')));
 
 // CONFIG KEYCLOAK
 const config = {
@@ -40,7 +46,7 @@ const config = {
     clientId: 'nodejs-app'
   },
   session: {
-    secret: process.env.SESSION_SECRET || 'sua_chave_secreta_aleatoria',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     store: keycloak.memoryStore,
@@ -50,13 +56,6 @@ const config = {
 
 app.use(session(config.session));
 app.use(keycloak.middleware());
-
-// Configuração de CORS (ajuste conforme necessidade)
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', config.keycloak.frontendUrl);
-  res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-  next();
-});
 
 // Rotas públicas
 app.get('/', (req, res) => {
@@ -117,9 +116,6 @@ app.get('/logout', keycloak.protect(), (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('Servidor rodando em http://localhost:3000'));
-
-
 // Configuração de diretórios
 const uploadsDir = path.join(__dirname, 'uploads', 'contracts');
 const DATA_FILE = path.join(__dirname, 'data', 'contracts.json');
@@ -137,8 +133,8 @@ if (!fs.existsSync(DATA_FILE)) {
     fs.writeFileSync(DATA_FILE, JSON.stringify([]));
 }
 
-app.use('/projects/files', express.static(path.join(__dirname, 'uploads', 'projects')));
-app.use('/project-files', express.static('uploads/projects'));
+app.use('/projects/files', authenticateJWT, express.static(path.join(__dirname, 'uploads', 'projects')));
+app.use('/project-files', authenticateJWT, express.static(path.join(__dirname, 'uploads', 'projects')));
 
 // Middlewares
 app.use(express.urlencoded({ extended: true }));
@@ -243,7 +239,7 @@ router.get('/identities/count', (req, res) => {
 });
 
 
-app.post('/api/contracts/sync', (req, res) => {
+app.post('/api/contracts/sync', authenticateJWT, (req, res) => {
     try {
         // Atualiza a lista de contratos com o sistema de arquivos
         const files = fs.readdirSync(path.join(__dirname, 'uploads/contracts'));
@@ -262,11 +258,10 @@ app.post('/api/contracts/sync', (req, res) => {
 });
 
 
-app.get('/api/user', async (req, res) => {
+app.get('/api/user', authenticateJWT, async (req, res) => {
 
     try {
         const authHeader = req.headers['authorization'];
-        console.log('Authorization header:', authHeader);
 
         if (!authHeader) {
             return res.status(401).json({
@@ -276,7 +271,6 @@ app.get('/api/user', async (req, res) => {
         }
 
         const token = authHeader.split(' ')[1];
-        console.log('Token recebido:', token);
 
         if (!token) {
             return res.status(401).json({
@@ -307,7 +301,6 @@ app.get('/api/user', async (req, res) => {
                     });
                 }
 
-                console.log('Usuário encontrado:', user);
                 res.json({
                     success: true,
                     user: {
@@ -376,16 +369,6 @@ function readContracts() {
     } catch (error) {
         console.error('Erro ao ler contratos', error);
         return [];
-    }
-}
-
-function writeContracts(contracts) {
-    try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(contracts, null, 2), 'utf-8');
-        fs.fsyncSync(fs.openSync(DATA_FILE, 'r+')); // Forçamento da escrita no disco
-    } catch (error) {
-        console.error('Erro ao salvar contratos:', error);
-        throw error;
     }
 }
 
@@ -485,14 +468,14 @@ app.post('/api/contracts', authenticateJWT, upload.single('file'), (req, res) =>
             return res.status(400).json({ error: 'Campos obrigatórios faltando' });
         }
 
-        // Verifica se a data está dentro do intervalo permitido (2025-01 a 2030-01)
+        // Verifica se a data está dentro do intervalo permitido.
         const contractDate = new Date(date);
         const minDate = new Date('2025-01-01');
-        const maxDate = new Date('2040-11-31');
+        const maxDate = new Date('2040-12-31');
         
-        if (contractDate < minDate || contractDate > maxDate) {
+        if (Number.isNaN(contractDate.getTime()) || contractDate < minDate || contractDate > maxDate) {
             return res.status(400).json({ 
-                error: 'Data do contrato deve estar entre Janeiro/2025 e Janeiro/2040' 
+                error: 'Data do contrato deve estar entre Janeiro/2025 e Dezembro/2040'
             });
         }
 
@@ -530,9 +513,14 @@ function saveContracts(contracts) {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        const tempPath = contractsFilePath;
+        const tempPath = `${contractsFilePath}.tmp`;
         fs.writeFileSync(tempPath, JSON.stringify(contracts, null, 2), 'utf8');
-        fs.fsyncSync(fs.openSync(tempPath, 'r+'));
+        const fileDescriptor = fs.openSync(tempPath, 'r+');
+        try {
+            fs.fsyncSync(fileDescriptor);
+        } finally {
+            fs.closeSync(fileDescriptor);
+        }
         fs.renameSync(tempPath, contractsFilePath);
     } catch (error) {
         console.error('Erro ao salvar contratos:', error);
@@ -542,7 +530,7 @@ function saveContracts(contracts) {
 
 
 // Rota para listar contratos com filtros
-app.get('/api/contracts', (req, res) => {
+app.get('/api/contracts', authenticateJWT, (req, res) => {
     try {
         let contracts = readContracts();
         const { type, year, search } = req.query;
@@ -763,7 +751,7 @@ const projectsUpload = multer({
             cb(null, dir);
         },
         filename: (req, file, cb) => {
-            cb(null, Date.now() + '-' + file.originalname);
+            cb(null, Date.now() + '-' + uuidv4() + path.extname(file.originalname).toLowerCase());
         }
     }),
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB
@@ -852,7 +840,7 @@ router.post('/projects', authenticateJWT, projectsUpload.array('files'), async (
     }
 });
 
-router.get('/projects', async (req, res) => {
+router.get('/projects', authenticateJWT, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -930,8 +918,11 @@ router.get('/projects/:id', authenticateJWT, async (req, res) => {
     }
 });
 
-router.get('/project-files/:filename', async (req, res) => {
+router.get('/project-files/:filename', authenticateJWT, async (req, res) => {
     try {
+        if (path.basename(req.params.filename) !== req.params.filename) {
+            return res.status(400).json({ success: false, message: 'Nome de arquivo inválido' });
+        }
         const filePath = path.join(__dirname, 'uploads', 'projects', req.params.filename);
 
         if (!fs.existsSync(filePath)) {
@@ -1138,7 +1129,7 @@ router.delete('/projects/:id', authenticateJWT, async (req, res) => {
             cb(null, dir);
         },
         filename: (req, file, cb) => {  
-            cb(null, Date.now() + '-' + file.originalname);
+            cb(null, Date.now() + '-' + uuidv4() + path.extname(file.originalname).toLowerCase());
         }
     });
     const identitiesUpload = multer({
@@ -1161,9 +1152,8 @@ router.delete('/projects/:id', authenticateJWT, async (req, res) => {
         );
     });
 
-    app.get('/api/identities', (req, res) => {
+    app.get('/api/identities', authenticateJWT, (req, res) => {
         db.all('SELECT * FROM identities', [], (err, rows) => {
-            console.log('Retornando:', rows);
             if (err) return res.status(500).json({ success: false, error: err.message });
             res.json(rows);
         });
@@ -1193,15 +1183,25 @@ router.delete('/projects/:id', authenticateJWT, async (req, res) => {
 
 
     // ROTA PERFIL  
-    app.put('/update-profile', async (req, res) => {
+    app.put('/update-profile', authenticateJWT, async (req, res) => {
     try {
-        const { username, departamento, cargo, cpf } = req.body;
-        if (!username) {
-            return res.status(400).json({ success: false, message: 'Usuário não informado' });
-        }
+        const { departamento, cargo, cpf } = req.body;
+        const username = req.user.username;
         await userRepository.updateProfile(username, departamento, cargo, cpf);
         const user = await userRepository.findByUsername(username);
-        res.json({ success: true, message: 'Perfil atualizado com sucesso', user });
+        res.json({
+            success: true,
+            message: 'Perfil atualizado com sucesso',
+            user: {
+                id: user.id,
+                username: user.username,
+                nome: user.nome,
+                email: user.email,
+                cpf: user.cpf,
+                departamento: user.departamento,
+                cargo: user.cargo
+            }
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Erro ao atualizar perfil' });
     }
@@ -1477,7 +1477,7 @@ app.post('/api/generate-chart', authenticateJWT, (req, res) => {
 });
 
 
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post('/upload', authenticateJWT, upload.single('file'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ 
@@ -1503,7 +1503,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
     }
 });
 
-app.get('/download/:filename', (req, res) => {
+app.get('/download/:filename', authenticateJWT, (req, res) => {
     try {
         const filename = req.params.filename;
         const safePath = path.normalize(filename).replace(/^(\.\.(\/|\\|$))+/, '');
@@ -1543,7 +1543,7 @@ app.get('/download/:filename', (req, res) => {
     }
 });
 
-router.get('/check', async (req, res) => {
+router.get('/contracts/check', authenticateJWT, async (req, res) => {
     try {
         const { number } = req.query;
         const contracts = readContracts();
@@ -1607,10 +1607,10 @@ app.post('/register', async (req, res) => {
             });
         }
 
-            if (password.length < 3) {
+            if (password.length < 8) {
                 return res.status(400).json({ 
                     success: false,
-                    message: 'Senha deve ter pelo menos 3 caracteres' 
+                    message: 'Senha deve ter pelo menos 8 caracteres'
                 });
             }
 
@@ -1669,9 +1669,10 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.post('/change-password', async (req, res) => {
+app.post('/change-password', authenticateJWT, async (req, res) => {
     try {
-        const { username, currentPassword, newPassword, confirmNewPassword } = req.body;
+        const { currentPassword, newPassword, confirmNewPassword } = req.body;
+        const username = req.user.username;
 
         if (!username || !currentPassword || !newPassword || !confirmNewPassword) {
             return res.status(400).json({ 
@@ -1687,10 +1688,10 @@ app.post('/change-password', async (req, res) => {
             });
         }
 
-        if (newPassword.length < 3) {
+        if (newPassword.length < 8) {
             return res.status(400).json({ 
                 success: false,
-                message: 'Senha deve ter pelo menos 3 caracteres' 
+                message: 'Senha deve ter pelo menos 8 caracteres'
             });
         }
 

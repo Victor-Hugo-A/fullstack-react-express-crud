@@ -503,18 +503,18 @@ function renderProjectsPage(page) {
               <div class="files-container">
                 ${project.files.map(file => {
                   const ext = file.filename.split('.').pop().toLowerCase();
-                  const fileUrl = `${API_URL}/project-files/${file.filename}`;
+                  const fileUrl = `${API_URL}/project-files/${encodeURIComponent(file.filename)}`;
                   return `
                   <div class="file-item" data-file-id="${file._id || file.id}">
                     <div class="file-info">
                       ${ext === 'pdf' ? 
                         `<i class="fas fa-file-pdf pdf-icon"></i>` : 
                         `<i class="fas fa-file-image image-icon"></i>`}
-                      <a href="${fileUrl}" target="_blank" rel="noopener noreferrer">${utils.sanitize(file.originalname)}</a>
+                      <a href="#" class="project-file-link" data-file-url="${fileUrl}" data-filename="${utils.sanitize(file.originalname)}">${utils.sanitize(file.originalname)}</a>
                       <span class="file-size">(${formatFileSize(file.size)})</span>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-download-file" data-file-url="${API_URL}/project-files/${file.filename}?download=1" data-filename="${file.originalname}" title="Download do projeto">
+                      <button class="btn-download-file" data-file-url="${fileUrl}" data-filename="${utils.sanitize(file.originalname)}" title="Download do projeto">
                         <i class="fas fa-download"></i>
                       </button>
                       <button class="btn-delete-file" data-file-id="${file._id || file.id}" data-project-id="${project.id}" title="Excluir o arquivo">
@@ -544,6 +544,13 @@ function renderProjectsPage(page) {
       }
     });
 
+    modal.querySelectorAll('.project-file-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        viewFile(link.dataset.fileUrl, link.dataset.filename);
+      });
+    });
+
     // Download de arquivos
     modal.querySelectorAll('.btn-download-file').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -571,7 +578,44 @@ function renderProjectsPage(page) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  function downloadFile(url, filename) {
+  async function getProjectFile(url) {
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    if (!response.ok) throw new Error('Não foi possível carregar o arquivo');
+    return response.blob();
+  }
+
+  function saveBlob(blob, filename) {
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+  }
+
+  async function viewFile(url, filename) {
+    const newWindow = window.open('', '_blank');
+    try {
+      const blob = await getProjectFile(url);
+      if (newWindow && (blob.type === 'application/pdf' || blob.type.startsWith('image/'))) {
+        const blobUrl = URL.createObjectURL(blob);
+        newWindow.location.href = blobUrl;
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      } else {
+        newWindow?.close();
+        saveBlob(blob, filename);
+      }
+    } catch (error) {
+      newWindow?.close();
+      ErroMessage(error.message, 'error');
+    }
+  }
+
+  async function downloadFile(url, filename) {
     if (!url || !filename) {
         console.error('Dados inválidos para download:', {url, filename});
         ErroMessage('Erro ao preparar download: dados incompletos', 'error')
@@ -579,12 +623,7 @@ function renderProjectsPage(page) {
     }
 
     try {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    saveBlob(await getProjectFile(url), filename);
   } catch (error) {
     console.error('Erro ao baixar arquivo:', error)
     ErroMessage('Erro ao baixar arquivo. Tente novamente')

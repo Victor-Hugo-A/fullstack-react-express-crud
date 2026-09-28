@@ -3,20 +3,18 @@
 }
 
 body {
-    background-image: 
-        linear-gradient(rgba(240, 240, 240, 0.911), rgba(61, 61, 61, 0.911)),
-        url('https://www.gov.br/senappen/pt-br/assuntos/noticias/nova-estrutura-da-secretaria-nacional-de-politicas-penais-senappen-vigora-hoje/senappen_marca_final_prancheta_1_copia.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    height: 100vh;
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    overflow-y: hidden;
+    background: linear-gradient(135deg, #edf5f9, #dcebf4);
+    min-height: 100vh;
+    padding: 5rem 1.25rem 2rem;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Arial, sans-serif;
     justify-content: center;
     align-items: center;
     display: flex;
+}
+
+#login-container {
+    width: min(100%, 420px);
 }
 
 
@@ -35,42 +33,34 @@ body {
 }
 
 .auth-section {
-    padding: 22px;
-    width: 350px;
-    background-color: #f2f2f2;
-    border-radius: 20px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    padding: 1.75rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 16px 44px rgba(14, 72, 126, 0.14);
     text-align: center;
-    margin: auto auto auto auto;
-    border: 0.1px solid;
+    margin: auto;
+    border: 1px solid #d4e2eb;
 }
 
 .text-muted {
-    position: absolute;
-    margin-top: 142px;
-    margin-left: 60px;
-    color: #969696;
-    background-color: #e4e4e4;
-    border-radius: 0.4rem;
-    margin-bottom: 0.4rem;
+    display: block;
+    margin: -0.5rem 0 1rem;
+    color: #526579;
+    text-align: left;
 }
 
 .register {
-    padding: 22px;
-    width: 350px;
-    height: 590px;
-    background-color: #f2f2f2;
-    border-radius: 8px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin: auto auto auto auto;
-    border: 1px solid;
+    height: auto;
 }
 
+.auth-section h1,
 .auth-section h2 {
     margin-bottom: 1.2rem;
-    color: #4311f7;
+    color: #0e487e;
     text-align: center;
+    font-size: 1.5rem;
 }
 
 .auth-section form {
@@ -96,7 +86,7 @@ body {
 
 .auth-section button {
     padding: 10px;
-    background-color: #3443ca;
+    background-color: #0e487e;
     color: white;
     border: none;
     border-radius: 4px;
@@ -104,7 +94,7 @@ body {
 }
 
 .auth-section button:hover {
-    background-color: #081dd4;
+    background-color: #0a365f;
 }
 
 .auth-section p {
@@ -112,8 +102,39 @@ body {
 }
 
 .auth-section a {
-    color: #4043eedc;
+    color: #0e487e;
     text-decoration: none;
+}
+
+.auth-section a:hover {
+    text-decoration: underline;
+}
+
+.auth-section input:focus-visible,
+.auth-section button:focus-visible,
+.auth-section a:focus-visible {
+    outline: 3px solid #f3a340;
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 6.5rem 1rem 1.5rem;
+    }
+
+    .DIPEN {
+        width: 72px;
+        top: 12px;
+        left: 16px;
+    }
+
+    .auth-section {
+        padding: 1.25rem;
+    }
+
+    .img {
+        max-width: 100%;
+    }
 }
 
 #loginForm {
@@ -138,18 +159,32 @@ p, #text {
     position: relative;
 }
 
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .input-icon-wrapper i {
     position: absolute;
-    top: 35%;
-    left: 90%;
+    top: calc(50% - 0.5rem);
+    right: 0.75rem;
     transform: translateY(-50%);
     color: #292929de;
     font-size: 1.1rem;
+    pointer-events: none;
 }
 
 .input-icon-wrapper input {
     width: 100%;
     box-sizing: border-box;
+    padding-right: 2.5rem !important;
 }
 
 
