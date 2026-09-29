@@ -9,9 +9,7 @@ function logout(reason = 'logout') {
 
 function showFeedback(message, type) {
     const feedback = document.getElementById('mensagem-login');
-    feedback.textContent = message;
-    feedback.className = `form-feedback ${type}`;
-    feedback.hidden = false;
+    window.appNotice.show(feedback, message, type);
 }
 
 async function request(path, method, token, body) {
@@ -40,6 +38,7 @@ async function request(path, method, token, body) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('logout')?.addEventListener('click', () => logout());
     const token = localStorage.getItem('token');
     let usuario;
     try {
@@ -86,9 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let passwordUpdated = false;
         try {
             if (changePassword) {
-                await request('/change-password', 'POST', token, {
+                const passwordResult = await request('/change-password', 'POST', token, {
                     currentPassword, newPassword, confirmNewPassword
                 });
+                if (!passwordResult) return;
                 passwordUpdated = true;
             }
 

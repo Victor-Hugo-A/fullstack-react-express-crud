@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentos | Portal institucional SENAPPEN</title>
+    <title>Documentos | SENAPPEN</title>
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos-home.css">
+    <link rel="stylesheet" href="/FrontEnd/notice.css">
     <link rel="icon" href="data:,">
 </head>
 <body>
@@ -12,8 +13,8 @@
 
     <aside id="sidebar" class="sidebar" aria-label="Navegação do portal">
         <a class="sidebar-brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Voltar ao início do portal">
-            <img src="/FrontEnd/img/logo_dipen.png" alt="">
-            <span>SENAPPEN <small>Portal institucional</small></span>
+            <img src="/FrontEnd/img/MJ.png" alt="Brasão da República">
+            <span>SENAPPEN <small>Sistema de gestão</small></span>
         </a>
         <nav class="sidebar-nav" aria-label="Áreas do portal">
             <span class="nav-label">ÁREA DE TRABALHO</span>
@@ -34,11 +35,11 @@
         <header class="page-header">
             <button id="menuToggle" class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Abrir menu">☰</button>
             <div class="header-title">
-                <span class="eyebrow">PORTAL INSTITUCIONAL</span>
+                <span class="eyebrow">SISTEMA DE GESTÃO</span>
                 <span>Documentos</span>
             </div>
             <div class="header-actions">
-                <span class="username">Olá, <strong id="username-display">Usuário</strong></span>
+                <span class="username">Usuário: <strong id="username-display">Usuário</strong></span>
                 <a class="home-link" href="/FrontEnd/Sistema/sistema.html">Início <span aria-hidden="true">↗</span></a>
             </div>
         </header>
@@ -47,10 +48,10 @@
             <section class="welcome-panel" aria-labelledby="welcome-title">
                 <div>
                     <span class="eyebrow">ÁREA DE DOCUMENTOS</span>
-                    <h1 id="welcome-title">Tudo organizado em um só lugar.</h1>
-                    <p>Escolha o tipo de registro que deseja consultar ou acompanhar.</p>
+                    <h1 id="welcome-title">Gestão e consulta de documentos</h1>
+                    <p>Acesse os registros de contratos, projetos e identidades da unidade.</p>
                 </div>
-                <img src="/FrontEnd/img/logo_dipen.png" alt="" aria-hidden="true">
+                <img src="/FrontEnd/img/MJ.png" alt="" aria-hidden="true">
             </section>
 
             <section class="documents-section" aria-labelledby="documents-title">
@@ -59,7 +60,7 @@
                         <span class="eyebrow">NAVEGAÇÃO</span>
                         <h2 id="documents-title">Acessar documentos</h2>
                     </div>
-                    <p>Selecione uma área para continuar.</p>
+                    <p>Selecione a categoria de documentos que deseja consultar ou cadastrar.</p>
                 </div>
 
                 <div class="documents-grid">
@@ -91,10 +92,11 @@
             </section>
         </main>
 
-        <footer class="page-footer">SENAPPEN · Portal institucional</footer>
+        <footer class="page-footer">Ministério da Justiça e Segurança Pública · SENAPPEN</footer>
     </div>
 
     <script src="/FrontEnd/api.js"></script>
+    <script src="/FrontEnd/notice.js"></script>
     <script src="/FrontEnd/Documentos/documentos-home.js"></script>
 </body>
 </html>

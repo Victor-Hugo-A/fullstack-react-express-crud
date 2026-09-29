@@ -23,11 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     sessionStorage.removeItem('auth-notice');
     if (authNotice === 'login') {
         const feedback = document.getElementById('session-feedback');
-        if (feedback) {
-            feedback.textContent = 'Login realizado com sucesso.';
-            feedback.hidden = false;
-            setTimeout(() => { feedback.hidden = true; }, 6000);
-        }
+        window.appNotice.show(feedback, 'Acesso realizado com sucesso.', 'success');
     }
 
     const usernameDisplay = document.getElementById('username-display');

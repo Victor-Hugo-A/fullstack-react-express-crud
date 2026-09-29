@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Início | Portal institucional SENAPPEN</title>
+    <title>Início | Sistema de Gestão SENAPPEN</title>
     <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
+    <link rel="stylesheet" href="/FrontEnd/notice.css">
     <link rel="icon" href="data:,">
 </head>
 <body id="inicio">
@@ -12,19 +13,18 @@
 
     <div class="top-bar">
         <div class="page-container">
-            <span>Portal institucional SENAPPEN</span>
+            <span>Ministério da Justiça e Segurança Pública · SENAPPEN</span>
             <time id="current-date"></time>
         </div>
     </div>
 
     <header class="main-header">
         <div class="page-container header-content">
-            <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Portal institucional SENAPPEN, início">
-                <img src="/FrontEnd/img/senappenLogo.png" alt="SENAPPEN">
-                <span>Portal institucional</span>
+            <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema">
+                <img src="/FrontEnd/img/MJ.png" alt="Brasão da República">
             </a>
             <div class="user-menu">
-                <span class="user-info">Olá, <strong id="username-display">Usuário</strong></span>
+                <span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span>
                 <button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button>
             </div>
         </div>
@@ -33,9 +33,10 @@
     <nav class="main-nav" aria-label="Navegação principal">
         <div class="page-container nav-links">
             <a href="/FrontEnd/Sistema/sistema.html" aria-current="page">Início</a>
-            <a href="#acesso-rapido">Ferramentas</a>
-            <a href="#sobre">Sobre</a>
-            <a href="#contatos">Contatos</a>
+            <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
+            <a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a>
+            <a href="/FrontEnd/Análises/analises.html">Análises</a>
+            <a href="/FrontEnd/Perfil/perfil.html">Perfil</a>
         </div>
     </nav>
 
@@ -43,47 +44,46 @@
         <p id="session-feedback" class="session-feedback" role="status" aria-live="polite" hidden></p>
         <section class="welcome-card" aria-labelledby="welcome-title">
             <div class="welcome-copy">
-                <span class="eyebrow">ÁREA DE TRABALHO</span>
-                <h1 id="welcome-title">Bem-vindo ao portal</h1>
-                <p>Encontre documentos, acompanhe projetos e consulte informações em um único espaço.</p>
-                <a class="hero-link" href="#acesso-rapido">Explorar ferramentas <span aria-hidden="true">↓</span></a>
+                <span class="eyebrow">SISTEMA DE GESTÃO</span>
+                <h1 id="welcome-title">Acesso aos serviços internos</h1>
+                <p>Consulte registros, acompanhe indicadores e acesse as áreas de trabalho da Secretaria Nacional de Políticas Penais.</p>
+                <a class="hero-link" href="#acesso-rapido">Acessar módulos <span aria-hidden="true">↓</span></a>
             </div>
-            <img class="welcome-seal" src="/FrontEnd/img/logo_dipen.png" alt="" aria-hidden="true">
         </section>
 
         <section id="acesso-rapido" class="tools-section" aria-labelledby="tools-title">
             <div class="section-heading">
                 <div>
-                    <span class="eyebrow">NAVEGAÇÃO</span>
-                    <h2 id="tools-title">Acesso rápido</h2>
+                    <span class="eyebrow">ÁREAS DO SISTEMA</span>
+                    <h2 id="tools-title">Módulos disponíveis</h2>
                 </div>
-                <p>Escolha uma área para continuar.</p>
+                <p>Selecione o módulo necessário para continuar suas atividades.</p>
             </div>
 
             <div class="quick-access">
                 <a class="portal-card" href="/FrontEnd/Documentos/documentos.html">
                     <span class="card-icon"><img src="/FrontEnd/img/documento.png" alt=""></span>
                     <span class="card-title">Documentos</span>
-                    <span class="card-text">Consulte contratos, projetos e identidades.</span>
-                    <span class="card-action">Abrir área <span aria-hidden="true">↗</span></span>
+                    <span class="card-text">Cadastre e consulte contratos, projetos e identidades.</span>
+                    <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
                 </a>
                 <a class="portal-card" href="/FrontEnd/Dashboard/dashboard.html">
                     <span class="card-icon"><img src="/FrontEnd/img/relatorio.png" alt=""></span>
                     <span class="card-title">Dashboard</span>
-                    <span class="card-text">Acompanhe indicadores e resumos.</span>
-                    <span class="card-action">Abrir área <span aria-hidden="true">↗</span></span>
+                    <span class="card-text">Visualize os indicadores consolidados dos registros.</span>
+                    <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
                 </a>
                 <a class="portal-card" href="/FrontEnd/Análises/analises.html">
                     <span class="card-icon"><img src="/FrontEnd/img/analise-de-dados.png" alt=""></span>
                     <span class="card-title">Análises</span>
-                    <span class="card-text">Explore as informações disponíveis.</span>
-                    <span class="card-action">Abrir área <span aria-hidden="true">↗</span></span>
+                    <span class="card-text">Consulte dados por categoria e registros recentes.</span>
+                    <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
                 </a>
                 <a class="portal-card" href="/FrontEnd/Perfil/perfil.html">
                     <span class="card-icon"><img src="/FrontEnd/img/profile.png" alt=""></span>
                     <span class="card-title">Perfil</span>
-                    <span class="card-text">Atualize seus dados e sua senha.</span>
-                    <span class="card-action">Abrir área <span aria-hidden="true">↗</span></span>
+                    <span class="card-text">Consulte e atualize seus dados cadastrais.</span>
+                    <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
                 </a>
             </div>
         </section>
@@ -92,8 +92,8 @@
     <footer class="footer">
         <div class="page-container footer-grid">
             <div id="sobre">
-                <h2>Sobre o portal</h2>
-                <p>Um espaço de acesso às ferramentas de trabalho da SENAPPEN.</p>
+                <h2>Sobre o sistema</h2>
+                <p>Ambiente interno para consulta e gestão de informações da SENAPPEN.</p>
             </div>
             <div>
                 <h2>Links institucionais</h2>
@@ -107,10 +107,11 @@
                 <a href="https://www.gov.br/senappen/pt-br/acesso-a-informacao/participacao-social/ouvidoria" target="_blank" rel="noopener noreferrer">Ouvidoria</a>
             </div>
         </div>
-        <div class="page-container footer-bottom">SENAPPEN · Portal institucional</div>
+        <div class="page-container footer-bottom">Ministério da Justiça e Segurança Pública · SENAPPEN</div>
     </footer>
 
     <a class="back-to-top" href="#inicio" aria-label="Voltar ao início">↑</a>
+    <script src="/FrontEnd/notice.js"></script>
     <script src="/FrontEnd/Sistema/sistema.js"></script>
 </body>
 </html>

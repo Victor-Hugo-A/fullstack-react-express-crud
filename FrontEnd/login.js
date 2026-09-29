@@ -1,18 +1,9 @@
 // URL base da API
 const API_BASE_URL = 'http://localhost:3000';
 
-let mensagemTimer;
 function mostrarMensagem(mensagem, tipo) {
     const elemento = document.getElementById('mensagem-login');
-    if (!elemento) return;
-    clearTimeout(mensagemTimer);
-    elemento.textContent = mensagem;
-    elemento.hidden = !mensagem;
-    elemento.className = `form-message ${tipo}`;
-    elemento.setAttribute('role', tipo === 'error' ? 'alert' : 'status');
-    if (mensagem && tipo === 'success') {
-        mensagemTimer = setTimeout(() => { elemento.hidden = true; }, 6000);
-    }
+    window.appNotice.show(elemento, mensagem, tipo);
 }
 
 function exibirMensagemSucesso(mensagem) { mostrarMensagem(mensagem, 'success'); }

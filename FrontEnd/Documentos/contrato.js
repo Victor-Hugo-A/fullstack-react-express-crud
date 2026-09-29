@@ -316,6 +316,7 @@ async function loadContracts(filters = {}) {
     } catch (error) {
         console.error('Erro ao carregar contratos:', error);
         const message = window.documentFeedback.errorMessage(error, 'Não foi possível carregar os contratos.');
+        showErrorMessage(message);
         elements.documentsContainer.innerHTML = `
             <div class="alert alert-danger">
                 ${escapeHTML(message)}

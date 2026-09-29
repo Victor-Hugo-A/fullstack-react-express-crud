@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Open+Sans:wght@400;600&display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
+    <link rel="stylesheet" href="/FrontEnd/Documentos/documentos-internal.css">
+    <link rel="stylesheet" href="/FrontEnd/notice.css">
     <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
+    <script src="/FrontEnd/notice.js"></script>
     <script src="/FrontEnd/Documentos/feedback.js"></script>
     <script src="identidades.js"></script>
 
@@ -89,7 +92,7 @@
         <!-- Conteúdo Principal -->
     <main class="main-content">
         <header class="main-header">
-                <h1 class="page-title">Documentos de Identidades</h1>
+                <h1 class="page-title">Identidades</h1>
             <div class="user-actions">
                 <span class="username" id="username-display">Usuário</span>
                     <a href="/FrontEnd/Sistema/sistema.html" class="home-btn">
@@ -101,7 +104,7 @@
     <!-- Formulário de cadastro de identidade -->
     <section class="identity-form-section">
         <form id="identity-form" enctype="multipart/form-data" class="card p-3 mb-4">
-            <h2 class="mb-3">Nova Identidade</h2>
+            <h2 class="mb-3">Cadastrar identidade</h2>
             <div class="mb-3">
                 <label for="nome" class="form-label">Nome Completo:</label>
                 <input type="text" class="form-control" id="nome" name="nome" required placeholder="Nome Completo">
@@ -140,7 +143,7 @@
     <section class="identity-list-section">
         <h2 class="section-title"> 
         <i class="fas fa-id-card icon"></i>
-            Identidades Cadastradas 
+            Identidades cadastradas
         </h2>
         
         <div class="table-responsive">

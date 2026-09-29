@@ -31,8 +31,7 @@ img { max-width: 100%; }
 .main-header { background: var(--surface); border-bottom: 1px solid var(--line); }
 .header-content { min-height: 92px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { display: inline-flex; align-items: center; gap: 16px; color: var(--navy); text-decoration: none; font-weight: 750; }
-.brand img { width: 138px; height: 76px; object-fit: contain; }
-.brand span { max-width: 120px; padding-left: 16px; border-left: 1px solid var(--line); line-height: 1.22; }
+.brand img { width: 62px; height: 62px; object-fit: contain; }
 .user-menu { display: flex; align-items: center; gap: 18px; }
 .user-info { color: var(--muted); font-size: 0.9rem; }
 .user-info strong { color: var(--navy); }
@@ -142,8 +141,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid #f1a53b; outline-offs
     .top-bar { font-size: 0.7rem; }
     .header-content { min-height: 76px; gap: 8px; }
     .brand { gap: 7px; }
-    .brand img { width: 86px; height: 58px; }
-    .brand span { max-width: 82px; padding-left: 8px; font-size: 0.72rem; }
+    .brand img { width: 52px; height: 52px; }
     .user-menu { gap: 8px; }
     .user-info { max-width: 86px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.76rem; }
     .logout-btn { min-height: 36px; padding: 6px 9px; font-size: 0.8rem; }

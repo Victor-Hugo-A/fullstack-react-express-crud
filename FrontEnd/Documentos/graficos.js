@@ -78,7 +78,7 @@
         });
         status.hidden = false;
         status.textContent = 'Carregando dados...';
-        error.hidden = true;
+        window.appNotice.hide(error);
         empty.hidden = true;
         chartContainer.hidden = true;
         downloadButton.disabled = true;
@@ -109,21 +109,18 @@
 
         if (failed === categories.length) {
             status.hidden = true;
-            error.textContent = 'Não foi possível carregar os indicadores. Confira se o backend está em execução e tente novamente.';
-            error.hidden = false;
+            window.appNotice.show(error, 'Não foi possível carregar os indicadores. Verifique a conexão e tente novamente.', 'warning');
             return;
         }
 
         status.textContent = `${year} · ${formatNumber.format(total)} registro${total === 1 ? '' : 's'} ${failed ? 'disponíveis' : 'no total'}`;
         if (failed) {
-            error.textContent = 'Parte dos dados está indisponível. Os valores exibidos não representam o total completo.';
-            error.hidden = false;
+            window.appNotice.show(error, 'Parte dos dados está indisponível. Os valores exibidos não representam o total completo.', 'warning');
         }
         empty.hidden = failed > 0 || total !== 0;
 
         if (typeof window.Chart !== 'function') {
-            error.textContent = 'Os indicadores foram carregados, mas a biblioteca de gráficos não está disponível nesta conexão.';
-            error.hidden = false;
+            window.appNotice.show(error, 'Os indicadores foram carregados, mas o gráfico está indisponível nesta conexão.', 'warning');
             return;
         }
 
@@ -172,8 +169,7 @@
             link.download = `documentos-${yearSelect.value}.png`;
             link.click();
         } catch {
-            error.textContent = 'Não foi possível baixar o gráfico. Tente novamente.';
-            error.hidden = false;
+            window.appNotice.show(error, 'Não foi possível baixar o gráfico. Tente novamente.', 'error');
         }
     }
 

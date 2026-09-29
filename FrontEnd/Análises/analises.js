@@ -1,331 +1,133 @@
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!localStorage.getItem('token')) return;
+    const number = new Intl.NumberFormat('pt-BR');
+    const palette = { fornecimento: '#20795e', servicos: '#3867aa', aditivo: '#d17a25', convenio: '#7460a9', outro: '#667d91', concluido: '#20795e', andamento: '#3867aa', planejamento: '#d17a25', suspenso: '#b54e5d', administrador: '#3867aa', 'usuário': '#20795e', visitante: '#d17a25' };
+    const statusNames = { concluido: 'Concluído', andamento: 'Em andamento', planejamento: 'Planejamento', suspenso: 'Suspenso' };
+    let identityChart = null;
+    let failed = false;
 
-document.addEventListener('DOMContentLoaded', () => {
-const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-}[char]));
-
-async function safeGet(path, fallback) {
-    try {
-        return await apiGet(path);
-    } catch (error) {
-        console.error('Erro ao carregar indicador:', error);
-        document.getElementById('analises-error').hidden = false;
-        return fallback;
+    async function get(path, fallback) {
+        try { return await window.apiGet(path); }
+        catch (error) {
+            console.error(`Falha ao consultar ${path}:`, error);
+            failed = true;
+            return fallback;
+        }
     }
-}
 
-async function fetchResumo() {
-    // Busca contadores
-    const[contratos, projetos, identidades] = await Promise.all([
-        safeGet('/api/contracts/count', { count: '—' }),
-        safeGet('/api/projects/count', { count: '—' }),
-        safeGet('/api/identities/count', { count: '—' }),
-    ]);  
-    document.getElementById('contratos-ativos').textContent = contratos.count ?? '—';
-    document.getElementById('projetos-andamento').textContent = projetos.count ?? '—';
-    document.getElementById('identidades-cadastradas').textContent = identidades.count ?? '—';
-}
+    function formatDate(value) {
+        const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : '—';
+    }
 
-function getStatusSelecionados() {
-    return Array.from(document.querySelectorAll('#status-filtros input[type="checkbox"]:checked'))
-        .map(cb => cb.value);
-}
+    function showChartMessage(canvas, message) {
+        canvas.hidden = true;
+        canvas.parentElement.querySelector('.analysis-empty')?.remove();
+        const text = document.createElement('p');
+        text.className = 'analysis-empty';
+        text.textContent = message;
+        canvas.parentElement.append(text);
+    }
 
-function getPerfisSelecionados() {
-    return Array.from(document.querySelectorAll('#perfil-filtros input[type="checkbox"]:checked'))
-        .map(cb => cb.value.toLowerCase());
-}
-
-let contratosChart = null;
-let projetosChart = null;
-let identidadesChart = null;
-
-async function fetchGraficos() {
-    // Contratos por Tipo (Pie)
-    if (contratosChart) contratosChart.destroy();
-    const contratoColors = {
-        fornecimento: '#4caf50',
-        servicos: '#2196f3',
-        aditivo: '#ff9800',
-        convenio: '#9c27b0',
-        outro: '#607d8b'
-    };
-    const contratosTipo = await safeGet('/api/contracts/groupby/type', []);
-    contratosChart = new Chart(document.getElementById('contratosStatusChart'), {
-        type: 'pie',
-        data: {
-            labels: contratosTipo.map(c => (c.tipo ? c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1) : '-')),
-            datasets: [{
-                data: contratosTipo.map(c => c.count),
-                backgroundColor: contratosTipo.map(c => contratoColors[c.tipo?.toLowerCase()] || '#888'),
-                borderColor: '#fff',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                datalabels: {
-                    anchor: 'center',
-                    align: 'center',
-                    offset: 12,
-                    padding: { top: 10, bottom: 0 },
-                    font: { weight: 'bold', size: 14 },
-                    color: '#fff'
+    function renderChart(canvasId, rows, field, type, options = {}) {
+        const canvas = document.getElementById(canvasId);
+        if (!Array.isArray(rows)) {
+            failed = true;
+            showChartMessage(canvas, 'Indicador temporariamente indisponível.');
+            return;
+        }
+        if (rows.length === 0) {
+            showChartMessage(canvas, 'Não há registros para esta visualização.');
+            return;
+        }
+        if (typeof window.Chart !== 'function') {
+            failed = true;
+            showChartMessage(canvas, 'Gráfico temporariamente indisponível.');
+            return;
+        }
+        canvas.parentElement.querySelector('.analysis-empty')?.remove();
+        canvas.hidden = false;
+        const labels = rows.map(row => String(row[field] || 'Não informado').replace(/^./, char => char.toUpperCase()));
+        const values = rows.map(row => Number(row.count) || 0);
+        const colors = rows.map(row => palette[String(row[field] || '').toLowerCase()] || '#667d91');
+        return new window.Chart(canvas, {
+            type,
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: type === 'bar' ? 7 : 0, maxBarThickness: 60 }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                indexAxis: options.horizontal ? 'y' : 'x',
+                plugins: {
+                    legend: { display: type !== 'bar', position: 'bottom', labels: { color: '#33465f', padding: 14 } },
+                    tooltip: { callbacks: { label: context => `${context.label}: ${number.format(context.parsed?.x ?? context.parsed?.y ?? context.parsed ?? 0)}` } }
                 },
-                title: {
-                    display: true,
-                    text: 'Contratos por Tipo',
-                    font: { size: 18 },
-                    padding: { top: 0, bottom: 23 }
-                },
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        font: { size: 14 },
-                        padding: 20
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(ctx) {
-                            const valor = ctx.parsed;
-                            const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            const porcentagem = total ? ((valor / total) * 100).toFixed(1) : 0;
-                            return `${ctx.label}: ${valor} (${porcentagem}%)`;
-                        }
-                    }
-                }
-            },
-            animation: { animateRotate: true, animateScale: true }
-        },
-        plugins: [ChartDataLabels]
-    });
+                scales: type === 'bar' ? {
+                    x: { beginAtZero: true, ticks: { precision: 0, color: '#64758a' }, grid: { color: '#e8edf3' } },
+                    y: { ticks: { color: '#33465f' }, grid: { display: false } }
+                } : {}
+            }
+        });
+    }
 
-    // Projetos por Status (Bar)
-    if (projetosChart) projetosChart.destroy();
-    const statusColors = {
-        andamento: '#0288d1',    // azul
-        concluido: '#2e7d32',    // verde
-        planejamento: '#ed6c02', // laranja
-        suspenso: '#d32f2f'      // vermelho
-    };
-    const projetosStatus = await safeGet('/api/projects/groupby/status', []);
-    const labelsProjetos = projetosStatus.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1));
-    const dataProjetos = projetosStatus.map(p => p.count);
-    const backgroundColors = projetosStatus.map(p => statusColors[p.status?.toLowerCase()] || '#888');
-    projetosChart = new Chart(document.getElementById('projetosStatusChart'), {
-        type: 'bar',
-        data: {
-            labels: labelsProjetos,
-            datasets: [{
-                label: 'Projetos',
-                data: dataProjetos,
-                backgroundColor: backgroundColors,
-                borderRadius: 8,
-                maxBarThickness: 40
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                datalabels: {
-                    anchor: 'center',
-                    align: 'center',
-                    offset: 12,
-                    padding: { top: 10, bottom: 0 },
-                    font: { weight: 'bold', size: 14 },
-                    color: '#333'
-                },
-                title: {
-                    display: true,
-                    text: 'Projetos por Status',
-                    font: { size: 18 },
-                    padding: { top: 0, bottom: 26 }
-                },
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `Projetos: ${ctx.raw}`
-                    }
-                }
-            },
-            scales: {
-                x: { ticks: { font: { size: 14 } } },
-                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 14 } } }
-            },
-            animation: { duration: 1000, easing: 'easeOutBounce' }
-        },
-        plugins: [ChartDataLabels]
-    });
+    function renderTable(tbodyId, records, columns, dateField, unavailable = false) {
+        const tbody = document.getElementById(tbodyId);
+        tbody.replaceChildren();
+        if (!Array.isArray(records) || records.length === 0) {
+            const row = tbody.insertRow();
+            const cell = row.insertCell();
+            cell.colSpan = columns.length;
+            cell.className = 'empty-row';
+            cell.textContent = unavailable ? 'Dados temporariamente indisponíveis.' : 'Nenhum registro encontrado.';
+            return;
+        }
+        [...records].sort((a, b) => String(b[dateField] || '').localeCompare(String(a[dateField] || ''))).slice(0, 10).forEach(record => {
+            const row = tbody.insertRow();
+            columns.forEach(column => {
+                const cell = row.insertCell();
+                cell.textContent = column(record);
+            });
+        });
+    }
 
-    // Identidades por Perfil (Bar) - cada perfil é uma barra
-    if (identidadesChart) identidadesChart.destroy();
-    const perfilColors = { 
-        administrador: '#2196f3', // azul escuro
-        usuário: '#43a047',       // verde forte
-        visitante: '#fbc02d'      // laranja forte
-    };
-
-    const identidadesPerfil = await safeGet('/api/identities/groupby/perfil', []);
-    const perfisSelecionados = getPerfisSelecionados();
-
-    // Filtra os perfis selecionados
-    const labelsI = perfisSelecionados.map(perfil => perfil.charAt(0).toUpperCase() + perfil.slice(1));
-    const dataI = perfisSelecionados.map(perfil => {
-        const dadosPerfil = identidadesPerfil.find(i => i.perfil.toLowerCase() === perfil);
-        return dadosPerfil ? dadosPerfil.count : 0;
-    });
-    const backgroundColorsI = perfisSelecionados.map(perfil => perfilColors[perfil] || '#888');
-
-    identidadesChart = new Chart(document.getElementById('identidadesChart'), {
-        type: 'bar',
-        data: {
-            labels: labelsI,
-            datasets: [{
-                label: 'Identidades',
-                data: dataI,
-                backgroundColor: backgroundColorsI,
-                borderColor: backgroundColorsI,
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                datalabels: {
-                    anchor: 'end',
-                    align: 'top',
-                    font: { weight: 'bold', size: 14 },
-                    color: ctx => ctx.dataset.backgroundColor
-                },
-                title: {
-                    display: true,
-                    text: 'Identidades por Perfil',
-                    font: { size: 18 },
-                    padding: { top: 0, bottom: 26 }
-                },
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.label}: ${ctx.raw}`
-                    }
-                }
-            },
-            scales: {
-                x: { ticks: { font: { size: 14 } } },
-                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 14 } } }
-            },
-            animation: { duration: 1200, easing: 'easeInOutQuart' }
-        },
-        plugins: [ChartDataLabels]
-    });
-}
-
-// Atualiza o gráfico ao mudar os checkboxes
-document.getElementById('perfil-filtros').addEventListener('change', fetchGraficos);
-
-async function fetchAnalisesRecentes() {
-    // Busca últimas análises ( contratos, projetos, identidades )
-    const[contratos, projetos, identidades] = await Promise.all([
-        safeGet('/api/contracts', []),
-        safeGet('/api/projects', []),
-        safeGet('/api/identities', []),
+    const [contractsCount, projectsCount, identitiesCount, contractGroups, projectGroups, identityGroups, contracts, projects, identities] = await Promise.all([
+        get('/api/contracts/count', null),
+        get('/api/projects/count', null),
+        get('/api/identities/count', null),
+        get('/api/contracts/groupby/type', null),
+        get('/api/projects/groupby/status', null),
+        get('/api/identities/groupby/perfil', null),
+        get('/api/contracts', null),
+        get('/api/projects', null),
+        get('/api/identities', null)
     ]);
 
+    [['contratos-ativos', contractsCount], ['projetos-andamento', projectsCount], ['identidades-cadastradas', identitiesCount]].forEach(([id, data]) => {
+        const count = data?.count;
+        document.getElementById(id).textContent = Number.isSafeInteger(count) && count >= 0 ? number.format(count) : '—';
+    });
 
-    // CONTRATOS
-    const contratosArr = Array.isArray(contratos) ? contratos : [];
-    document.getElementById('contratos-recentes').innerHTML = contratosArr
-    .sort((a, b) => new Date(b.updated_at || b.created_at || b.date) - new Date(a.updated_at || a.created_at || a.date))
-    .slice(0, 10)
-    .map(c => {
-        const data =c.updated_at || c.created_at || c.data || c.date || null;
-    return `
-        <tr>
-            <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
-            <td>${escapeHTML(c.number || '-')}</td>
-            <td><span class="badge ${c.type === 'aditivo'? 'aditivo' : c.type === 'convenio'? 'convenio' : c.type === 'fornecimento'? 'fornecimento' : ''}">
-            ${escapeHTML(c.type || '-')}</span></td>
-            <td>${escapeHTML(c.description || '-')}</td>
-        </tr>
-    `}).join('');
+    renderChart('contratosStatusChart', contractGroups, 'tipo', 'doughnut');
+    renderChart('projetosStatusChart', projectGroups, 'status', 'bar', { horizontal: true });
 
-
-    // PROJETOS
-    const projetosArr = Array.isArray(projetos.projects) ? projetos.projects : [];
-    document.getElementById('projetos-recentes').innerHTML = projetosArr
-    .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
-    .slice(0, 10)
-    .map(p =>  {
-        const data = p.updated_at || p.created_at || p.data || p.date || null;
-    return `
-        <tr>
-            <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
-            <td>${escapeHTML(p.name || '-')}</td>
-            <td>${escapeHTML(p.code || '-')}</td>
-            <td><span class="badge ${p.status === 'planejamento'?'plan': p.status === 'andamento'?'and': p.status === 'suspenso'?'susp' : p.status === 'concluido'?'conc': 
-            ''}">${escapeHTML(p.status || '-')}</span></td>
-            <td>${escapeHTML(p.manager || '-')}</td>
-        </tr>
-    `}).join('');
-
-    // IDENTIDADES
-    const identidadesArr = Array.isArray(identidades) ? identidades : [];
-    document.getElementById('identidades-recentes').innerHTML = identidadesArr
-    .sort((a, b) => new Date(b.updated_at || b.created_at || b.data) - new Date(a.updated_at || a.created_at || a.data))
-    .slice(0, 10)
-    .map(i =>  {
-        const data = i.updated_at || i.created_at || i.data || i.date || null;
-    return `
-        <tr>
-            <td>${data ? new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC'}) : '-'}</td>
-            <td>${escapeHTML(i.cpf || '-')}</td>
-            <td>${escapeHTML(i.nome || '-')}</td>
-            <td><span class="badge ${i.perfil === 'Administrador'?'admin' : i.perfil === 'Usuário'?'user' : i.perfil === 'Visitante'?'vis' : ''}">${escapeHTML(i.perfil || '-')}</span></td>
-        </tr>
-    `}).join('');
-}
-
-
-// FUNÇÃO PARA MOSTRAR NOME DE USUÁRIO
-async function displayUsername() {
-    const usernameElement = document.getElementById('username-display');
-    try {
-        const data = await apiGet('/api/user');
-        usernameElement.textContent = data.user?.nome || data.user?.username || 'Usuário';
-    } catch {
-        usernameElement.textContent = 'Usuário';
+    const filters = document.getElementById('perfil-filtros');
+    function updateIdentityChart() {
+        if (identityChart) identityChart.destroy();
+        const selected = new Set([...filters.querySelectorAll('input:checked')].map(input => input.value.toLowerCase()));
+        if (selected.size === 0) {
+            showChartMessage(document.getElementById('identidadesChart'), 'Selecione ao menos um perfil.');
+            return;
+        }
+        const rows = Array.isArray(identityGroups) ? identityGroups.filter(row => selected.has(String(row.perfil || '').toLowerCase())) : null;
+        identityChart = renderChart('identidadesChart', rows, 'perfil', 'bar');
     }
-}
+    filters.addEventListener('change', updateIdentityChart);
+    updateIdentityChart();
 
-    fetchResumo();
-    fetchGraficos();
-    fetchAnalisesRecentes();
-    displayUsername();
+    const projectRows = Array.isArray(projects?.projects) ? projects.projects : null;
+    renderTable('contratos-recentes', contracts, [record => formatDate(record.date), record => String(record.number || '—'), record => String(record.type || '—'), record => String(record.description || '—')], 'date', contracts === null);
+    renderTable('projetos-recentes', projectRows, [record => formatDate(record.start_date), record => String(record.name || '—'), record => String(record.code || '—'), record => statusNames[record.status] || String(record.status || '—'), record => String(record.manager || '—')], 'start_date', projectRows === null);
+    renderTable('identidades-recentes', identities, [record => formatDate(record.created_at), record => String(record.cpf || '—'), record => String(record.nome || '—'), record => String(record.perfil || '—')], 'created_at', identities === null);
 
-    // Menu expansível para Documentos
-    const documentosToggle = document.getElementById('documentosToggle');
-    const submenuDocumentos = document.getElementById('submenuDocumentos');
-    if (documentosToggle && submenuDocumentos) {
-        documentosToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            submenuDocumentos.style.display = submenuDocumentos.style.display === 'none' ? 'block' : 'none';
-            documentosToggle.querySelector('.submenu-arrow').classList.toggle('rotated');
-        });
-    }
-
-    // Sidebar toggle
-    const menuToggle = document.getElementById("menuToggle");
-    const sidebar = document.getElementById("sidebar");
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener("click", () => {
-            sidebar.classList.toggle("closed");
-            menuToggle.textContent = sidebar.classList.contains("closed") ? "☰" : "✕";
-        });
-    }
+    if (failed) window.appNotice.show(document.getElementById('analises-error'), 'Parte dos dados está indisponível. Confira a conexão e tente novamente.', 'warning');
 });
-

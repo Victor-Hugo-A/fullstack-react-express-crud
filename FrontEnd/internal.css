@@ -1,0 +1,152 @@
+.internal-page .main-content {
+    width: min(1160px, calc(100% - 48px));
+    margin-inline: auto;
+    padding-block: 32px 72px;
+}
+
+.module-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+    padding: 28px 32px;
+    border: 1px solid #dce6ee;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(12, 45, 79, 0.045);
+}
+
+.module-heading h1 {
+    margin: 5px 0 8px;
+    color: #0b2545;
+    font-size: clamp(1.65rem, 3vw, 2.25rem);
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+}
+
+.module-heading p {
+    max-width: 700px;
+    margin: 0;
+    color: #52657b;
+}
+
+.module-heading .eyebrow {
+    display: block;
+}
+
+.module-link {
+    min-height: 42px;
+    padding: 8px 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    gap: 10px;
+    border: 1px solid #b8ccdc;
+    border-radius: 9px;
+    color: #0b2545;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.module-link:hover {
+    border-color: #145da0;
+    background: #edf5fb;
+}
+
+.module-section {
+    margin-top: 28px;
+}
+
+.module-section__heading {
+    margin-bottom: 16px;
+}
+
+.module-section__heading h2 {
+    margin: 0 0 4px;
+    color: #0b2545;
+    font-size: 1.28rem;
+    font-weight: 750;
+}
+
+.module-section__heading p {
+    margin: 0;
+    color: #52657b;
+    font-size: 0.9rem;
+}
+
+.module-card {
+    min-width: 0;
+    padding: clamp(18px, 2.2vw, 26px);
+    border: 1px solid #dce6ee;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(12, 45, 79, 0.045);
+}
+
+.module-card h2,
+.module-card h3 {
+    margin: 0 0 8px;
+    color: #173d58;
+    font-size: 1.08rem;
+    font-weight: 750;
+}
+
+.module-card__description {
+    margin: 0 0 20px;
+    color: #52657b;
+    font-size: 0.88rem;
+}
+
+.module-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.module-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #263b52;
+    font-size: 0.88rem;
+}
+
+.module-table th,
+.module-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #e5ecf2;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.module-table th {
+    background: #eef4f9;
+    color: #173d58;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.module-table tbody tr:last-child td { border-bottom: 0; }
+.module-table tbody tr:nth-child(even) { background: #f8fafc; }
+
+.internal-page .footer {
+    margin-top: auto;
+}
+
+.internal-page .footer-bottom {
+    border-top: 0;
+}
+
+@media (max-width: 700px) {
+    .internal-page .main-content {
+        width: min(100% - 32px, 1160px);
+        padding-block: 20px 48px;
+    }
+    .module-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 16px;
+        padding: 22px;
+    }
+}

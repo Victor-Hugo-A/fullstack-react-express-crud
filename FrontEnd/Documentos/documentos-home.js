@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const resources = ['contracts', 'projects', 'identities'];
+    let unavailableCounts = 0;
     await Promise.allSettled(resources.map(async resource => {
         const badge = document.querySelector(`[data-count-for="${resource}"]`);
         try {
@@ -49,7 +50,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             badge.textContent = `${new Intl.NumberFormat('pt-BR').format(count)} ${count === 1 ? 'registro' : 'registros'}`;
         } catch (error) {
             badge.textContent = 'Contagem indisponível';
+            unavailableCounts += 1;
             console.error(`Não foi possível contar ${resource}:`, error);
         }
     }));
+    if (unavailableCounts > 0 && localStorage.getItem('token')) {
+        const notice = document.createElement('p');
+        document.body.appendChild(notice);
+        window.appNotice.show(notice, 'Não foi possível atualizar todas as contagens de documentos.', 'warning');
+    }
 });

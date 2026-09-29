@@ -2,151 +2,62 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Perfil do Usuário</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap, FontAwesome, Google Fonts, seu CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dados cadastrais | SENAPPEN</title>
     <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
-    <link rel="stylesheet" href="perfil.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap">
-    <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
+    <link rel="stylesheet" href="/FrontEnd/internal.css">
+    <link rel="stylesheet" href="/FrontEnd/Perfil/perfil.css">
+    <link rel="stylesheet" href="/FrontEnd/notice.css">
+    <link rel="icon" href="data:,">
+    <script src="/FrontEnd/notice.js" defer></script>
+    <script src="/FrontEnd/Perfil/perfil.js" defer></script>
 </head>
-<body>
-    <!-- Barra superior (opcional, igual às outras páginas) -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <i class="fas fa-phone-alt me-2"></i> (61) 2025-0000 <strong>|</strong>
-                    <i class="fas fa-envelope ms-3 me-2"></i> contato@portal.gov.br <strong>|</strong>
-                    <i class="fas fa-calendar-alt me-2" style="margin-left: 2.5%;"></i><span id="current-date"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+<body class="internal-page profile-page">
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <div class="top-bar"><div class="page-container"><span>Ministério da Justiça e Segurança Pública · SENAPPEN</span><time id="current-date"></time></div></div>
+    <header class="main-header"><div class="page-container header-content">
+        <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></a>
+        <div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div>
+    </div></header>
+    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links">
+        <a href="/FrontEnd/Sistema/sistema.html">Início</a>
+        <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
+        <a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a>
+        <a href="/FrontEnd/Análises/analises.html">Análises</a>
+        <a href="/FrontEnd/Perfil/perfil.html" aria-current="page">Perfil</a>
+    </div></nav>
 
-    <!-- Cabeçalho principal -->
-    <header class="main-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="logo-container"></div>
-                </div>
-                <div class="col-md-6">
-                    <div class="user-menu">
-                        <div class="user-info">
-                            <i class="fas fa-user-circle me-2"></i>
-                            <span id="username-display">Usuário</span>
+    <main id="conteudo" class="main-content page-container">
+        <p id="mensagem-login" role="status" aria-live="polite" hidden></p>
+        <div class="module-heading"><div><span class="eyebrow">INFORMAÇÕES CADASTRAIS</span><h1>Meu perfil</h1><p>Consulte seus dados e atualize as informações permitidas para sua conta.</p></div></div>
+
+        <div class="profile-layout">
+            <section class="module-card profile-card" aria-labelledby="profile-form-title">
+                <h2 id="profile-form-title">Dados da conta</h2>
+                <p class="module-card__description">Confira os dados registrados e mantenha as informações funcionais atualizadas.</p>
+                <form id="perfil-form">
+                    <div class="profile-fields">
+                        <div class="profile-field"><label for="nome">Nome completo</label><input type="text" id="nome" name="nome" disabled></div>
+                        <div class="profile-field"><label for="email">E-mail</label><input type="email" id="email" name="email" disabled></div>
+                        <div class="profile-field"><label for="cpf">CPF</label><input type="text" id="cpf" name="cpf" disabled></div>
+                        <div class="profile-field"><label for="departamento">Departamento</label><input type="text" id="departamento" name="departamento" autocomplete="organization"></div>
+                        <div class="profile-field profile-field--wide"><label for="cargo">Cargo</label><input type="text" id="cargo" name="cargo" autocomplete="organization-title"></div>
+                    </div>
+
+                    <fieldset class="password-fields"><legend>Alteração de senha</legend><p>Preencha os três campos somente se desejar alterar a senha.</p>
+                        <div class="profile-fields">
+                            <div class="profile-field profile-field--wide"><label for="senha-atual">Senha atual</label><input type="password" id="senha-atual" autocomplete="current-password"></div>
+                            <div class="profile-field"><label for="senha">Nova senha</label><input type="password" id="senha" autocomplete="new-password" minlength="8"></div>
+                            <div class="profile-field"><label for="confirmar-senha">Confirmar nova senha</label><input type="password" id="confirmar-senha" autocomplete="new-password" minlength="8"></div>
                         </div>
-                        <button class="logout-btn" onclick="logout()">
-                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Navegação -->
-    <nav class="main-nav navbar navbar-expand-lg">
-        <div class="container">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <i class="fas fa-bars text-white"></i>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/FrontEnd/Sistema/sistema.html"><img class="perfil-img" src="/FrontEnd/img/botao-home.png" alt="HomeBack">Início</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/FrontEnd/Documentos/documentos.html"><img class="perfil-img" src="/FrontEnd/img/documento.png" alt="Documentos"> Documentos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/FrontEnd/Dashboard/dashboard.html"><img class="perfil-img" src="/FrontEnd/img/relatorio.png" alt="DashBoard-Geral"> Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/FrontEnd/Análises/analises.html"><img class="perfil-img" src="/FrontEnd/img/analise-de-dados.png" alt="Análises-Geral"> Análises</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/FrontEnd/Perfil/perfil.html"><img class="perfil-img" src="/FrontEnd/img/profile.png" alt="Perfil"> Perfil</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Conteúdo principal -->
-    <main class="main-content">
-        <div class="container">
-            <div class="row g-4 justify-content-center mt-4 align-items-start">
-                <div class="col-lg-8">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h3 class="mb-4"><i class="fas fa-user-edit me-2"></i>Meu Perfil</h3>
-                            <form id="perfil-form">
-                                <div id="mensagem-login" class="form-feedback" role="status" aria-live="polite" hidden></div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="nome" class="form-label">Nome Completo :</label>
-                                        <input type="text" class="form-control" id="nome" name="nome" disabled>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="email" class="form-label">E-mail :</label>
-                                        <input type="email" class="form-control" id="email" name="email" disabled>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="cpf" class="form-label">CPF :</label>
-                                        <input type="text" class="form-control" id="cpf" name="cpf" disabled>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="departamento" class="form-label">Departamento :</label>
-                                        <input type="text" class="form-control" id="departamento" name="departamento">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="cargo" class="form-label">Cargo :</label>
-                                    <input type="text" class="form-control" id="cargo" name="cargo">
-                                </div>
-                            <div class="mb-3">
-                                <label for="senha-atual" class="form-label">Senha Atual :</label>
-                                <input type="password" class="form-control" id="senha-atual" autocomplete="current-password">
-                            </div>
-                            <div class="mb-3">
-                                <label for="senha" class="form-label">Nova Senha :</label>
-                                <input type="password" class="form-control" id="senha" autocomplete="new-password" minlength="8">
-                            </div>
-                            <div class="mb-3">
-                                <label for="confirmar-senha" class="form-label">Confirmar Nova Senha :</label>
-                                <input type="password" class="form-control" id="confirmar-senha" autocomplete="new-password" minlength="8">
-                            </div>                                
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Salvar Alterações</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <aside class="col-lg-4">
-                    <div class="chart-info">
-                        <h5>Sobre seu perfil</h5>
-                        <p>Atualize o departamento e o cargo para manter seus dados em dia.</p>
-                        <p>Para trocar a senha, preencha os três campos de senha. Nome, e-mail e CPF são somente leitura nesta página.</p>
-                    </div>
-                </aside>
-            </div>
+                    </fieldset>
+                    <div class="profile-actions"><button type="submit">Salvar alterações</button></div>
+                </form>
+            </section>
+            <aside class="module-card profile-aside"><h2>Orientações</h2><p>Nome, e-mail e CPF são exibidos para conferência e não podem ser alterados nesta página.</p><p>Departamento e cargo podem ser atualizados. Para trocar a senha, informe a senha atual e confirme a nova senha.</p></aside>
         </div>
     </main>
 
-
-    <!-- Rodapé -->
-    <footer class="footer mt-5">
-        <div class="container text-center">
-            &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
-        </div>
-    </footer>
-
-    <script src="/FrontEnd/Perfil/perfil.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <footer class="footer"><div class="page-container footer-bottom">Ministério da Justiça e Segurança Pública · SENAPPEN</div></footer>
 </body>
 </html>

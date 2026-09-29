@@ -1,21 +1,6 @@
 (() => {
-    const timers = new WeakMap();
-
     function show(element, message, type = 'info') {
-        if (!element) return;
-        clearTimeout(timers.get(element));
-        const kind = ['success', 'error', 'info'].includes(type) ? type : 'info';
-        element.textContent = message;
-        element.className = `message ${kind}`;
-        element.setAttribute('role', kind === 'error' ? 'alert' : 'status');
-        element.hidden = false;
-        element.style.display = 'block';
-        if (kind !== 'error') {
-            timers.set(element, setTimeout(() => {
-                element.hidden = true;
-                element.style.display = 'none';
-            }, 6000));
-        }
+        window.appNotice.show(element, message, type);
     }
 
     async function requestError(response, fallback = 'Não foi possível concluir a operação.') {

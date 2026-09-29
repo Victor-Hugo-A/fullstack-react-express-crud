@@ -1,156 +1,66 @@
-// Funções para buscar dados agrupados do backend
-async function fetchContratosPorTipo() {
-    return apiGet('/api/contracts/groupby/type');
-}
-
-async function fetchProjetosPorStatus() {
-    return apiGet('/api/projects/groupby/status');
-}
-
-async function fetchIdentidadesPorPerfil() {
-    return apiGet('/api/identities/groupby/perfil');
-}
-
-// Renderização dos gráficos
-async function renderCharts() {
-    // Projetos por status
-    const statusColors = {
-        'concluido': '#2e7d32',
-        'andamento': '#0288d1',
-        'planejamento': '#ed6c02',
-        'suspenso': '#d32f2f'
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!localStorage.getItem('token')) return;
+    const colors = {
+        fornecimento: '#20795e', servicos: '#3867aa', aditivo: '#d17a25', convenio: '#7460a9', outro: '#667d91',
+        concluido: '#20795e', andamento: '#3867aa', planejamento: '#d17a25', suspenso: '#b54e5d',
+        administrador: '#3867aa', 'usuário': '#20795e', visitante: '#d17a25'
     };
-    const projetos = await fetchProjetosPorStatus();
-    const projetosLabels = projetos.map(p => p.status.charAt(0).toUpperCase() + p.status.slice(1));
-    const projetosData = projetos.map(p => p.count);
-    const projetosColors = projetos.map(p => statusColors[p.status.toLowerCase()] || '#888');
+    const formatNumber = new Intl.NumberFormat('pt-BR');
 
-    new Chart(document.getElementById('projetosChart'), {
-        type: 'pie',
-        data: {
-            labels: projetosLabels,
-            datasets: [{
-                label: 'Quantidade',
-                data: projetosData,
-                backgroundColor: projetosColors
-            }]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: { font: { size: 16 }, color: '#333', padding: 20 }
-                },
-                title: { display: true, text: 'Projetos por Status', font: { size: 20 } },
-                tooltip: {
-                    callbacks: {
-                        label: function(ctx) {
-                            const valor = ctx.parsed;
-                            const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            const porcentagem = total ? ((valor / total) * 100).toFixed(1) : 0;
-                            return `${ctx.label}: ${valor} (${porcentagem}%)`;
-                        }
-                    }
-                }
-            },
-            responsive: true
-        }
-    });
+    function showEmpty(canvas, message) {
+        canvas.hidden = true;
+        const text = document.createElement('p');
+        text.className = 'chart-empty';
+        text.textContent = message;
+        canvas.parentElement.append(text);
+    }
 
-    // Identidades por Perfil (Rosca)
-    const identidades = await fetchIdentidadesPorPerfil();
-    const identidadesLabels = identidades.map(i => i.perfil.charAt(0).toUpperCase() + i.perfil.slice(1));
-    const identidadesData = identidades.map(i => i.count);
-    const identidadesColorsMap = {
-        administrador: '#1565c0', 
-        visitante: '#f57c00', 
-        usuário: '#1b5e20', 
-    };
-    const identidadesColors = identidades.map(i => identidadesColorsMap[i.perfil.toLowerCase()] || '#888');
-
-    new Chart(document.getElementById('identidadesChart'), {
-        type: 'doughnut',
-        data: {
-            labels: identidadesLabels,
-            datasets: [{
-                label: 'Quantidade',
-                data: identidadesData,
-                backgroundColor: identidadesColors
-            }]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: { font: { size: 16 }, color: '#333', padding: 20 }
-                },
-                title: { display: true, text: 'Identidades por Perfil', font: { size: 20 } },
-                tooltip: {
-                    callbacks: {
-                        label: function(ctx) {
-                            const valor = ctx.parsed;
-                            const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            const porcentagem = total ? ((valor / total) * 100).toFixed(1) : 0;
-                            return `${ctx.label}: ${valor} (${porcentagem}%)`;
-                        }
-                    }
-                }
-            },
-            responsive: true
-        }
-    });
-
-    // Contratos por Tipo
-    const contratoColors = {
-        fornecimento: '#4caf50',
-        servicos: '#2196f3',
-        aditivo: '#ff9800',
-        convenio: '#9c27b0',
-        outro: '#607d8b'
-    };
-    const contratos = await fetchContratosPorTipo();
-    const contratosLabels = contratos.map(c => c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1));
-    const contratosData = contratos.map(c => c.count);
-    const contratosColors = contratos.map(c => contratoColors[c.tipo.toLowerCase()] || '#888');
-
-    new Chart(document.getElementById('contratosChart'), {
-        type: 'bar',
-        data: {
-            labels: contratosLabels,
-            datasets: [{
-                label: 'Quantidade',
-                data: contratosData,
-                backgroundColor: contratosColors
-            }]
-        },
-        options: {
-            plugins: {
-                legend: { display: false },
-                title: { display: true, text: 'Contratos por Tipo', font: { size: 20 } },
-                tooltip: {
-                    callbacks: {
-                        label: function(ctx) {
-                            return `${ctx.label}: ${ctx.raw}`;
-                        }
-                    }
-                }
-            },
-            indexAxis: 'y',
-            responsive: true,
-            scales: {
-                x: { beginAtZero: true, ticks: { font: { size: 14 } } },
-                y: { ticks: { font: { size: 14 } } }
+    async function loadChart(path, canvasId, field, type, horizontal = false) {
+        const canvas = document.getElementById(canvasId);
+        try {
+            const rows = await window.apiGet(path);
+            if (!Array.isArray(rows)) throw new Error('Resposta inválida.');
+            if (rows.length === 0) {
+                showEmpty(canvas, 'Não há registros para esta visualização.');
+                return true;
             }
-        }
-    });
-}
+            if (typeof window.Chart !== 'function') throw new Error('Gráficos indisponíveis.');
 
-// Chame a função ao carregar a página
-window.addEventListener('DOMContentLoaded', () => {
-    renderCharts().catch(error => {
-        console.error('Erro ao carregar os gráficos:', error);
-        document.getElementById('dashboard-error').hidden = false;
-    });
+            const labels = rows.map(row => String(row[field] || 'Não informado').replace(/^./, char => char.toUpperCase()));
+            const values = rows.map(row => Number(row.count) || 0);
+            const barColors = rows.map(row => colors[String(row[field] || '').toLowerCase()] || '#667d91');
+            new window.Chart(canvas, {
+                type,
+                data: { labels, datasets: [{ data: values, backgroundColor: barColors, borderRadius: type === 'bar' ? 7 : 0, maxBarThickness: 56 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    indexAxis: horizontal ? 'y' : 'x',
+                    plugins: {
+                        legend: { display: type !== 'bar', position: 'bottom', labels: { color: '#33465f', padding: 16 } },
+                        tooltip: { callbacks: { label: context => `${context.label}: ${formatNumber.format(context.parsed?.x ?? context.parsed ?? 0)}` } }
+                    },
+                    scales: type === 'bar' ? {
+                        x: { beginAtZero: true, ticks: { precision: 0, color: '#64758a' }, grid: { color: '#e8edf3' } },
+                        y: { ticks: { color: '#33465f' }, grid: { display: false } }
+                    } : {}
+                }
+            });
+            return true;
+        } catch (error) {
+            console.error(`Falha ao carregar ${canvasId}:`, error);
+            showEmpty(canvas, 'Indicador temporariamente indisponível.');
+            return false;
+        }
+    }
+
+    const results = await Promise.all([
+        loadChart('/api/contracts/groupby/type', 'contratosChart', 'tipo', 'bar', true),
+        loadChart('/api/projects/groupby/status', 'projetosChart', 'status', 'pie'),
+        loadChart('/api/identities/groupby/perfil', 'identidadesChart', 'perfil', 'doughnut')
+    ]);
+    if (results.some(result => !result)) {
+        window.appNotice.show(document.getElementById('dashboard-error'), 'Alguns indicadores não puderam ser carregados. Verifique a conexão e tente novamente.', 'warning');
+    }
 });

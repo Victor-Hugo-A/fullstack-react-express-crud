@@ -1,0 +1,28 @@
+.app-notice {
+    position: fixed !important;
+    z-index: 10000 !important;
+    top: 20px !important;
+    right: 20px !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: min(420px, calc(100vw - 32px)) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 14px 18px !important;
+    border: 1px solid transparent !important;
+    border-radius: 12px !important;
+    box-shadow: 0 14px 32px rgba(11, 37, 69, 0.19) !important;
+    font: 600 0.9rem/1.45 system-ui, -apple-system, "Segoe UI", sans-serif !important;
+    text-align: left !important;
+    transform: none !important;
+}
+.app-notice[hidden] { display: none !important; }
+.app-notice.success { background: #e9f7ef !important; border-color: #a8d6b8 !important; color: #145b37 !important; }
+.app-notice.error { background: #fff0f0 !important; border-color: #e5b5bb !important; color: #8a2430 !important; }
+.app-notice.warning { background: #fff7e8 !important; border-color: #eacb91 !important; color: #70470c !important; }
+.app-notice.info { background: #ebf4fb !important; border-color: #b7d1e6 !important; color: #174a77 !important; }
+
+@media (max-width: 600px) {
+    .app-notice { top: 12px !important; right: 16px !important; }
+}

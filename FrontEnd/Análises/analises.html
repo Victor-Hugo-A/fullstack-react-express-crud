@@ -2,220 +2,69 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>SENAPPEN - Análises Institucionais</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
-    <link rel="stylesheet" href="analises.css">
-    <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <title>Análises dos registros | SENAPPEN</title>
+    <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
+    <link rel="stylesheet" href="/FrontEnd/internal.css">
+    <link rel="stylesheet" href="/FrontEnd/Análises/analises.css">
+    <link rel="stylesheet" href="/FrontEnd/notice.css">
+    <link rel="icon" href="data:,">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+    <script src="/FrontEnd/api.js" defer></script>
+    <script src="/FrontEnd/notice.js" defer></script>
+    <script src="/FrontEnd/internal.js" defer></script>
+    <script src="/FrontEnd/Análises/analises.js" defer></script>
 </head>
-<body>
-    <div class="app-container">
-<!-- Sidebar -->
-<button id="menuToggle">✕</button>
-<nav id="sidebar" class="sidebar">
+<body class="internal-page analysis-page">
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <div class="top-bar"><div class="page-container"><span>Ministério da Justiça e Segurança Pública · SENAPPEN</span><time id="current-date"></time></div></div>
+    <header class="main-header"><div class="page-container header-content">
+        <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></a>
+        <div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div>
+    </div></header>
+    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links">
+        <a href="/FrontEnd/Sistema/sistema.html">Início</a>
+        <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
+        <a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a>
+        <a href="/FrontEnd/Análises/analises.html" aria-current="page">Análises</a>
+        <a href="/FrontEnd/Perfil/perfil.html">Perfil</a>
+    </div></nav>
 
-    <div class="sidebar-brand">
-        <a href="/FrontEnd/Análises/analises.html">
-            <img src="/FrontEnd/img/MJ.png" alt="Logo MJ" class="logo">
-        </a>
-    </div>
-
-    <ul class="sidebar-nav">
-        <li class="nav-item has-submenu">
-            <a href="#" class="nav-link" id="documentosToggle">
-                <i class="fas fa-clipboard icon"></i>
-                <span class="link-text">Documentos</span>
-                <i class="fas fa-chevron-down submenu-arrow"></i>
-            </a>
-            <ul class="submenu" id="submenuDocumentos" style="display: none;">
-                <li class="nav-item contract">
-                    <a href="/FrontEnd/Documentos/contrato.html" class="nav-link nav-contract">
-                        <i class="fas fa-file-contract icon"></i>
-                        <span class="link-text">Contratos</span>
-                    </a>
-                </li>
-                <li class="nav-item project">
-                    <a href="/FrontEnd/Documentos/projetos.html" class="nav-link nav-project">
-                        <i class="fas fa-diagram-project icon"></i>
-                        <span class="link-text">Projetos</span>
-                    </a>
-                </li>
-                <li class="nav-item identity">
-                    <a href="/FrontEnd/Documentos/identidades.html" class="nav-link nav-identify">
-                        <i class="fas fa-id-card icon"></i>
-                        <span class="link-text">Identidades</span>
-                    </a>
-                </li>
-                <li class="nav-item others">
-                    <a href="/FrontEnd/Documentos/graficos.html" class="nav-link nav-others">
-                        <img src="/FrontEnd/img/grafico-result.png" alt="Gráficos" class="icon">
-                        <span class="link-text">Gráficos</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
-            <li class="nav-item others">
-                <a href="/FrontEnd/Dashboard/dashboard.html" class="nav-link nav-others">
-                    <img src="/FrontEnd/img/relatorio.png" alt="Gráficos" class="icon">
-                    <span class="link-text">Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item others">
-                <a href="/FrontEnd/Perfil/perfil.html" class="nav-link nav-others">
-                    <img src="/FrontEnd/img/profile.png" alt="Gráficos" class="icon">
-                    <span class="link-text">Perfil</span>
-                </a>
-            </li>
-    </ul>
-</nav>
-
-        <!-- Conteúdo Principal -->
-        <main class="main-content">
-            <header class="main-header">
-                <h1 class="page-title">Painel de Análises Institucionais
-                    <img class="img-analises" src="/FrontEnd/img/analise-de-dados.png" alt="Análises-Geral">
-                </h1>
-                <div class="user-actions">
-                    <span class="username" id="username-display">Usuário</span>
-                    <a href="/FrontEnd/Sistema/sistema.html" class="home-btn">
-                        <i class="fas fa-home"></i>
-                    </a>
-                </div>
-            </header>
-
-            <p id="analises-error" class="alert alert-warning" role="alert" hidden>Alguns indicadores não puderam ser carregados. Verifique a conexão com a API e atualize a página.</p>
-            <!-- Cards de Resumo -->
-            <section class="documents-section">
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card text-center shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title"><img class="identi" src="/FrontEnd/img/activities.png" alt="Contratos Ativos"></i> Contratos Ativos</h5>
-                                <p class="display-6" id="contratos-ativos">...</p>
-                                <p class="text-muted">Atualizado em tempo real</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card text-center shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title"><img class="identi" src="/FrontEnd/img/loading.png" alt="andamento"> Projetos em Andamento</h5>
-                                <p class="display-6" id="projetos-andamento">...</p>
-                                <p class="text-muted">Inclui projetos estratégicos</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card text-center shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title"><img class="identi" src="/FrontEnd/img/identity-verification.png"> Identidades Cadastradas</h5>
-                                <p class="display-6" id="identidades-cadastradas">...</p>
-                                <p class="text-muted">Identidades distintas</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                    
-
-                <!-- Gráficos -->
-                <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Contratos por Tipo</h5>
-                            <canvas id="contratosStatusChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                    <div class="col-md-6 d-flex flex-column gap-4">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">Projetos por Status</h5>
-                                <canvas id="projetosStatusChart" aria-label="Gráfico de projetos"></canvas>
-                            </div>
-                        </div>
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">Identidade por Perfil</h5>
-                                <div id="perfil-filtros">
-                                    <label><input type="checkbox" value="administrador" checked> Administrador</label>
-                                    <label><input type="checkbox" value="usuário" checked> Usuário</label>
-                                    <label><input type="checkbox" value="visitante" checked> Visitante</label>
-                                </div>
-                                <canvas id="identidadesChart" aria-label="Gráfico de Identidades"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                    
-                <!-- Tabela de Análises Recentes -->
-                <h4 class="mb-3 margim"> <img class="img" src="/FrontEnd/img/refresh.png" alt="Recentes"> Contratos Recentes</h4>
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Número</th>
-                                <th>Tipos</th>
-                                <th>Responsável</th>
-                            </tr>
-                        </thead>
-                        <tbody id="contratos-recentes">
-                            <!-- Preenchido via JS -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <h4 class="mb-3"> <img class="img" src="/FrontEnd/img/real-time.png" alt="Recentes"> Projetos Recentes</h4>
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Nome</th>
-                                <th>Código</th>
-                                <th>Status</th>
-                                <th>Responsável</th>
-                            </tr>
-                        </thead>
-                        <tbody id="projetos-recentes">
-                            <!-- Preenchido via JS -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <h4 class="mb-3"> <img class="img" src="/FrontEnd/img/user-profile.png" alt="Recentes"> Identidades Recentes</h4>
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>CPF</th>
-                                <th>Nome</th>
-                                <th>Perfil</th>
-                            </tr>
-                        </thead>
-                        <tbody id="identidades-recentes">
-                            <!-- Preenchido via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <footer class="footer bg-light py-3 mt-auto">
-        <div class="container text-center">
-            &copy; 2025 Ministério da Justiça e Segurança Pública. Todos os direitos reservados.
+    <main id="conteudo" class="main-content page-container">
+        <p id="analises-error" role="alert" hidden></p>
+        <div class="module-heading">
+            <div><span class="eyebrow">CONSULTA DE DADOS</span><h1>Análises dos registros</h1><p>Consulte quantitativos, distribuições por categoria e registros recentes.</p></div>
+            <a class="module-link" href="/FrontEnd/Dashboard/dashboard.html">Ver indicadores gerais <span aria-hidden="true">↗</span></a>
         </div>
-    </footer>
 
-    <script src="/FrontEnd/api.js"></script>
-    <script src="analises.js"></script>
+        <section class="module-section" aria-labelledby="summary-title">
+            <div class="module-section__heading"><h2 id="summary-title">Resumo dos cadastros</h2><p>Totais disponíveis no momento da consulta.</p></div>
+            <div class="analysis-summary">
+                <article class="module-card summary-card"><span>Contratos cadastrados</span><strong id="contratos-ativos">—</strong><small>Total de contratos</small></article>
+                <article class="module-card summary-card"><span>Projetos cadastrados</span><strong id="projetos-andamento">—</strong><small>Total de projetos</small></article>
+                <article class="module-card summary-card"><span>Identidades cadastradas</span><strong id="identidades-cadastradas">—</strong><small>Total de identidades</small></article>
+            </div>
+        </section>
+
+        <section class="module-section" aria-labelledby="distribution-title">
+            <div class="module-section__heading"><h2 id="distribution-title">Distribuição dos registros</h2><p>Comparativos por tipo, situação e perfil.</p></div>
+            <div class="analysis-charts">
+                <article class="module-card analysis-chart"><h3>Contratos por tipo</h3><div class="analysis-canvas"><canvas id="contratosStatusChart" role="img" aria-label="Gráfico de contratos por tipo"></canvas></div></article>
+                <article class="module-card analysis-chart"><h3>Projetos por situação</h3><div class="analysis-canvas"><canvas id="projetosStatusChart" role="img" aria-label="Gráfico de projetos por situação"></canvas></div></article>
+                <article class="module-card analysis-chart"><h3>Identidades por perfil</h3><fieldset id="perfil-filtros" class="analysis-filters"><legend>Perfis exibidos</legend><label><input type="checkbox" value="administrador" checked> Administrador</label><label><input type="checkbox" value="usuário" checked> Usuário</label><label><input type="checkbox" value="visitante" checked> Visitante</label></fieldset><div class="analysis-canvas"><canvas id="identidadesChart" role="img" aria-label="Gráfico de identidades por perfil"></canvas></div></article>
+            </div>
+        </section>
+
+        <section class="module-section" aria-labelledby="recent-title">
+            <div class="module-section__heading"><h2 id="recent-title">Registros recentes</h2><p>Últimos cadastros disponíveis em cada categoria.</p></div>
+            <div class="recent-lists">
+                <article class="module-card"><h3>Contratos</h3><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Data</th><th>Número</th><th>Tipo</th><th>Descrição</th></tr></thead><tbody id="contratos-recentes"></tbody></table></div></article>
+                <article class="module-card"><h3>Projetos</h3><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Início</th><th>Nome</th><th>Código</th><th>Situação</th><th>Responsável</th></tr></thead><tbody id="projetos-recentes"></tbody></table></div></article>
+                <article class="module-card"><h3>Identidades</h3><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Cadastro</th><th>CPF</th><th>Nome</th><th>Perfil</th></tr></thead><tbody id="identidades-recentes"></tbody></table></div></article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer"><div class="page-container footer-bottom">Ministério da Justiça e Segurança Pública · SENAPPEN</div></footer>
 </body>
 </html>
