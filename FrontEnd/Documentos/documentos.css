@@ -437,19 +437,25 @@ a {
 .message {
   position: fixed;
   top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 20px;
   z-index: 9999;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-weight: bold;
-  color: #222;
-  min-width: 200px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  width: min(420px, calc(100vw - 32px));
+  padding: 14px 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: left;
+  box-shadow: 0 12px 28px rgba(15, 45, 76, 0.16);
 }
-.message.success { background: #d4edda; }
-.message.error { background: #f8d7da; }
+.message[hidden] { display: none !important; }
+.message.success { background: #eaf8f0; border-color: #a8d6b8; color: #165c39; }
+.message.error { background: #fff1f1; border-color: #e9b9bd; color: #8c2530; }
+.message.info { background: #eaf3fb; border-color: #b4d1e8; color: #174a77; }
+
+@media (max-width: 576px) {
+  .message { top: 68px; right: 16px; }
+}
 
 .table {
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;

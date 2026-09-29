@@ -92,7 +92,7 @@
                 </div>
             </header>
 
-            <div id="project-message" class="message" style="display: none;"></div>
+            <div id="project-message" class="message" role="status" aria-live="polite" hidden></div>
             <!-- Seção de Criação de Projeto -->
             <section class="document-section">
                 <h2 class="section-title"><i class="fas fa-plus-circle me-2"></i>Criar Novo Projeto</h2>
@@ -210,6 +210,7 @@
     
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/FrontEnd/Documentos/feedback.js"></script>
     <script src="/FrontEnd/Documentos/projetos.js"></script>
 
 
@@ -222,7 +223,8 @@
             // Recupera o token do localStorage (armazenado durante o login)
             const token = localStorage.getItem('token');
         if (!token) {
-            usernameElement.textContent = 'Visitante'
+            sessionStorage.setItem('auth-notice', 'required');
+            window.location.replace('/FrontEnd/login.html');
             return;
             }
     
@@ -234,6 +236,14 @@
                 }
             });
 
+
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            sessionStorage.setItem('auth-notice', 'expired');
+            window.location.replace('/FrontEnd/login.html');
+            return;
+        }
 
         if (!response.ok){
             const errorData = await response.json().catch(() => null);
@@ -252,9 +262,6 @@
             console.error('Erro ao buscar nome do usuário:', error);
             usernameElement.textContent = 'Usuário'
 
-        if (error.message.includes('401')) {
-            window.location.href = '/login.html'
-        }
     }
 }
 

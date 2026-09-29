@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
     <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
+    <script src="/FrontEnd/Documentos/feedback.js"></script>
     <script src="identidades.js"></script>
 
 </head>
@@ -83,7 +84,7 @@
 </nav>
     
     <!-- Mensagem de feedback -->
-    <div id="identity-message" class="message" style="display:none;"></div>
+    <div id="identity-message" class="message" role="status" aria-live="polite" hidden></div>
 
         <!-- Conteúdo Principal -->
     <main class="main-content">
@@ -188,7 +189,8 @@
             // Recupera o token do localStorage (armazenado durante o login)
             const token = localStorage.getItem('token');
         if (!token) {
-            usernameElement.textContent = 'Visitante'
+            sessionStorage.setItem('auth-notice', 'required');
+            window.location.replace('/FrontEnd/login.html');
             return;
             }
     
@@ -200,6 +202,14 @@
                 }
             });
 
+
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            sessionStorage.setItem('auth-notice', 'expired');
+            window.location.replace('/FrontEnd/login.html');
+            return;
+        }
 
         if (!response.ok){
             const errorData = await response.json().catch(() => null);
@@ -218,9 +228,6 @@
             console.error('Erro ao buscar nome do usuário:', error);
             usernameElement.textContent = 'Usuário'
 
-        if (error.message.includes('401')) {
-            window.location.href = '/login.html'
-        }
     }
 }
 

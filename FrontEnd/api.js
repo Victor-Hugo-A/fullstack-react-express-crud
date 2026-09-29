@@ -1,6 +1,7 @@
 window.apiGet = async function apiGet(path) {
     const token = localStorage.getItem('token');
     if (!token) {
+        sessionStorage.setItem('auth-notice', 'required');
         window.location.replace('/FrontEnd/login.html');
         throw new Error('Faça login para acessar os dados.');
     }
@@ -15,6 +16,7 @@ window.apiGet = async function apiGet(path) {
         if (response.status === 401 || response.status === 403) {
             localStorage.removeItem('token');
             localStorage.removeItem('userData');
+            sessionStorage.setItem('auth-notice', 'expired');
             window.location.replace('/FrontEnd/login.html');
             throw new Error('Sessão encerrada. Faça login novamente.');
         }

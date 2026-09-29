@@ -85,7 +85,13 @@ button, input { font: inherit; }
     padding: clamp(30px, 5vw, 64px);
 }
 
-.auth-logo { display: block; width: 178px; max-width: 100%; height: auto; margin-bottom: 34px; }
+.auth-logo {
+    display: block;
+    width: min(220px, 100%);
+    height: auto;
+    margin: 0 auto 30px;
+    object-fit: contain;
+}
 .auth-section[hidden], .form-message[hidden] { display: none; }
 .auth-section h1, .auth-section h2 { margin: 10px 0 8px; color: var(--navy); font-size: clamp(1.75rem, 3vw, 2.15rem); line-height: 1.18; letter-spacing: -0.035em; }
 .section-description { margin: 0 0 28px; color: var(--muted); }
@@ -153,7 +159,7 @@ button, input { font: inherit; }
     .intro-copy p { font-size: 0.9rem; }
     .intro-footer { display: none; }
     .auth-content { max-width: 100%; padding: 28px 24px 32px; }
-    .auth-logo { width: 136px; margin-bottom: 24px; }
+    .auth-logo { width: min(190px, 100%); margin-bottom: 24px; }
 }
 
 @media (max-width: 420px) {

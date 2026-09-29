@@ -207,26 +207,16 @@ function renderProjectsPage(page) {
       });
 
       if (!response.ok) {
-        let errorMsg = 'Erro ao criar projeto';
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData.message || errorMsg;
-        } catch {
-          const errorText = await response.text();
-          errorMsg = errorText || errorMsg;
-        }
-        throw new Error(errorMsg);
+        throw await window.documentFeedback.requestError(response, 'Não foi possível criar o projeto.');
       }
 
       const data = await response.json();
+      if (!data.success) throw new Error(data.message || 'Não foi possível criar o projeto.');
       projectForm.reset();
-      await loadProjects();
-      SuccessMessage('Projeto criado com sucesso!', 'success');
+      const refreshed = await loadProjects();
+      SuccessMessage(refreshed ? 'Projeto criado com sucesso!' : 'Projeto criado, mas a lista não foi atualizada. Recarregue a página.', refreshed ? 'success' : 'info');
     } catch (error) {
-      const errorMsg = error.message.includes('<!DOCTYPE html>') 
-        ? 'Erro no servidor - Verifique a conexão com a API' 
-        : error.message;
-      ErroMessage(errorMsg, 'error');
+      ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível criar o projeto.'), 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnText;
@@ -281,15 +271,15 @@ function renderProjectsPage(page) {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Resposta do servidor:', errorText);
-
         if (response.status === 401 || response.status === 403) {
-          window.location.href = '/login.html';
-          return;
+          sessionStorage.setItem('auth-notice', 'expired');
+          localStorage.removeItem('token');
+          localStorage.removeItem('userData');
+          window.location.href = '/FrontEnd/login.html';
+          return false;
         }
         
-        throw new Error(`Erro ao carregar projetos: ${response.statusText}`);
+        throw await window.documentFeedback.requestError(response, 'Não foi possível carregar os projetos.');
       }
       
       const data = await response.json();
@@ -303,16 +293,14 @@ function renderProjectsPage(page) {
       });
 
       renderProjectsPage(currentPage);
+      return true;
 
     } catch (error) {
       console.error('Erro ao carregar projetos:', error);
-      ErroMessage(
-        error.message.includes('<!DOCTYPE html>') 
-          ? 'Erro no servidor - Verifique a conexão com a API' 
-          : error.message, 
-        'error'
-      );
-      projectsTable.innerHTML = `<div class="error-content">Erro ao carregar projetos: ${utils.sanitize(error.message)}</div>`;
+      const message = window.documentFeedback.errorMessage(error, 'Não foi possível carregar os projetos.');
+      ErroMessage(message, 'error');
+      projectsTable.innerHTML = `<div class="error-content">${utils.sanitize(message)}</div>`;
+      return false;
     } finally {
       loadingProjects.style.display = 'none';
     }
@@ -446,8 +434,7 @@ function renderProjectsPage(page) {
       
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Erro ao carregar projeto');
+        throw await window.documentFeedback.requestError(response, 'Não foi possível carregar o projeto.');
       }
 
       const data = await response.json();
@@ -458,7 +445,7 @@ function renderProjectsPage(page) {
       showProjectDetails(data.project);
     } catch (error) {
       console.error('Erro ao visualizar projeto:', error);
-      ErroMessage('Acesso restrito! Faça login para continuar.');
+      ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível carregar o projeto.'));
     }
   }
 
@@ -633,7 +620,7 @@ function renderProjectsPage(page) {
   async function deleteFile(fileId, projectId) {
     if (!fileId || !projectId) {
         console.error('IDs inválidos:', {fileId, projectId});
-        showMessage('Erro interno: IDs não encontrados', 'error');
+        ErroMessage('Não foi possível identificar o arquivo para exclusão.', 'error');
         return
     }
 
@@ -666,10 +653,11 @@ function renderProjectsPage(page) {
 
   async function editProject(projectId) {
     let editBtn;
+    let originalContent;
     try {
       // Mostrar loader
-      const editBtn = document.querySelector(`.btn-edit[data-id="${projectId}"]`);
-      const originalContent = editBtn.innerHTML;
+      editBtn = document.querySelector(`.btn-edit[data-id="${projectId}"]`);
+      originalContent = editBtn.innerHTML;
       editBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
       editBtn.disabled = true;
 
@@ -681,8 +669,7 @@ function renderProjectsPage(page) {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Erro ao carregar projeto para edição');
+        throw await window.documentFeedback.requestError(response, 'Não foi possível carregar o projeto para edição.');
       }
 
       const data = await response.json();
@@ -715,7 +702,7 @@ function renderProjectsPage(page) {
       
     } catch (error) {
       console.error('Erro ao editar projeto', error);
-      ErroMessage("Acesso restrito! Faça login para continuar.");
+      ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível editar o projeto.'));
     } finally {
       if (editBtn) {
         editBtn.innerHTML = originalContent;
@@ -730,6 +717,7 @@ function renderProjectsPage(page) {
     const projectId = e.target.querySelector('button[type="submit"]').dataset.editing;
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
+    let updated = false;
     
     try {
       submitBtn.disabled = true;
@@ -762,18 +750,19 @@ function renderProjectsPage(page) {
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Erro ao atualizar projeto');
+        throw await window.documentFeedback.requestError(response, 'Não foi possível atualizar o projeto.');
       }
 
       const data = await response.json();
+      if (!data.success) throw new Error(data.message || 'Não foi possível atualizar o projeto.');
       console.log('Projeto atualizado:', data);
+      updated = true;
       // Limpa o formulário
       projectForm.reset();
-      await loadProjects();
+      const refreshed = await loadProjects();
       
       // Exibe mensagem de sucesso
-      SuccessMessage('Projeto atualizado com sucesso!', 'success');
+      SuccessMessage(refreshed ? 'Projeto atualizado com sucesso!' : 'Projeto atualizado, mas a lista não foi atualizada. Recarregue a página.', refreshed ? 'success' : 'info');
 
       // Restaura o formulário para modo de criação
       submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Salvar Projeto';
@@ -786,10 +775,10 @@ function renderProjectsPage(page) {
       projectForm.addEventListener('submit', handleProjectSubmit);
     } catch (error) {
       console.error('Erro ao atualizar projeto:', error);
-      ErroMessage(error.message, 'error');
+      ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível atualizar o projeto.'), 'error');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnText;
+      submitBtn.innerHTML = updated ? '<i class="fas fa-save me-2"></i>Salvar Projeto' : originalBtnText;
     }
   }
 
@@ -810,15 +799,14 @@ function renderProjectsPage(page) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || 'Erro ao excluir projeto');
+        throw await window.documentFeedback.requestError(response, 'Não foi possível excluir o projeto.');
       }
 
-      await loadProjects();
-      SuccessMessage('Projeto excluído com sucesso!', 'success');
+      const refreshed = await loadProjects();
+      SuccessMessage(refreshed ? 'Projeto excluído com sucesso!' : 'Projeto excluído, mas a lista não foi atualizada. Recarregue a página.', refreshed ? 'success' : 'info');
     } catch (error) {
       console.error('Erro ao excluir projeto:', error);
-      ErroMessage(error.message, 'error');
+      ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível excluir o projeto.'), 'error');
     } finally {
       if (deleteBtn?.isConnected) {
         deleteBtn.innerHTML = originalContent;
@@ -829,25 +817,11 @@ function renderProjectsPage(page) {
 
 
   function ErroMessage(message, type) {
-    projectMessage.textContent = message;
-    projectMessage.className = `message ${type}`;
-    projectMessage.style.display = 'block';
-    projectMessage.style.backgroundColor ='#f8d7da';
-
-    setTimeout(() => {
-      projectMessage.style.display = 'none';
-    }, 5000);
+    window.documentFeedback.show(projectMessage, message, 'error');
   }
 
 
   function SuccessMessage(message, type) {
-    projectMessage.textContent = message;
-    projectMessage.className = `message ${type}`;
-    projectMessage.style.display = 'block';
-    projectMessage.style.backgroundColor = '#7CFC00' 
-
-    setTimeout(() => {
-      projectMessage.style.display = 'none';
-    }, 5000);
+    window.documentFeedback.show(projectMessage, message, type === 'info' ? 'info' : 'success');
   }
 });

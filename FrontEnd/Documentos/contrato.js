@@ -22,24 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Funções de exibição de mensagens
     function showSuccessMessage(message) {
-    const msg = document.getElementById('contract-message');
-    msg.textContent = message;
-    msg.className = 'message success';
-    msg.style.display = 'block';
-    setTimeout(() => {
-        msg.style.display = 'none';
-    }, 5000);
+        window.documentFeedback.show(document.getElementById('contract-message'), message, 'success');
     }
 
     function showErrorMessage(message) {
-    const msg = document.getElementById('contract-message');
-    msg.textContent = message;
-    msg.className = 'message error';
-    msg.style.display = 'block';
-    setTimeout(() => {
-        msg.style.display = 'none';
-    }, 5000);
-}
+        window.documentFeedback.show(document.getElementById('contract-message'), message, 'error');
+    }
 
 
     // Configuração inicial da data (mínimo 2025-01, máximo 2040-12)
@@ -123,16 +111,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            if (!response.ok) {
-                throw new Error('Erro ao verificar contrato');
-            }
+            if (!response.ok) throw await window.documentFeedback.requestError(response, 'Erro ao verificar contrato. Tente novamente.');
 
             const result = await response.json();
             return result.exists;
         } catch (error) {
             console.error('Erro ao verificar contrato:', error);
-            showErrorMessage('Erro ao verificar contrato. Tente novamente');
-            return false;
+            throw error;
         }
     }
 
@@ -194,15 +179,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao cadastrar contrato');
+                throw await window.documentFeedback.requestError(response, 'Não foi possível cadastrar o contrato.');
             }
 
-            showSuccessMessage('Contrato cadastrado com sucesso!');
             elements.form.reset();
-            loadContracts(); // Recarrega a lista de contratos
+            const refreshed = await loadContracts();
+            if (refreshed) showSuccessMessage('Contrato cadastrado com sucesso!');
+            else window.documentFeedback.show(document.getElementById('contract-message'), 'Contrato cadastrado, mas a lista não foi atualizada. Recarregue a página.', 'info');
         } catch (error) {
-            showErrorMessage('Acesso restrito! Faça login para continuar.');
+            showErrorMessage(window.documentFeedback.errorMessage(error, 'Não foi possível cadastrar o contrato.'));
         } finally {
             showLoading(false);
             submitButton.disabled = false;
@@ -212,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clean Button - Limpar todos os contratos
     elements.cleanAllButton?.addEventListener('click', async () => {
         if (!confirm('Tem certeza que deseja apagar TODOS os contratos? Esta ação não pode ser desfeita.')) {
-            showSuccessMessage('Operação cancelada pelo usuário');
+            window.documentFeedback.show(document.getElementById('contract-message'), 'Operação cancelada.', 'info');
             return;
         }
 
@@ -312,7 +297,7 @@ async function loadContracts(filters = {}) {
             }
         });
 
-        if (!response.ok) throw new Error('Erro ao carregar contratos');
+        if (!response.ok) throw await window.documentFeedback.requestError(response, 'Não foi possível carregar os contratos.');
         
         const contracts = await response.json();
 
@@ -326,13 +311,16 @@ async function loadContracts(filters = {}) {
         allContracts = contracts;
         currentPage = 1;
         updateContractList(allContracts, currentPage);
+        return true;
         
     } catch (error) {
         console.error('Erro ao carregar contratos:', error);
+        const message = window.documentFeedback.errorMessage(error, 'Não foi possível carregar os contratos.');
         elements.documentsContainer.innerHTML = `
             <div class="alert alert-danger">
-                Erro ao carregar contratos: ${escapeHTML(error.message)}
+                ${escapeHTML(message)}
             </div>`;
+        return false;
     } finally {
         showLoading(false);
     }
@@ -388,14 +376,14 @@ async function loadContracts(filters = {}) {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || errorData.error || 'Erro ao excluir contrato');
+                throw await window.documentFeedback.requestError(response, 'Não foi possível excluir o contrato.');
             }
 
-            await loadContracts(); // Recarrega a lista de contratos
-            showSuccessMessage('Contrato excluído com sucesso!');
+            const refreshed = await loadContracts();
+            if (refreshed) showSuccessMessage('Contrato excluído com sucesso!');
+            else window.documentFeedback.show(document.getElementById('contract-message'), 'Contrato excluído, mas a lista não foi atualizada. Recarregue a página.', 'info');
         } catch (error) {
-            showErrorMessage(error.message);
+            showErrorMessage(window.documentFeedback.errorMessage(error, 'Não foi possível excluir o contrato.'));
         } finally {
             showLoading(false);
         }
@@ -522,7 +510,7 @@ async function viewContract(id) {
             }, 30000);
             
         } catch (error) {
-            showErrorMessage('Acesso restrito! Faça login para continuar.');
+            showErrorMessage(window.documentFeedback.errorMessage(error, 'Não foi possível baixar o contrato.'));
         } finally {
             showLoading(false);
         }

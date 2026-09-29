@@ -51,40 +51,41 @@ async function loadIdentityPhoto(img, filePath) {
             const response = await fetch(API_URL, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
-            if (!response.ok) return false;
+            if (!response.ok) throw await window.documentFeedback.requestError(response, 'Não foi possível verificar o CPF.');
             const identidades = await response.json();
-            return identidades.some(id => id.cpf.replace(/\D/g, '') === cpf);
+            if (!Array.isArray(identidades)) throw new Error('Não foi possível verificar o CPF.');
+            return identidades.some(id => String(id.cpf || '').replace(/\D/g, '') === cpf);
         }
 
         document.getElementById('identity-form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const cpfInput = document.getElementById('cpf');
-    const token = localStorage.getItem('token');
-    const cpf = cpfInput.value.replace(/\D/g, ''); // Remove caracteres não numéricos
-
-    const cpfFormatado = cpfValue(cpf);
-    if (!cpfFormatado) return
-
-    if (await cpfJaCadastrado(cpf)) {
-        ErroMessage('CPF já cadastrado!', 'error');
-        return;
-    }
-
-    const formData = new FormData(this);
-    const response = await fetch(API_URL, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'Authorization': `Bearer ${token}`
+    const submitButton = this.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('Sua sessão terminou. Faça login novamente.');
+        const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
+        if (!cpfValue(cpf)) return;
+        if (await cpfJaCadastrado(cpf)) {
+            ErroMessage('CPF já cadastrado!', 'error');
+            return;
         }
-    });
-    const data = await response.json();
-    if(data.success) {
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: new FormData(this),
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) throw await window.documentFeedback.requestError(response, 'Não foi possível cadastrar a identidade.');
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || data.error || 'Não foi possível cadastrar a identidade.');
         SuccessMessage('Identidade cadastrada com sucesso!', 'success');
         this.reset();
-        carregarIdentidades();
-    } else {
-        ErroMessage('Acesso restrito! Faça login para continuar.', 'error');
+        carregarIdentidades().catch(error => ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível atualizar a lista de identidades.'), 'error'));
+    } catch (error) {
+        ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível cadastrar a identidade.'), 'error');
+    } finally {
+        submitButton.disabled = false;
     }
 
 });
@@ -95,7 +96,8 @@ async function loadIdentityPhoto(img, filePath) {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if(!response.ok) {
-            ErroMessage('Erro ao carregar identidades!', 'error');
+            const error = await window.documentFeedback.requestError(response, 'Não foi possível carregar as identidades.');
+            ErroMessage(error.message, 'error');
             return;
         }
         allIdentidades = await response.json();
@@ -187,12 +189,23 @@ async function loadIdentityPhoto(img, filePath) {
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.success) {
-                throw new Error(data.message || data.error || 'Erro ao excluir identidade');
+                if (!res.ok) {
+                    const error = new Error(res.status === 403
+                        ? 'Você não tem permissão para excluir identidades.'
+                        : res.status === 401
+                            ? 'Sua sessão terminou. Faça login novamente.'
+                            : res.status >= 500
+                                ? 'Não foi possível excluir a identidade agora.'
+                                : data.message || data.error || 'Não foi possível excluir a identidade.');
+                    error.status = res.status;
+                    throw error;
+                }
+                throw new Error(data.message || data.error || 'Não foi possível excluir a identidade.');
             }
             SuccessMessage('Identidade excluída com sucesso!', 'success');
             await carregarIdentidades();
         } catch (error) {
-            ErroMessage(error.message, 'error');
+            ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível excluir a identidade.'), 'error');
         }
     }
 
@@ -230,31 +243,17 @@ document.getElementById('image-modal').onclick = function(e) {
 }
 
 window.abrirModalImagem = abrirModalImagem;
-carregarIdentidades();
+carregarIdentidades().catch(error => ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível carregar as identidades.'), 'error'));
 
 
 const identityMessage = document.getElementById('identity-message');
   function ErroMessage(message, type) {
-    identityMessage.textContent = message;
-    identityMessage.className = `message ${type}`;
-    identityMessage.style.display = 'block';
-    identityMessage.style.backgroundColor ='#f8d7da';
-
-    setTimeout(() => {
-      identityMessage.style.display = 'none';
-    }, 5000);
+    window.documentFeedback.show(identityMessage, message, 'error');
   }
 
 
   function SuccessMessage(message, type) {
-    identityMessage.textContent = message;
-    identityMessage.className = `message ${type}`;
-    identityMessage.style.display = 'block';
-    identityMessage.style.backgroundColor = '#7CFC00' 
-
-    setTimeout(() => {
-      identityMessage.style.display = 'none';
-    }, 5000);
+    window.documentFeedback.show(identityMessage, message, 'success');
   }
 
 })

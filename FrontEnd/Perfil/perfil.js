@@ -1,8 +1,9 @@
 const API_URL = 'http://localhost:3000';
 
-function logout() {
+function logout(reason = 'logout') {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
+    sessionStorage.setItem('auth-notice', reason);
     window.location.assign('/FrontEnd/login.html');
 }
 
@@ -26,7 +27,7 @@ async function request(path, method, token, body) {
     if (response.status === 401 || response.status === 403) {
         // Uma senha atual incorreta também retorna 401; nesse caso, a sessão segue válida.
         if (path !== '/change-password' || response.status === 403) {
-            logout();
+            logout('expired');
             return null;
         }
     }
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         usuario = null;
     }
     if (!token || !usuario) {
-        logout();
+        logout('expired');
         return;
     }
 

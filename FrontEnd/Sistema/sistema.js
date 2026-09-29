@@ -1,13 +1,14 @@
 const LOGIN_URL = '/FrontEnd/login.html';
 
-function redirectToLogin() {
+function redirectToLogin(reason) {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
+    if (reason) sessionStorage.setItem('auth-notice', reason);
     window.location.assign(LOGIN_URL);
 }
 
 function logout() {
-    redirectToLogin();
+    redirectToLogin('logout');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -16,6 +17,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!token) {
         redirectToLogin();
         return;
+    }
+
+    const authNotice = sessionStorage.getItem('auth-notice');
+    sessionStorage.removeItem('auth-notice');
+    if (authNotice === 'login') {
+        const feedback = document.getElementById('session-feedback');
+        if (feedback) {
+            feedback.textContent = 'Login realizado com sucesso.';
+            feedback.hidden = false;
+            setTimeout(() => { feedback.hidden = true; }, 6000);
+        }
     }
 
     const usernameDisplay = document.getElementById('username-display');
@@ -49,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             headers: { Authorization: `Bearer ${token}` }
         });
         if (response.status === 401 || response.status === 403 || response.status === 404) {
-            redirectToLogin();
+            redirectToLogin('expired');
             return;
         }
         if (!response.ok) return;

@@ -18,6 +18,12 @@ function mostrarMensagem(mensagem, tipo) {
 function exibirMensagemSucesso(mensagem) { mostrarMensagem(mensagem, 'success'); }
 function exibirMensagemErro(mensagem) { mostrarMensagem(mensagem, 'error'); }
 
+const authNotice = sessionStorage.getItem('auth-notice');
+sessionStorage.removeItem('auth-notice');
+if (authNotice === 'logout') exibirMensagemSucesso('Você saiu da sua conta com segurança.');
+if (authNotice === 'expired') exibirMensagemErro('Sua sessão terminou. Faça login novamente.');
+if (authNotice === 'required') exibirMensagemErro('Faça login para continuar.');
+
 
 // Função para fazer requisições à API
 async function makeRequest(endpoint, method, data) {
@@ -55,9 +61,10 @@ async function makeRequest(endpoint, method, data) {
 
 // Função para validar campos do formulário
 function validarCampos(campos) {
+    const labels = { nome: 'nome', cpf: 'CPF', email: 'e-mail', username: 'usuário', password: 'senha', confirmPassword: 'confirmação da senha' };
     const camposVazios = Object.entries(campos)
-        .filter(([_, value]) => !value)
-        .map(([name]) => name);
+        .filter(([_, value]) => !String(value ?? '').trim())
+        .map(([name]) => labels[name] || name);
 
     if (camposVazios.length > 0) {
         throw new Error(`Os seguintes campos são obrigatórios: ${camposVazios.join(', ')}`);
@@ -91,34 +98,33 @@ if (loginForm) {
             // Fazer requisição de login
             const response = await makeRequest('/login', 'POST', { username, password });
 
-            if (!response.success) {
+            if (!response.success || !response.token) {
                 throw new Error(response.error || 'invalid_response')
             }
 
             localStorage.setItem('token', response.token); // Token puro, sem JSON.stringify
             localStorage.setItem('userData', JSON.stringify(response.user));
+            sessionStorage.setItem('auth-notice', 'login');
             loginSucceeded = true;
-            
+            exibirMensagemSucesso('Login realizado com sucesso. Redirecionando...');
             setTimeout(() => {
-                window.location.href = 'Sistema/sistema.html'; // Caminho relativo à página atual
-            }, 1300);
-            
-            exibirMensagemSucesso(response.message || 'Login realizado com sucesso!');
+                window.location.assign('/FrontEnd/Sistema/sistema.html');
+            }, 900);
             
         } catch (error) {
             if (error.status === 401) {
                 exibirMensagemErro('Usuário ou senha inválidos.');
             } else if (error.status === 429) {
                 exibirMensagemErro('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
-            } else if (error.message === 'missing_fields') {
-                exibirMensagemErro('Nome de usuário e senha são obrigatórias.');
+            } else if (error.status === 400 || error.message === 'missing_fields') {
+                exibirMensagemErro('Informe o usuário e a senha.');
             } else if (error.message === 'tempo limite excedido') {
-                exibirMensagemErro('Servidor demorou a responder. Tente novamente');
+                exibirMensagemErro('O servidor demorou a responder. Tente novamente.');
             } else if (error.message === 'Falha na conexão com o servidor') {
                 exibirMensagemErro('Não foi possível conectar ao servidor.');
             } else {
                 console.error('Erro no login', error);
-                exibirMensagemErro('Erro ao fazer login. Tente novamente.');
+                exibirMensagemErro('Não foi possível entrar agora. Tente novamente em instantes.');
             }
         } finally {
             if (!loginSucceeded) {
@@ -168,7 +174,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
         const cpf = document.getElementById('cpf').value;
 
         // Validar campos
-        validarCampos({ nome, email, username, password, confirmPassword });
+        validarCampos({ nome, cpf, email, username, password, confirmPassword });
            
         if (password !== confirmPassword) {
             throw new Error('As senhas não coincidem!');
@@ -188,7 +194,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
 }
 
         // Fazer requisição de registro
-        const response = await makeRequest('/register', 'POST', {
+        await makeRequest('/register', 'POST', {
             nome, email, username, password, confirmPassword, cpf
         });
         
@@ -197,7 +203,16 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
         document.getElementById('username').value = username;
         document.getElementById('registerForm').reset();
     } catch (error) {
-        exibirMensagemErro(`Erro ao criar conta: ${error.message}`);
+        const reason = error.status === 429
+            ? 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
+            : error.status >= 500
+                ? 'Não foi possível criar a conta agora. Tente novamente em instantes.'
+                : error.message === 'Falha na conexão com o servidor'
+                    ? 'Não foi possível conectar ao servidor.'
+                    : error.message === 'tempo limite excedido'
+                        ? 'O servidor demorou a responder. Tente novamente.'
+                    : error.message;
+        exibirMensagemErro(reason);
     } finally {
         button.innerHTML = buttonContent;
         button.disabled = false;
@@ -232,15 +247,6 @@ document.getElementById('toggle-login')?.addEventListener('click', function(e) {
     exibirMensagemErro('');
     mostrarSecao('login');
 });
-
-// Função para redirecionar para a página de login
-function redirectToLogin() {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('userData');
-    window.location.href = window.location.href.includes('Sistema') 
-        ? '../login.html' 
-        : 'login.html';
-}
 
 // Verificação de elementos DOM
 function getElementOrThrow(id) {

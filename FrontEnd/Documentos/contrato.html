@@ -81,7 +81,7 @@
     </ul>
 </nav>
 
-    <div id="contract-message" class="message" style="display:none"></div>
+    <div id="contract-message" class="message" role="status" aria-live="polite" hidden></div>
         <!-- Conteúdo Principal -->
     <main class="main-content">
         <header class="main-header">
@@ -98,7 +98,7 @@
             <section class="document-section">
                 <h2 class="section-title"><i class="fas fa-upload me-2"></i>Enviar Novo Contrato</h2>
                 
-                <div id="upload-message" class="message" style="display: none;"></div>
+                <div id="upload-message" class="message" role="status" aria-live="polite" hidden></div>
                 
                 <form id="document-form" class="document-form">
                     <div id="message-success"></div>
@@ -229,14 +229,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const token = localStorage.getItem('token');
 
         if (!token) {
-            usernameElement.textContent = 'Visitante'
-            console.warn('Token não encontrado no LocalStorage')
+            sessionStorage.setItem('auth-notice', 'required');
+            window.location.replace('/FrontEnd/login.html');
             return;
         }
 
         if (token.length < 30) {
-            console.error('Token parece inválido', token)
-            usernameElement.textContent = 'Usuário';
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            sessionStorage.setItem('auth-notice', 'expired');
+            window.location.replace('/FrontEnd/login.html');
             return;
         }
 
@@ -250,10 +252,11 @@ document.addEventListener('DOMContentLoaded', function() {
             credentials: 'include'
         });
 
-        if (response.status === 403) {
-            console.error('Acesso proibido - token pode estar inválido ou expirado');
-            localStorage.removeItem('token'); // Remove token inválido
-            window.location.href = '/login.html'; // Redireciona para login
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            sessionStorage.setItem('auth-notice', 'expired');
+            window.location.replace('/FrontEnd/login.html');
             return;
         }
              
@@ -278,10 +281,6 @@ document.addEventListener('DOMContentLoaded', function() {
             usernameElement.textContent = 'Usuário';
         }
 
-        if (error.message.includes('403') || error.message.includes('token')) {
-            localStorage.removeItem('token');
-            window.location.href = '/login.html'
-        }
     }
 }
 
@@ -334,6 +333,7 @@ if (menuToggle && sidebar) {
 
 </script>
 
+<script src="/FrontEnd/Documentos/feedback.js"></script>
 <script src="/FrontEnd/Documentos/contrato.js"></script>
 
 </body>
