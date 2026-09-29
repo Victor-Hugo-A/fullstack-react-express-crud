@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> SENAPPEN - Identidades </title>
+    <title>Identidades | SENAPPEN</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Open+Sans:wght@400;600&display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos-internal.css">
+    <link rel="stylesheet" href="/FrontEnd/Documentos/documentos-pages.css">
     <link rel="stylesheet" href="/FrontEnd/notice.css">
     <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
     <script src="/FrontEnd/notice.js"></script>
     <script src="/FrontEnd/Documentos/feedback.js"></script>
+    <script src="/FrontEnd/Documentos/documentos-pagination.js"></script>
+    <script src="/FrontEnd/Documentos/documentos-nav.js" defer></script>
     <script src="identidades.js"></script>
 
 </head>
 
-<body>
+<body class="documents-workspace identities-page">
 
     <div class="app-container">
 <!-- Sidebar -->
@@ -34,32 +36,32 @@
     <ul class="sidebar-nav">
         <li class="nav-item has-submenu">
             <a href="#submenuDocumentos" class="nav-link" id="documentosToggle" aria-controls="submenuDocumentos" aria-expanded="true">
-                <i class="fas fa-clipboard icon"></i>
+<span class="icon"></span>
                 <span class="link-text">Documentos</span>
-                <i class="fas fa-chevron-down submenu-arrow rotated"></i>
+<span class="submenu-arrow rotated"></span>
             </a>
-            <ul class="submenu" id="submenuDocumentos" style="display: block;">
+            <ul class="submenu" id="submenuDocumentos">
                 <li class="nav-item contract">
                     <a href="/FrontEnd/Documentos/contrato.html" class="nav-link nav-contract">
-                        <i class="fas fa-file-contract icon"></i>
+<span class="icon"></span>
                         <span class="link-text">Contratos</span>
                     </a>
                 </li>
                 <li class="nav-item project">
                     <a href="/FrontEnd/Documentos/projetos.html" class="nav-link nav-project">
-                        <i class="fas fa-diagram-project icon"></i>
+<span class="icon"></span>
                         <span class="link-text">Projetos</span>
                     </a>
                 </li>
                 <li class="nav-item identity">
                     <a href="/FrontEnd/Documentos/identidades.html" class="nav-link nav-identify">
-                        <i class="fas fa-id-card icon"></i>
+<span class="icon"></span>
                         <span class="link-text">Identidades</span>
                     </a>
                 </li>
                 <li class="nav-item others">
                     <a href="/FrontEnd/Documentos/graficos.html" class="nav-link nav-others">
-                        <img src="/FrontEnd/img/grafico-result.png" alt="Gráficos" class="icon">
+<span class="icon"></span>
                         <span class="link-text">Gráficos</span>
                     </a>
                 </li>
@@ -67,19 +69,19 @@
         </li>
             <li class="nav-item others">
                 <a href="/FrontEnd/Dashboard/dashboard.html" class="nav-link nav-others">
-                    <img src="/FrontEnd/img/relatorio.png" alt="Gráficos" class="icon">
+<span class="icon"></span>
                     <span class="link-text">Dashboard</span>
                 </a>
             </li>
             <li class="nav-item others">
                 <a href="/FrontEnd/Análises/analises.html" class="nav-link nav-others">
-                    <img src="/FrontEnd/img/analise-de-dados.png" alt="Gráficos" class="icon">
+<span class="icon"></span>
                     <span class="link-text">Análises</span>
                 </a>
             </li>
             <li class="nav-item others">
                 <a href="/FrontEnd/Perfil/perfil.html" class="nav-link nav-others">
-                    <img src="/FrontEnd/img/profile.png" alt="Gráficos" class="icon">
+<span class="icon"></span>
                     <span class="link-text">Perfil</span>
                 </a>
             </li>
@@ -92,19 +94,18 @@
         <!-- Conteúdo Principal -->
     <main class="main-content">
         <header class="main-header">
-                <h1 class="page-title">Identidades</h1>
+            <div class="page-heading"><span class="page-eyebrow">DOCUMENTOS / IDENTIDADES</span><h1 class="page-title">Identidades</h1><p>Cadastre e consulte os registros de identificação da unidade.</p></div>
             <div class="user-actions">
                 <span class="username" id="username-display">Usuário</span>
-                    <a href="/FrontEnd/Sistema/sistema.html" class="home-btn">
-                        <i class="fas fa-home"></i>
-                    </a>
+                <a href="/FrontEnd/Sistema/sistema.html" class="home-btn"><span data-icon="home"></span> Início</a>
             </div>
         </header>
 
     <!-- Formulário de cadastro de identidade -->
     <section class="identity-form-section">
-        <form id="identity-form" enctype="multipart/form-data" class="card p-3 mb-4">
-            <h2 class="mb-3">Cadastrar identidade</h2>
+        <form id="identity-form" enctype="multipart/form-data" class="identity-form-grid">
+            <h2 class="section-title form-wide"><span class="section-icon" data-icon="identities"></span>Cadastrar identidade</h2>
+            <p class="section-lead form-wide">Informe os dados pessoais e anexe uma foto 3x4 recente.</p>
             <div class="mb-3">
                 <label for="nome" class="form-label">Nome Completo:</label>
                 <input type="text" class="form-control" id="nome" name="nome" required placeholder="Nome Completo">
@@ -113,7 +114,7 @@
                 <label for="cpf" class="form-label">CPF:</label>
                 <input type="text" class="form-control" id="cpf" name="cpf" maxlength="14" required placeholder="000.000.000-00">
             </div>
-            <div class="mb-3">
+            <div class="mb-3 form-wide">
                 <label for="endereco" class="form-label">Endereço de Residência:</label>
                 <input type="text" class="form-control" id="endereco" name="endereco" required placeholder="Rua, Número, Bairro, Cidade, Estado"> 
             </div>
@@ -130,21 +131,19 @@
                 <label for="foto" class="form-label">Foto 3x4:</label>
                 <input type="file" class="form-control" id="foto" name="foto" accept="image/*" required>
             </div>            
-            <div class="d-flex align-items-center gap-2">
+            <div class="form-actions form-wide">
                 <button type="submit" title="Salvar Identidade" class="btn btn-primary">
-                Salvar Identidade
+                    <span data-icon="save"></span>Salvar identidade
                 </button>
-                <i class="fas fa-info-circle info-icon" title="Preencha todos os campos corretamente e envie uma foto 3x4 recente."></i>
+                <span class="form-hint"><span data-icon="info"></span>Verifique os dados antes de salvar.</span>
             </div> 
         </form>
     </section>
 
     <!-- Lista de identidades cadastradas -->
     <section class="identity-list-section">
-        <h2 class="section-title"> 
-        <i class="fas fa-id-card icon"></i>
-            Identidades cadastradas
-        </h2>
+        <h2 class="section-title"><span class="section-icon" data-icon="list"></span>Identidades cadastradas</h2>
+        <p class="section-lead">Consulte os registros cadastrados e suas respectivas fotografias.</p>
         
         <div class="table-responsive">
             <table class="table table-bordered align-middle" id="identities-table">
@@ -165,20 +164,13 @@
                 
             </table>
         </div>
+        <nav class="pagination" aria-label="Paginação de identidades" hidden></nav>
     </section>
-    <div class="pagination">
-        <a href="#" class="page-nav" data-page="prev"><i class="fas fa-angle-double-left"></i></a>
-        <a href="#" class="page-link active" data-page="1">1</a>
-        <a href="#" class="page-link" data-page="2">2</a>
-        <a href="#" class="page-link" data-page="3">3</a>
-        <a href="#" class="page-nav" data-page="next"><i class="fas fa-angle-double-right"></i></a>
-    </div>
 </main>
 
-    <div id="image-modal" class="modal" style="display:none; position: fixed; z-index: 9999; top:0px;;
-    width: 70%; background: rgba(0, 0, 0, 0.5);  align-items: center; justify-content: center;">
-    <span id="close-modal" style="position: absolute; top: 20px; right: 40px; font-size: 2rem; color: #fff; cursor:pointer;">&times;</span>
-    <img id="modal-image" src="" alt="Imagem da Identidade" style="max-width: 90vw; max-height: 90vh; border-radius:8px;  box-shadow:  0 0 20px #000;">
+    <div id="image-modal" class="identity-image-modal" role="dialog" aria-modal="true" aria-label="Fotografia da identidade" hidden>
+        <button id="close-modal" type="button" aria-label="Fechar imagem">&times;</button>
+        <img id="modal-image" alt="Fotografia da identidade">
     </div>
 
 
@@ -236,47 +228,6 @@
 
 displayUsername();
 
-// Menu expansível para Documentos
-    const documentosToggle = document.getElementById('documentosToggle');
-    const submenuDocumentos = document.getElementById('submenuDocumentos');
-    if (documentosToggle && submenuDocumentos) {
-        documentosToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            submenuDocumentos.style.display = submenuDocumentos.style.display === 'none' ? 'block' : 'none';
-            documentosToggle.querySelector('.submenu-arrow').classList.toggle('rotated');
-            documentosToggle.setAttribute('aria-expanded', String(submenuDocumentos.style.display === 'block'));
-        });
-    }
-
-
-    const menuToggle = document.getElementById("menuToggle");
-    const sidebar = document.getElementById("sidebar");
-
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener("click", () => {
-            sidebar.classList.toggle("closed");
-            const isOpen = !sidebar.classList.contains("closed");
-            menuToggle.textContent = isOpen ? "✕" : "☰";
-            menuToggle.setAttribute('aria-expanded', String(isOpen));
-            menuToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
-    });
-    } else {
-        console.error('Elementos do menu não encontrados');
-    }
-
-    // Active dentro dos links para ficar fixado(marcado), como = "CONTRATOS" "PROJETOS" "DOCUMENTOS" "IDENTIDADES" "OUTROS" !!!
-        const currentPage = window.location.pathname.split('/').pop();
-        const navLinks = document.querySelectorAll('.nav-link');
-        
-        navLinks.forEach(link => {
-            const linkPage = link.getAttribute('href').split('/').pop();
-            if (linkPage === currentPage) {
-                const navItem = link.closest('.nav-item')
-                if (navItem) {
-                    navItem.classList.add('active')
-                }
-            }
-        });
     });
 
     </script>

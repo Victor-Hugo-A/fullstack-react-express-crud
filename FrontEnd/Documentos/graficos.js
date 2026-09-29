@@ -13,40 +13,9 @@
     const downloadButton = document.getElementById('downloadChart');
     const canvas = document.getElementById('dashboardChart');
     const chartContainer = document.getElementById('dashboardChart-container');
-    const sidebar = document.getElementById('sidebar');
-    const menuToggle = document.getElementById('menuToggle');
-    const documentsToggle = document.getElementById('documentosToggle');
-    const submenu = document.getElementById('submenuDocumentos');
     const formatNumber = new Intl.NumberFormat('pt-BR');
     let chart = null;
     let requestId = 0;
-
-    function setupNavigation() {
-        menuToggle.addEventListener('click', () => {
-            const isOpen = sidebar.classList.toggle('closed') === false;
-            menuToggle.textContent = isOpen ? '✕' : '☰';
-            menuToggle.setAttribute('aria-expanded', String(isOpen));
-            menuToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
-        });
-
-        documentsToggle.addEventListener('click', (event) => {
-            event.preventDefault();
-            submenu.hidden = !submenu.hidden;
-            const isOpen = !submenu.hidden;
-            documentsToggle.setAttribute('aria-expanded', String(isOpen));
-            documentsToggle.querySelector('.submenu-arrow').classList.toggle('rotated', isOpen);
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && !sidebar.classList.contains('closed') && window.matchMedia('(max-width: 768px)').matches) {
-                sidebar.classList.add('closed');
-                menuToggle.textContent = '☰';
-                menuToggle.setAttribute('aria-expanded', 'false');
-                menuToggle.setAttribute('aria-label', 'Abrir menu');
-                menuToggle.focus();
-            }
-        });
-    }
 
     function setupYears() {
         const currentYear = new Date().getFullYear();
@@ -173,7 +142,6 @@
         }
     }
 
-    setupNavigation();
     setupYears();
     loadUsername();
     yearSelect.addEventListener('change', () => renderDashboard(yearSelect.value));

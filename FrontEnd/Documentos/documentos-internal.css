@@ -35,6 +35,25 @@ body {
 .sidebar .submenu .nav-item { margin: 0.1rem 0.3rem; }
 .sidebar .icon { width: 21px; height: 21px; margin-right: 0.7rem; object-fit: contain; }
 .sidebar .nav-link i { color: inherit; }
+.sidebar .nav-icon {
+    display: block;
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin-right: 0.7rem;
+    color: currentColor;
+}
+.sidebar .submenu-arrow {
+    flex: 0 0 17px;
+    width: 17px;
+    height: 17px;
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+.sidebar .submenu-arrow.rotated { transform: rotate(180deg); }
+.sidebar .submenu[hidden] { display: none !important; }
+.sidebar .nav-link:focus-visible,
+#menuToggle:focus-visible { outline: 3px solid #82c7ee; outline-offset: 2px; }
 
 #menuToggle {
     width: 42px;
@@ -45,6 +64,8 @@ body {
     background: #123d65;
     box-shadow: 0 4px 12px rgba(12, 40, 70, 0.2);
 }
+#menuToggle .menu-glyph { width: 20px; height: 20px; }
+.document-menu-backdrop[hidden] { display: none !important; }
 
 .main-content {
     min-width: 0;
@@ -115,8 +136,61 @@ label { color: #314e68; font-weight: 600; }
 .search-btn { background: #e8f1f9; color: #174c78; }
 #clean-all-button { width: auto; height: auto; min-height: 38px; padding: 0.55rem 0.8rem; }
 
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 1.3rem 0 0;
+    padding: 0;
+}
+.pagination[hidden] { display: none !important; }
+.pagination .page-link,
+.pagination .page-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 0.55rem;
+    border: 1px solid #cbd9e6;
+    border-radius: 8px;
+    background: #fff;
+    color: #244a6d;
+    box-shadow: none;
+    font: 600 0.85rem/1 "Segoe UI", Arial, sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+}
+.pagination .page-nav { font-size: 1.4rem; font-weight: 400; }
+.pagination .page-link:hover,
+.pagination .page-nav:hover { background: #edf5fb; border-color: #8eb2cd; }
+.pagination .page-link.active,
+.pagination .page-link[aria-current="page"] { background: #175488; border-color: #175488; color: #fff; }
+.pagination button:disabled { color: #9aaec0; background: #f5f8fb; cursor: default; }
+.pagination .page-ellipsis { min-width: 18px; color: #637b91; text-align: center; }
+
+@media (min-width: 769px) {
+    #menuToggle { display: flex !important; top: 48px; left: calc(var(--sidebar-width) + 8px); transition: left 0.25s ease; }
+    .sidebar.closed { transform: translateX(-100%); }
+    .document-menu-collapsed #menuToggle { left: 8px; }
+    .document-menu-collapsed .main-content { margin-left: 0; }
+    .main-content > .main-header { padding-left: 4rem; }
+}
+
 @media (max-width: 768px) {
     .main-content { padding-top: 4.4rem; }
     .main-header { align-items: flex-start; }
     .document-section, .identity-form-section, .identity-list-section { padding: 1rem; }
+    .document-menu-backdrop {
+        position: fixed;
+        z-index: 999;
+        inset: 0;
+        background: rgba(5, 21, 37, 0.48);
+    }
+    .document-menu-mobile-open { overflow: hidden; }
+    .sidebar { z-index: 1000; }
+    #menuToggle { z-index: 1001; }
 }

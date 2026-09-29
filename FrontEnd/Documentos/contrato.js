@@ -233,9 +233,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 
+    const CONTRACTS_PER_PAGE = 4;
     function updateContractList(contracts, page = 1) {
         const container = elements.documentsContainer;
-        const CONTRACTS_PER_PAGE = 4;
         const start = (page - 1) * CONTRACTS_PER_PAGE
         const end = start + CONTRACTS_PER_PAGE;
         const contractsToShow = contracts.slice(start, end)
@@ -251,38 +251,18 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        renderPagination(contracts.length, page)
-
-            // Função renderização de página
-    function renderPagination(totalContracts, page) {
-        const totalPages = Math.ceil(totalContracts / CONTRACTS_PER_PAGE);
-        const pagination = document.querySelector('.pagination');
-        pagination.innerHTML = `
-        <a href="#" class="page-nav" data-page="prev"><i class="fas fa-angle-double-left"></i></a>
-        ${Array.from({length: totalPages}, (_, i) => `
-            <a href="#" class="page-link${i+1 === page ? ' active' : ''}" data-page="${i+1}">${i+1}</a>
-        `).join('')}
-        <a href="#" class="page-nav" data-page="next"><i class="fas fa-angle-double-right"></i></a>
-    `;
+        window.documentPagination.render(document.querySelector('.pagination'), page, Math.ceil(contracts.length / CONTRACTS_PER_PAGE));
     }
 
-    //Evento navegação 
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.page-link')) {
-            e.preventDefault();
-            currentPage = Number(e.target.closest('.page-link').dataset.page);
-            updateContractList(allContracts, currentPage);
-        }
-        if (e.target.closest('.page-nav')) {
-            e.preventDefault();
-            const nav = e.target.closest('.page-nav').dataset.page;
-            const totalPages = Math.ceil(allContracts.length / CONTRACTS_PER_PAGE);
-            if (nav === 'prev' && currentPage > 1) currentPage--;
-            if (nav === 'next' && currentPage < totalPages) currentPage++;
-            updateContractList(allContracts, currentPage);
-        }
-    })
-}
+    document.querySelector('.pagination')?.addEventListener('click', event => {
+        const button = event.target.closest('button[data-page]');
+        if (!button || button.disabled) return;
+        const totalPages = Math.ceil(allContracts.length / CONTRACTS_PER_PAGE);
+        currentPage = button.dataset.page === 'prev' ? currentPage - 1
+            : button.dataset.page === 'next' ? currentPage + 1 : Number(button.dataset.page);
+        currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+        updateContractList(allContracts, currentPage);
+    });
 
 // Atualize a função loadContracts para forçar recarregamento
 async function loadContracts(filters = {}) {
@@ -335,21 +315,21 @@ async function loadContracts(filters = {}) {
         element.innerHTML = `
             <div class="document-header">
                 <span class="document-type badge ${typeClass}">${escapeHTML(getContractTypeName(contract.type))}</span>
-                <span class="document-number"> N° ${escapeHTML(contract.number)}</span>
+                <span class="document-number">Nº ${escapeHTML(contract.number)}</span>
             </div>
             <div class="document-body">
-                <p class="document-date"><i class="far fa-calendar-alt me-2"></i>${escapeHTML(formatDisplayDate(contract.date))}</p>
-                <p class="document-description">Informações: ${escapeHTML(contract.description || 'Sem descrição')}</p>
+                <p class="document-date">${window.documentIcons.markup('calendar')}${escapeHTML(formatDisplayDate(contract.date))}</p>
+                <p class="document-description">${escapeHTML(contract.description || 'Sem descrição informada.')}</p>
             </div>
             <div class="document-actions">
                 <button class="btn-view" title="Visualizar contrato" data-id="${escapeHTML(contract.id)}">
-                    <i class="fas fa-eye"></i> Visualizar
+                    ${window.documentIcons.markup('eye')} Visualizar
                 </button>
                 <button class="btn-download" title="Baixar contrato" data-id="${escapeHTML(contract.id)}">
-                    <i class="fas fa-download"></i> Download
+                    ${window.documentIcons.markup('download')} Baixar
                 </button>
                 <button class="btn-delete" type="button" title="Excluir contrato" data-admin-only data-id="${escapeHTML(contract.id)}">
-                    <i class="fas fa-trash"></i> Excluir
+                    ${window.documentIcons.markup('trash')} Excluir
                 </button>
             </div>
         `;

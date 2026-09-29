@@ -5,25 +5,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mobile = window.matchMedia('(max-width: 760px)');
 
     function setMenuOpen(open) {
-        const isOpen = mobile.matches && open;
-        document.body.classList.toggle('menu-open', isOpen);
-        sidebar.inert = mobile.matches && !isOpen;
-        backdrop.hidden = !isOpen;
-        toggle.setAttribute('aria-expanded', String(isOpen));
-        toggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
-        toggle.textContent = isOpen ? '✕' : '☰';
+        const isMobileOpen = mobile.matches && open;
+        document.body.classList.toggle('menu-open', isMobileOpen);
+        document.body.classList.toggle('menu-collapsed', !open);
+        sidebar.inert = !open;
+        backdrop.hidden = !isMobileOpen;
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+        toggle.textContent = open ? '✕' : '☰';
     }
 
-    setMenuOpen(false);
-    toggle.addEventListener('click', () => setMenuOpen(!document.body.classList.contains('menu-open')));
+    setMenuOpen(!mobile.matches);
+    toggle.addEventListener('click', () => setMenuOpen(sidebar.inert));
     backdrop.addEventListener('click', () => { setMenuOpen(false); toggle.focus(); });
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && document.body.classList.contains('menu-open')) {
+        if (event.key === 'Escape' && !sidebar.inert) {
             setMenuOpen(false);
             toggle.focus();
         }
     });
-    window.addEventListener('resize', () => setMenuOpen(false));
+    mobile.addEventListener('change', () => setMenuOpen(!mobile.matches));
 
     if (!localStorage.getItem('token')) {
         window.location.replace('/FrontEnd/login.html');

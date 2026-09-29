@@ -24,6 +24,7 @@ async function loadIdentityPhoto(img, filePath) {
         }
         activeImageUrls.add(imageUrl);
         img.src = imageUrl;
+        img.classList.add('has-photo');
         img.addEventListener('click', () => abrirModalImagem(imageUrl));
     } catch (error) {
         console.error('Falha ao carregar foto:', error);
@@ -101,6 +102,7 @@ async function loadIdentityPhoto(img, filePath) {
             return;
         }
         allIdentidades = await response.json();
+        currentPage = Math.min(currentPage, Math.max(1, Math.ceil(allIdentidades.length / IDENTIDADES_PER_PAGE)));
         renderIdentidadesPage(currentPage)
 
     function renderIdentidadesPage(page) {
@@ -113,7 +115,8 @@ async function loadIdentityPhoto(img, filePath) {
     const identidadesToShow = allIdentidades.slice(start, end);
 
     if (identidadesToShow.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6">Nenhuma identidade encontrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7">Nenhuma identidade encontrada</td></tr>';
+    renderIdentidadesPagination();
     return;
   }
 
@@ -129,11 +132,11 @@ async function loadIdentityPhoto(img, filePath) {
             <td>${escapeHTML(id.endereco)}</td>
             <td><span class="${perfilClass}">${escapeHTML(id.perfil)}</span></td>
             <td>
-                <img src="/FrontEnd/img/profile.png" alt="Foto da identidade" style="width:80px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;" />
+                <img class="identity-photo" src="${window.documentIcons.dataUri('profile')}" alt="Fotografia de ${escapeHTML(id.nome)}" />
             </td>
             <td>${dataCriacao}</td>
             <td class="identity-actions">
-                <button class="btn btn-danger btn-sm btn-excluir" type="button" data-admin-only title="Excluir identidade">Excluir</button>
+                <button class="btn btn-danger btn-sm btn-excluir" type="button" data-admin-only title="Excluir identidade">${window.documentIcons.markup('trash')} Excluir</button>
                 <span class="readonly-label">Somente leitura</span>
             </td>
         `;
@@ -151,32 +154,18 @@ async function loadIdentityPhoto(img, filePath) {
 
     function renderIdentidadesPagination() {
         const totalPages = Math.ceil(allIdentidades.length / IDENTIDADES_PER_PAGE);
-        const pagination = document.querySelector('.pagination');
-        if (!pagination) return;
-        pagination.innerHTML = `
-        <a href="#" class="page-nav" data-page="prev"><i class="fas fa-angle-double-left"></i></a>
-            ${Array.from({length: totalPages}, (_, i) => `
-                <a href="#" class="page-link${i+1 === currentPage ? ' active' : ''}" data-page="${i+1}">${i+1}</a>
-            `).join('')}
-            <a href="#" class="page-nav" data-page="next"><i class="fas fa-angle-double-right"></i></a>
-        `;
+        window.documentPagination.render(document.querySelector('.pagination'), currentPage, totalPages);
     }
 
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.page-link')) {
-            e.preventDefault();
-            currentPage = Number(e.target.closest('.page-link').dataset.page);
-            renderIdentidadesPage(currentPage);
-        }
-        if (e.target.closest('.page-nav')) {
-            e.preventDefault();
-            const nav = e.target.closest('.page-nav').dataset.page;
-            const totalPages = Math.ceil(allIdentidades.length / IDENTIDADES_PER_PAGE);
-            if (nav === 'prev' && currentPage > 1) currentPage--;
-            if (nav === 'next' && currentPage < totalPages) currentPage++;
-            renderIdentidadesPage(currentPage);
-            }
-        });
+    document.querySelector('.pagination')?.addEventListener('click', event => {
+        const button = event.target.closest('button[data-page]');
+        if (!button || button.disabled) return;
+        const totalPages = Math.ceil(allIdentidades.length / IDENTIDADES_PER_PAGE);
+        currentPage = button.dataset.page === 'prev' ? currentPage - 1
+            : button.dataset.page === 'next' ? currentPage + 1 : Number(button.dataset.page);
+        currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+        renderIdentidadesPage(currentPage);
+    });
     }
 
 
@@ -215,32 +204,27 @@ function abrirModalImagem(src) {
     const modal = document.getElementById('image-modal');
     const modalImg = document.getElementById('modal-image');
     modalImg.src = src;
-    modal.style.display = 'flex';
-    modal.style.justifyContent = 'center';
-    modal.style.alignItems = 'center';
-    modalImg.style.maxWidth = '100%';
-    modalImg.style.maxHeight = '100%';
-    modalImg.style.objectFit = 'contain';
-    modalImg.style.borderRadius = '8px';
-    modalImg.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-    modalImg.style.transition = 'transform 0.3s ease';
-    modalImg.onclick = function() {
-        this.style.transform = 'scale(1.05)';
-        setTimeout(() => {
-            this.style.transform = 'scale(1)';
-        }, 300);
-    };
+    modal.hidden = false;
+    document.getElementById('close-modal').focus();
 }
 
 //Fechar modal de imagem
+function fecharModalImagem() {
+    const modal = document.getElementById('image-modal');
+    modal.hidden = true;
+    document.getElementById('modal-image').removeAttribute('src');
+}
 document.getElementById('close-modal').onclick = function() {
-    document.getElementById('image-modal').style.display = 'none';
+    fecharModalImagem();
 };
 document.getElementById('image-modal').onclick = function(e) {
     if (e.target === this) {
-        this.style.display = 'none';
+        fecharModalImagem();
     }
 }
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !document.getElementById('image-modal').hidden) fecharModalImagem();
+});
 
 window.abrirModalImagem = abrirModalImagem;
 carregarIdentidades().catch(error => ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível carregar as identidades.'), 'error'));

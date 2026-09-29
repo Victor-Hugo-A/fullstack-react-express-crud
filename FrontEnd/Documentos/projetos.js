@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const projectsTable = document.createElement('div');
   projectsTable.id = 'projects-table';
   projectsTable.className = 'projects-table-container';
-  document.querySelector('.document-section:last-child').appendChild(projectsTable);
+  document.querySelector('.pagination').before(projectsTable);
 
   // Logica de Páginação
   const PROJECTS_PER_PAGE = 5;
@@ -57,17 +57,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Variáveis Globais
   let allProjects = [];
+  let displayedProjects = [];
   const token = localStorage.getItem('token');
   
 function renderProjectsPage(page) {
   const start = (page - 1) * PROJECTS_PER_PAGE;
   const end = start + PROJECTS_PER_PAGE;
-  const projectsToShow = allProjects.slice(start, end);
+  const projectsToShow = displayedProjects.slice(start, end);
 
   projectsTable.innerHTML = '';
 
   if (projectsToShow.length === 0) {
     projectsTable.innerHTML = '<p class="no-projects">Nenhum projeto encontrado</p>';
+    renderPagination();
     return;
   }
 
@@ -99,9 +101,9 @@ function renderProjectsPage(page) {
       <td>${project.end_date ? utils.formatDate(project.end_date) : '-'}</td>
       <td><span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></td>
       <td class="actions">
-        <button class="btn-view project" data-id="${project.id}" title="Visualizar Projeto"><i class="fas fa-eye"></i></button>
-        <button class="btn-edit project" data-id="${project.id}" title="Editar Projeto"><i class="fas fa-edit"></i></button>
-        <button class="btn-delete project" type="button" data-admin-only data-id="${project.id}" title="Excluir projeto" aria-label="Excluir projeto"><i class="fas fa-trash-alt"></i></button>
+        <button class="btn-view project" type="button" data-id="${project.id}" title="Visualizar projeto" aria-label="Visualizar projeto">${window.documentIcons.markup('eye')}</button>
+        <button class="btn-edit project" type="button" data-id="${project.id}" title="Editar projeto" aria-label="Editar projeto">${window.documentIcons.markup('edit')}</button>
+        <button class="btn-delete project" type="button" data-admin-only data-id="${project.id}" title="Excluir projeto" aria-label="Excluir projeto">${window.documentIcons.markup('trash')}</button>
       </td>
     `;
     tbody.appendChild(row);
@@ -114,31 +116,19 @@ function renderProjectsPage(page) {
 }
   // Função para renderizar a página
   function renderPagination() {
-    const totalPages = Math.ceil(allProjects.length / PROJECTS_PER_PAGE)
-    const pagination = document.querySelector('.pagination');
-    pagination.innerHTML = `
-    <a href="#" class="page-nav" data-page="prev"><i class="fas fa-angle-double-left"></i></a>
-    ${Array.from({length: totalPages}, (_, i) => `
-    <a href="#" class="page-link${i+1 === currentPage ? ' active' : ''}" data-page="${i+1}">${i+1}</a>`).join('')}
-    <a href="#" class="page-nav" data-page="next"><i class="fas fa-angle-double-right"></i></a>`;
+    const totalPages = Math.ceil(displayedProjects.length / PROJECTS_PER_PAGE)
+    window.documentPagination.render(document.querySelector('.pagination'), currentPage, totalPages);
   }
 
-  document.addEventListener('click', function (e) {
-    if (e.target.closest('.page-link')) {
-      e.preventDefault();
-      currentPage = Number(e.target.closest('.page-link').dataset.page)
-      renderProjectsPage(currentPage);
-    }
-    if (e.target.closest('.page-nav')) {
-      e.preventDefault();
-      const nav = e.target.closest('.page-nav').dataset.page;
-      const totalPages = Math.ceil(allProjects.length / PROJECTS_PER_PAGE);
-      if (nav === 'prev' && currentPage > 1) currentPage--;
-      if (nav === 'next' && currentPage < totalPages) currentPage++;
-      renderProjectsPage(currentPage);
-      }
-    }
-  )
+  document.querySelector('.pagination')?.addEventListener('click', event => {
+    const button = event.target.closest('button[data-page]');
+    if (!button || button.disabled) return;
+    const totalPages = Math.ceil(displayedProjects.length / PROJECTS_PER_PAGE);
+    currentPage = button.dataset.page === 'prev' ? currentPage - 1
+      : button.dataset.page === 'next' ? currentPage + 1 : Number(button.dataset.page);
+    currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+    renderProjectsPage(currentPage);
+  });
 
   // Inicialização
   initDatePickers();
@@ -176,7 +166,7 @@ function renderProjectsPage(page) {
     const submitBtn = projectForm.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+    submitBtn.innerHTML = `${window.documentIcons.markup('loading', 'ui-icon is-loading')} Salvando...`;
 
     try {
       const formData = new FormData();
@@ -292,6 +282,8 @@ function renderProjectsPage(page) {
         return new Date(a.start_date) - new Date(b.start_date)
       });
 
+      displayedProjects = [...allProjects];
+      currentPage = Math.min(currentPage, Math.max(1, Math.ceil(displayedProjects.length / PROJECTS_PER_PAGE)));
       renderProjectsPage(currentPage);
       return true;
 
@@ -307,58 +299,6 @@ function renderProjectsPage(page) {
   }
 
   
-  function renderProjects(projects) {
-    projectsTable.innerHTML = '';
-
-    if (projects.length === 0) {
-      projectsTable.innerHTML = '<p class="no-projects">Nenhum projeto encontrado</p>';
-      return;
-    }
-
-    const table = document.createElement('table');
-    table.className = 'projects-table';
-
-    const thead = document.createElement('thead');
-    thead.innerHTML = `
-      <tr>
-        <th>Código</th>
-        <th>Nome</th>
-        <th>Responsável</th>
-        <th>Início</th>
-        <th>Término</th>
-        <th>Status</th>
-        <th>Ações</th>
-      </tr>
-    `;
-    table.appendChild(thead);
-    
-    const tbody = document.createElement('tbody');
-
-    projects.forEach(project => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${utils.sanitize(project.code)}</td>
-        <td>${utils.sanitize(project.name)}</td>
-        <td>${utils.sanitize(project.manager)}</td>
-        <td>${utils.formatDate(project.start_date)}</td>
-        <td>${project.end_date ? utils.formatDate(project.end_date) : '-'}</td>
-        <td><span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></td>
-        <td class="actions">
-          <button class="btn-view project" data-id="${project.id}" title="Visualizar Projeto"><i class="fas fa-eye"></i></button>
-          <button class="btn-edit project" data-id="${project.id}" title="Editar Projeto"><i class="fas fa-edit"></i></button>
-          <button class="btn-delete project" type="button" data-admin-only data-id="${project.id}" title="Excluir projeto" aria-label="Excluir projeto"><i class="fas fa-trash-alt"></i></button>
-        </td>
-      `;
-      tbody.appendChild(row);
-    });
-    
-    table.appendChild(tbody);
-    projectsTable.appendChild(table);
-    
-    // Adiciona eventos aos botões
-    addProjectActionEvents();
-  }
-      
   function filterProjects() {
     const statusFilter = document.getElementById('filter-status').value;
     const yearFilter = document.getElementById('filter-year').value;
@@ -385,7 +325,9 @@ function renderProjectsPage(page) {
       );
     }
 
-    renderProjects(filtered);
+    displayedProjects = filtered;
+    currentPage = 1;
+    renderProjectsPage(currentPage);
   }
 
   function addProjectActionEvents() {
@@ -459,7 +401,7 @@ function renderProjectsPage(page) {
     modal.className = 'project-modal';
     modal.innerHTML = `
       <div class="modal-content">
-        <span class="close-modal"> &times; </span>
+        <button type="button" class="close-modal" aria-label="Fechar detalhes">&times;</button>
         <h3> ${utils.sanitize(project.name)} - <span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></h3>
         
         <div class="project-details">
@@ -494,18 +436,16 @@ function renderProjectsPage(page) {
                   return `
                   <div class="file-item" data-file-id="${file._id || file.id}">
                     <div class="file-info">
-                      ${ext === 'pdf' ? 
-                        `<i class="fas fa-file-pdf pdf-icon"></i>` : 
-                        `<i class="fas fa-file-image image-icon"></i>`}
+                      ${window.documentIcons.markup(ext === 'pdf' ? 'file' : 'image')}
                       <a href="#" class="project-file-link" data-file-url="${fileUrl}" data-filename="${utils.sanitize(file.originalname)}">${utils.sanitize(file.originalname)}</a>
                       <span class="file-size">(${formatFileSize(file.size)})</span>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-download-file" data-file-url="${fileUrl}" data-filename="${utils.sanitize(file.originalname)}" title="Download do projeto">
-                        <i class="fas fa-download"></i>
+                      <button class="btn-download-file" type="button" data-file-url="${fileUrl}" data-filename="${utils.sanitize(file.originalname)}" title="Baixar arquivo" aria-label="Baixar arquivo">
+                        ${window.documentIcons.markup('download')}
                       </button>
                       <button class="btn-delete-file" type="button" data-admin-only data-file-id="${file._id || file.id}" data-project-id="${project.id}" title="Excluir o arquivo" aria-label="Excluir o arquivo">
-                        <i class="fas fa-trash"></i>
+                        ${window.documentIcons.markup('trash')}
                       </button>
                     </div>
                   </div>`;
@@ -658,7 +598,7 @@ function renderProjectsPage(page) {
       // Mostrar loader
       editBtn = document.querySelector(`.btn-edit[data-id="${projectId}"]`);
       originalContent = editBtn.innerHTML;
-      editBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      editBtn.innerHTML = window.documentIcons.markup('loading', 'ui-icon is-loading');
       editBtn.disabled = true;
 
       // Carrega os dados do projeto
@@ -689,7 +629,7 @@ function renderProjectsPage(page) {
 
       // Altera o botão de submit para "Atualizar"
       const submitBtn = projectForm.querySelector('button[type="submit"]');
-      submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Atualizar Projeto';
+      submitBtn.innerHTML = `${window.documentIcons.markup('save')} Atualizar projeto`;
       submitBtn.dataset.editing = projectId;
       submitBtn.classList.add('btn-update');
       
@@ -721,7 +661,7 @@ function renderProjectsPage(page) {
     
     try {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+      submitBtn.innerHTML = `${window.documentIcons.markup('loading', 'ui-icon is-loading')} Atualizando...`;
 
       const formData = new FormData();
       const projectData = {
@@ -765,7 +705,7 @@ function renderProjectsPage(page) {
       SuccessMessage(refreshed ? 'Projeto atualizado com sucesso!' : 'Projeto atualizado, mas a lista não foi atualizada. Recarregue a página.', refreshed ? 'success' : 'info');
 
       // Restaura o formulário para modo de criação
-      submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Salvar Projeto';
+      submitBtn.innerHTML = `${window.documentIcons.markup('save')} Salvar projeto`;
       delete submitBtn.dataset.editing;
       submitBtn.classList.remove('btn-update');
 
@@ -778,7 +718,7 @@ function renderProjectsPage(page) {
       ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível atualizar o projeto.'), 'error');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = updated ? '<i class="fas fa-save me-2"></i>Salvar Projeto' : originalBtnText;
+      submitBtn.innerHTML = updated ? `${window.documentIcons.markup('save')} Salvar projeto` : originalBtnText;
     }
   }
 
@@ -787,7 +727,7 @@ function renderProjectsPage(page) {
     const originalContent = deleteBtn?.innerHTML;
     try {
       if (deleteBtn) {
-        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        deleteBtn.innerHTML = window.documentIcons.markup('loading', 'ui-icon is-loading');
         deleteBtn.disabled = true;
       }
 
