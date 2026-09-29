@@ -21,7 +21,11 @@
     <header class="main-header">
         <div class="page-container header-content">
             <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema">
-                <img src="/FrontEnd/img/MJ.png" alt="Brasão da República">
+                <span class="brand-mark"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></span>
+                <span class="brand-copy">
+                    <strong>Ministério da Justiça e Segurança Pública</strong>
+                    <small>Secretaria Nacional de Políticas Penais</small>
+                </span>
             </a>
             <div class="user-menu">
                 <span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span>
@@ -62,25 +66,33 @@
 
             <div class="quick-access">
                 <a class="portal-card" href="/FrontEnd/Documentos/documentos.html">
-                    <span class="card-icon"><img src="/FrontEnd/img/documento.png" alt=""></span>
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+                    </span>
                     <span class="card-title">Documentos</span>
                     <span class="card-text">Cadastre e consulte contratos, projetos e identidades.</span>
                     <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
                 </a>
                 <a class="portal-card" href="/FrontEnd/Dashboard/dashboard.html">
-                    <span class="card-icon"><img src="/FrontEnd/img/relatorio.png" alt=""></span>
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+                    </span>
                     <span class="card-title">Dashboard</span>
                     <span class="card-text">Visualize os indicadores consolidados dos registros.</span>
                     <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
                 </a>
                 <a class="portal-card" href="/FrontEnd/Análises/analises.html">
-                    <span class="card-icon"><img src="/FrontEnd/img/analise-de-dados.png" alt=""></span>
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2M8.5 11l1.7 1.7 3.4-3.4"/></svg>
+                    </span>
                     <span class="card-title">Análises</span>
                     <span class="card-text">Consulte dados por categoria e registros recentes.</span>
                     <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
                 </a>
                 <a class="portal-card" href="/FrontEnd/Perfil/perfil.html">
-                    <span class="card-icon"><img src="/FrontEnd/img/profile.png" alt=""></span>
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+                    </span>
                     <span class="card-title">Perfil</span>
                     <span class="card-text">Consulte e atualize seus dados cadastrais.</span>
                     <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
