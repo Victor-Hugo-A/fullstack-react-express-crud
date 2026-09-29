@@ -31,8 +31,9 @@ img { max-width: 100%; }
 .main-header { background: var(--surface); border-bottom: 1px solid var(--line); }
 .header-content { min-height: 104px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { display: inline-flex; align-items: center; gap: 15px; color: var(--navy); text-decoration: none; }
+.brand > img { width: 62px; height: 62px; object-fit: contain; }
 .brand-mark { width: 78px; height: 78px; display: grid; flex: 0 0 auto; place-items: center; padding: 3px; border: 1px solid #d6e2ea; border-radius: 12px; background: #fff; box-shadow: 0 3px 10px rgba(11, 37, 69, 0.08); }
-.brand img { width: 100%; height: 100%; object-fit: contain; }
+.brand-mark img { width: 100%; height: 100%; object-fit: contain; }
 .brand-copy { display: grid; gap: 3px; max-width: 360px; }
 .brand-copy strong { color: var(--navy); font-size: 0.96rem; line-height: 1.25; }
 .brand-copy small { color: var(--muted); font-size: 0.75rem; line-height: 1.3; }
@@ -148,6 +149,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid #f1a53b; outline-offs
     .top-bar { font-size: 0.7rem; }
     .header-content { min-height: 76px; gap: 8px; }
     .brand { gap: 8px; }
+    .brand > img { width: 48px; height: 48px; }
     .brand-mark { width: 54px; height: 54px; padding: 2px; border-radius: 9px; }
     .brand-copy { max-width: 166px; gap: 1px; }
     .brand-copy strong { font-size: 0.7rem; }
