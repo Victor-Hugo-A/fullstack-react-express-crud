@@ -16,8 +16,8 @@
     
     <div class="app-container">
 <!-- Sidebar -->
-<button id="menuToggle">✕</button>
-<nav id="sidebar" class="sidebar">
+<button id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+<nav id="sidebar" class="sidebar closed" aria-label="Navegação de documentos">
 
     <div class="sidebar-brand">
         <a href="/FrontEnd/Documentos/documentos.html">
@@ -27,12 +27,12 @@
 
     <ul class="sidebar-nav">
         <li class="nav-item has-submenu">
-            <a href="#" class="nav-link" id="documentosToggle">
+            <a href="#submenuDocumentos" class="nav-link" id="documentosToggle" aria-controls="submenuDocumentos" aria-expanded="true">
                 <i class="fas fa-clipboard icon"></i>
                 <span class="link-text">Documentos</span>
-                <i class="fas fa-chevron-down submenu-arrow"></i>
+                <i class="fas fa-chevron-down submenu-arrow rotated"></i>
             </a>
-            <ul class="submenu" id="submenuDocumentos" style="display: none;">
+            <ul class="submenu" id="submenuDocumentos" style="display: block;">
                 <li class="nav-item contract">
                     <a href="/FrontEnd/Documentos/contrato.html" class="nav-link nav-contract">
                         <i class="fas fa-file-contract icon"></i>
@@ -268,6 +268,7 @@
             e.preventDefault();
             submenuDocumentos.style.display = submenuDocumentos.style.display === 'none' ? 'block' : 'none';
             documentosToggle.querySelector('.submenu-arrow').classList.toggle('rotated');
+            documentosToggle.setAttribute('aria-expanded', String(submenuDocumentos.style.display === 'block'));
         });
     }
 
@@ -278,7 +279,10 @@
     if (menuToggle && sidebar) {
         menuToggle.addEventListener("click", () => {
             sidebar.classList.toggle("closed");
-            menuToggle.textContent = sidebar.classList.contains("closed") ? "☰" : "✕"
+            const isOpen = !sidebar.classList.contains("closed");
+            menuToggle.textContent = isOpen ? "✕" : "☰";
+            menuToggle.setAttribute('aria-expanded', String(isOpen));
+            menuToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
     });
     } else {
         console.error('Elementos do menu não encontrados');

@@ -1,0 +1,292 @@
+.graphics-page {
+    background: #f4f7fb;
+    color: #24354a;
+}
+
+.graphics-page .main-content {
+    min-width: 0;
+    padding: 2.25rem clamp(1.25rem, 3vw, 3.5rem) 3rem;
+}
+
+.graphics-page .main-header {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.35rem;
+    border-color: #dfe6ef;
+}
+
+.graphics-page .page-title {
+    color: #13365e;
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+}
+
+.graphics-eyebrow,
+.graphics-kicker {
+    margin: 0 0 0.35rem;
+    color: #46749b;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.graphics-page .home-btn {
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d4deea;
+    border-radius: 12px;
+    background: #fff;
+    color: #174a77;
+    text-decoration: none;
+}
+
+.graphics-intro,
+.graphics-panel,
+.graphics-note {
+    border: 1px solid #e1e8f0;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 8px 28px rgba(25, 55, 90, 0.05);
+}
+
+.graphics-intro {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: clamp(1.4rem, 3vw, 2.4rem);
+    background: linear-gradient(120deg, #fff 58%, #eaf3fb 100%);
+}
+
+.graphics-intro h2 {
+    margin: 0 0 0.5rem;
+    color: #123960;
+    font-size: clamp(1.55rem, 2.6vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.graphics-intro p:last-child,
+.graphics-panel__header p:last-child,
+.graphics-note p {
+    margin: 0;
+    color: #5b6d82;
+}
+
+.graphics-filter {
+    display: grid;
+    min-width: 158px;
+    gap: 0.45rem;
+}
+
+.graphics-filter label {
+    color: #334a64;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.graphics-filter select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.55rem 2rem 0.55rem 0.8rem;
+    border: 1px solid #b8c9db;
+    border-radius: 10px;
+    background: #fff;
+    color: #123960;
+    font: inherit;
+    font-weight: 700;
+}
+
+.graphics-status {
+    margin: 1.4rem 0 1rem;
+    color: #536a80;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.graphics-alert {
+    margin: 0 0 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #f0c8a2;
+    border-radius: 12px;
+    background: #fff5eb;
+    color: #784313;
+}
+
+.graphics-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.graphics-metric {
+    display: grid;
+    gap: 0.2rem;
+    padding: 1.15rem 1.35rem;
+    border: 1px solid #e1e8f0;
+    border-left: 4px solid var(--metric-color);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(25, 55, 90, 0.04);
+}
+
+.graphics-metric--contracts { --metric-color: #20795e; }
+.graphics-metric--projects { --metric-color: #d17a25; }
+.graphics-metric--identities { --metric-color: #3867aa; }
+
+.graphics-metric span {
+    color: #52677e;
+    font-size: 0.87rem;
+    font-weight: 600;
+}
+
+.graphics-metric strong {
+    overflow-wrap: anywhere;
+    color: var(--metric-color);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.2;
+}
+
+.graphics-metric small {
+    color: #738397;
+    font-size: 0.77rem;
+}
+
+.graphics-panel {
+    padding: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.graphics-panel__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.graphics-panel__header h2 {
+    margin: 0 0 0.3rem;
+    color: #153b63;
+    font-size: 1.27rem;
+    font-weight: 700;
+}
+
+#downloadChart {
+    float: none;
+    width: auto;
+    height: auto;
+    flex: none;
+    padding: 0.65rem 0.95rem;
+    border: 0;
+    border-radius: 10px;
+    background: #153e68;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+#downloadChart:hover:not(:disabled) {
+    background: #0c2e52;
+}
+
+#downloadChart:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+#dashboardChart-container {
+    height: clamp(280px, 38vw, 410px);
+    margin: 0;
+}
+
+.graphics-empty {
+    margin: 1rem 0 0;
+    color: #62758b;
+    text-align: center;
+}
+
+.graphics-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding: 1.3rem 1.5rem;
+}
+
+.graphics-note strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #193f65;
+}
+
+.graphics-note a {
+    flex: none;
+    color: #135f9e;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.graphics-note a:hover {
+    text-decoration: underline;
+}
+
+.graphics-page [hidden] {
+    display: none !important;
+}
+
+@media (max-width: 1050px) {
+    .graphics-intro,
+    .graphics-panel__header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .graphics-page .main-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .graphics-filter {
+        width: min(100%, 240px);
+    }
+
+    #downloadChart {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .graphics-page .main-content {
+        padding: 4.75rem 1rem 2rem;
+    }
+
+    .graphics-intro,
+    .graphics-panel__header,
+    .graphics-note {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .graphics-filter {
+        width: 100%;
+    }
+
+    .graphics-page .main-header {
+        align-items: flex-start;
+    }
+
+    .graphics-page .user-actions {
+        width: 100%;
+    }
+
+    #downloadChart {
+        align-self: flex-start;
+    }
+}

@@ -1,222 +1,186 @@
-    async function fetchCounts(year) {
-        document.getElementById('graficos-error').hidden = true;
-        const endpoints = [
-            { label: 'Contratos', endpoint: `contracts/count?year=${year}` },
-            { label: 'Projetos', endpoint: `projects/count?year=${year}` },
-            { label: 'Identidades', endpoint: `identities/count?year=${year}` }
-        ];
-        const results = [];
-        for (const item of endpoints) {
-            try {
-                const data = await apiGet(`/api/${item.endpoint}`);
-                results.push(data.count ?? null);
-            } catch {
-                document.getElementById('graficos-error').hidden = false;
-                results.push(null);
+(() => {
+    'use strict';
+
+    const categories = [
+        { label: 'Contratos', path: 'contracts', metric: 'metric-contracts', color: '#20795e' },
+        { label: 'Projetos', path: 'projects', metric: 'metric-projects', color: '#d17a25' },
+        { label: 'Identidades', path: 'identities', metric: 'metric-identities', color: '#3867aa' }
+    ];
+    const yearSelect = document.getElementById('yearSelect');
+    const status = document.getElementById('graphics-status');
+    const error = document.getElementById('graficos-error');
+    const empty = document.getElementById('graphics-empty');
+    const downloadButton = document.getElementById('downloadChart');
+    const canvas = document.getElementById('dashboardChart');
+    const chartContainer = document.getElementById('dashboardChart-container');
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    const documentsToggle = document.getElementById('documentosToggle');
+    const submenu = document.getElementById('submenuDocumentos');
+    const formatNumber = new Intl.NumberFormat('pt-BR');
+    let chart = null;
+    let requestId = 0;
+
+    function setupNavigation() {
+        menuToggle.addEventListener('click', () => {
+            const isOpen = sidebar.classList.toggle('closed') === false;
+            menuToggle.textContent = isOpen ? '✕' : '☰';
+            menuToggle.setAttribute('aria-expanded', String(isOpen));
+            menuToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
+        });
+
+        documentsToggle.addEventListener('click', (event) => {
+            event.preventDefault();
+            submenu.hidden = !submenu.hidden;
+            const isOpen = !submenu.hidden;
+            documentsToggle.setAttribute('aria-expanded', String(isOpen));
+            documentsToggle.querySelector('.submenu-arrow').classList.toggle('rotated', isOpen);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !sidebar.classList.contains('closed') && window.matchMedia('(max-width: 768px)').matches) {
+                sidebar.classList.add('closed');
+                menuToggle.textContent = '☰';
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.setAttribute('aria-label', 'Abrir menu');
+                menuToggle.focus();
             }
+        });
+    }
+
+    function setupYears() {
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear; year >= currentYear - 5; year -= 1) {
+            const option = document.createElement('option');
+            option.value = String(year);
+            option.textContent = String(year);
+            yearSelect.append(option);
         }
-        return results;
     }
 
-let chart;
-
-async function renderDashboard(year) {
-    const counts = await fetchCounts(year);
-    const ctx = document.getElementById('dashboardChart').getContext('2d');
-    
-    if (chart && typeof chart.destroy === 'function') {
-        chart.destroy();
+    async function loadUsername() {
+        try {
+            const data = await window.apiGet('/api/user');
+            const name = data.user?.nome || data.user?.username;
+            if (name) document.getElementById('username-display').textContent = name;
+        } catch {
+            // A falha no perfil não impede a consulta dos indicadores.
+        }
     }
 
-    if (!ctx) {
-        console.error('Canvas context não encontrado')
-        return
+    function resetDisplay() {
+        if (chart) {
+            chart.destroy();
+            chart = null;
+        }
+        categories.forEach(({ metric }) => {
+            document.getElementById(metric).textContent = '—';
+        });
+        status.hidden = false;
+        status.textContent = 'Carregando dados...';
+        error.hidden = true;
+        empty.hidden = true;
+        chartContainer.hidden = true;
+        downloadButton.disabled = true;
     }
 
+    async function renderDashboard(year) {
+        const thisRequest = ++requestId;
+        resetDisplay();
 
-    // Dados para o gráfico
-    const data = {
-        labels: ['Contratos', 'Projetos', 'Identidades'],
-        datasets: [{
-            label: `Registros em ${year}`,
-            data: counts,
-            backgroundColor: [
-                'rgba(40, 167, 69, 0.7)',  // Contratos - verde com transparência
-                'rgba(247, 174, 38, 0.7)',  // Projetos - laranja com transparência
-                'rgba(249, 41, 41, 0.7)'    // Identidades - vermelho com transparência
-            ],
-            borderColor: [
-                'rgba(40, 167, 69, 1)',     // Bordas mais escuras
-                'rgba(247, 174, 38, 1)',
-                'rgba(249, 41, 41, 1)'
-            ],
-            borderWidth: 2,
-            borderRadius: 4,                 // Cantos arredondados
-            hoverBackgroundColor: [
-                'rgba(40, 167, 69, 1)',     // Cores mais vibrantes ao passar mouse
-                'rgba(247, 174, 38, 1)',
-                'rgba(249, 41, 41, 1)'
-            ],
-            hoverBorderWidth: 3
-        }]
-    };
+        const results = await Promise.allSettled(categories.map(({ path }) =>
+            window.apiGet(`/api/${path}/count?year=${encodeURIComponent(year)}`)
+        ));
+        if (thisRequest !== requestId) return;
 
-    // Configurações do gráfico
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,          // Permite ajustar livremente
-        plugins: {
-            legend: { 
-                onClick: null,
-                display: true,
-                position: 'top',
-                labels: {
-                    generateLabels: function(chart) {
-                    // Retorna apenas o label personalizado sem ícone
-                    return [{
-                        text: `Registros ${year}`,  // Texto dinâmico com o ano
-                        fillStyle: 'transparent',    // Remove o retângulo de cor
-                        strokeStyle: 'transparent',  // Remove borda
-                        fontColor: '#333',          // Cor do texto
-                        hidden: false,
-                        lineWidth: 0                // Remove linha                
+        const counts = results.map((result) => {
+            if (result.status !== 'fulfilled') return null;
+            const count = result.value?.count;
+            return Number.isSafeInteger(count) && count >= 0 ? count : null;
+        });
+        const failed = counts.filter((count) => count === null).length;
+        const total = counts.reduce((sum, count) => sum + (count ?? 0), 0);
+
+        categories.forEach(({ metric }, index) => {
+            document.getElementById(metric).textContent = counts[index] === null
+                ? 'Indisponível'
+                : formatNumber.format(counts[index]);
+        });
+
+        if (failed === categories.length) {
+            status.hidden = true;
+            error.textContent = 'Não foi possível carregar os indicadores. Confira se o backend está em execução e tente novamente.';
+            error.hidden = false;
+            return;
+        }
+
+        status.textContent = `${year} · ${formatNumber.format(total)} registro${total === 1 ? '' : 's'} ${failed ? 'disponíveis' : 'no total'}`;
+        if (failed) {
+            error.textContent = 'Parte dos dados está indisponível. Os valores exibidos não representam o total completo.';
+            error.hidden = false;
+        }
+        empty.hidden = failed > 0 || total !== 0;
+
+        if (typeof window.Chart !== 'function') {
+            error.textContent = 'Os indicadores foram carregados, mas a biblioteca de gráficos não está disponível nesta conexão.';
+            error.hidden = false;
+            return;
+        }
+
+        chartContainer.hidden = false;
+        chart = new window.Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: categories.map(({ label }) => label),
+                datasets: [{
+                    data: counts,
+                    backgroundColor: categories.map(({ color }) => color),
+                    borderRadius: 8,
+                    maxBarThickness: 96
                 }]
-             }
-        }
-    },
-        
-            title: { 
-                display: true, 
-                text: `DOCUMENTOS REGISTRADOS - ${year}`,
-                color: '#2c3e50',
-                font: {
-                    size: 18,
-                    weight: 'bold',
-                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-                },
-                padding: {
-                    top: 10,
-                    bottom: 30
-                }
             },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleFont: {
-                    size: 14,
-                    weight: 'bold'
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (context) => `${formatNumber.format(context.parsed.y)} registros` } }
                 },
-                bodyFont: {
-                    size: 12
-                },
-                padding: 12,
-                cornerRadius: 4,
-                displayColors: true,
-                callbacks: {
-                    label: function(context) {
-                        return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
-                    }
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#33465f', font: { weight: '600' } } },
+                    y: { beginAtZero: true, ticks: { precision: 0, color: '#687a91' }, grid: { color: '#e8edf3' } }
                 }
             }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)',
-                    drawBorder: false
-                },
-                ticks: {
-                    color: '#7f8c8d',
-                    precision: 0,
-                    callback: function(value) {
-                        return value.toLocaleString(); // Formata números com separadores
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Quantidade de Registros',
-                    color: '#7f8c8d',
-                    font: {
-                        size: 13
-                    }
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    color: '#2c3e50',
-                    font: {
-                        weight: 'bold'
-                    }
-                }
-            }
-        },
-        animation: {
-            duration: 1000,
-            easing: 'easeInOutQuad'
-        },
-        interaction: {
-            intersect: false,
-            mode: 'index'
+        });
+        downloadButton.disabled = failed > 0;
+    }
+
+    function downloadChart() {
+        if (!chart || downloadButton.disabled) return;
+        try {
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            const context = exportCanvas.getContext('2d');
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            context.drawImage(canvas, 0, 0);
+
+            const link = document.createElement('a');
+            link.href = exportCanvas.toDataURL('image/png');
+            link.download = `documentos-${yearSelect.value}.png`;
+            link.click();
+        } catch {
+            error.textContent = 'Não foi possível baixar o gráfico. Tente novamente.';
+            error.hidden = false;
         }
-    };
-
-    // Criar o novo gráfico
-    chart = new Chart(ctx, {
-        type: 'bar',
-        data: data,
-        options: options
-    });
-
-        if( !chart || chart === null) {
-        console.warn('Gráfico não está inicializado')
-        return;
-    } 
-
-}    
-
-document.getElementById('yearSelect').addEventListener('change', function() {
-        renderDashboard(this.value);
-    });
-
-document.getElementById('downloadChart').addEventListener('click', async () => {
-  const token = localStorage.getItem('token');
-  const year = document.getElementById('yearSelect').value;
-
-  try {
-    const response = await fetch('http://localhost:3000/api/generate-chart', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ year })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao gerar gráfico');
     }
 
-    const data = await response.json();
-
-    // Verifique se a resposta contém a imagem em base64
-    if (!data.image) {
-      throw new Error('Resposta inválida do servidor');
-    }
-
-    // Cria o link de download
-    const link = document.createElement('a');
-    link.href = `data:image/png;base64,${data.image}`; // Prefixo correto para base64
-    link.download = `dashboard-${year}.png`;
-    link.click();
-
-  } catch (error) {
-    console.error('Erro:', error);
-    alert('Falha ao baixar o gráfico: ' + error.message);
-  }
-});
-
-// Inicialização
-    renderDashboard(document.getElementById('yearSelect').value);
+    setupNavigation();
+    setupYears();
+    loadUsername();
+    yearSelect.addEventListener('change', () => renderDashboard(yearSelect.value));
+    downloadButton.addEventListener('click', downloadChart);
+    renderDashboard(yearSelect.value);
+})();
