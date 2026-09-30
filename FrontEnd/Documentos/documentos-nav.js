@@ -55,7 +55,7 @@
         });
 
         const iconsByPage = {
-            'contrato.html': 'contracts', 'projetos.html': 'projects',
+            'documentos.html': 'documents', 'contrato.html': 'contracts', 'projetos.html': 'projects',
             'identidades.html': 'identities', 'graficos.html': 'charts',
             'dashboard.html': 'dashboard', 'analises.html': 'analysis',
             'perfil.html': 'profile'
