@@ -121,7 +121,7 @@ async function loadIdentityPhoto(img, filePath) {
   }
 
     identidadesToShow.forEach(id => {
-        const perfilClass = `perfil-${(id.perfil || '').toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
+        const perfilClass = `perfil-${(id.perfil || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
         const dataCriacao = id.created_at
         ? new Date(id.created_at).toLocaleDateString('pt-BR')
         : '—';
