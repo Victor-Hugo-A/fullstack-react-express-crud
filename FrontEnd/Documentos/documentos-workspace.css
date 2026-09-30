@@ -1,0 +1,230 @@
+:is(.contracts-page, .projects-page) {
+    --workspace-navy: #0b2545;
+    --workspace-blue: #145da0;
+    --workspace-muted: #52657b;
+    --workspace-line: #dce6ee;
+    --sidebar-width: 252px;
+    min-width: 320px;
+    min-height: 100vh;
+    background: #f2f6fa;
+    color: #172b44;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+:is(.contracts-page, .projects-page) .sidebar {
+    position: fixed;
+    z-index: 40;
+    inset: 0 auto 0 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    overflow-y: auto;
+    background: #081c34;
+    color: #dceaf5;
+    box-shadow: 3px 0 18px rgba(8, 28, 52, .16);
+    transition: transform .22s ease;
+}
+
+:is(.contracts-page, .projects-page) .sidebar.closed { transform: translateX(-100%); }
+:is(.contracts-page, .projects-page) .sidebar-brand {
+    min-height: 110px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+    background: transparent;
+    color: #fff;
+    text-align: left;
+    text-decoration: none;
+    font-size: .84rem;
+    font-weight: 750;
+    line-height: 1.2;
+}
+:is(.contracts-page, .projects-page) .sidebar-brand img { width: 52px; height: 52px; object-fit: contain; }
+:is(.contracts-page, .projects-page) .sidebar-brand small {
+    display: block;
+    margin-top: 4px;
+    color: #aec9dd;
+    font-size: .74rem;
+    font-weight: 500;
+}
+:is(.contracts-page, .projects-page) .sidebar-nav { display: grid; gap: 3px; padding: 18px 13px 30px; }
+:is(.contracts-page, .projects-page) .nav-label {
+    margin: 10px 12px 7px;
+    color: #89aac5;
+    font-size: .69rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+}
+:is(.contracts-page, .projects-page) .other-label { margin-top: 22px; }
+:is(.contracts-page, .projects-page) .sidebar .nav-link {
+    min-height: 44px;
+    padding: 10px 13px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    border-radius: 9px;
+    color: #dceaf5;
+    text-decoration: none;
+    font-size: .9rem;
+    font-weight: 650;
+}
+:is(.contracts-page, .projects-page) .sidebar .nav-link:hover,
+:is(.contracts-page, .projects-page) .sidebar .nav-link[aria-current="page"] { background: #17466f; color: #fff; }
+:is(.contracts-page, .projects-page) .sidebar .nav-link[aria-current="page"] { box-shadow: inset 3px 0 #80c8e9; }
+:is(.contracts-page, .projects-page) .sidebar .nav-icon { display: inline-grid; place-items: center; flex: 0 0 20px; width: 20px; height: 20px; margin: 0; color: currentColor; }
+:is(.contracts-page, .projects-page) .sidebar .nav-icon svg { width: 19px; height: 19px; }
+
+:is(.contracts-page, .projects-page) #menuToggle {
+    position: fixed;
+    z-index: 45;
+    top: 19px;
+    left: calc(var(--sidebar-width) - 20px);
+    display: grid !important;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid #d1e0ea;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--workspace-navy);
+    box-shadow: 0 5px 16px rgba(8, 38, 67, .14);
+    cursor: pointer;
+    transition: left .22s ease, background .18s ease;
+}
+:is(.contracts-page, .projects-page) #menuToggle:hover { background: #edf5fb; transform: none; }
+:is(.contracts-page, .projects-page) #menuToggle svg { width: 20px; height: 20px; }
+:is(.contracts-page, .projects-page) #menuToggle:focus-visible,
+:is(.contracts-page, .projects-page) a:focus-visible { outline: 3px solid #f1a53b; outline-offset: 3px; }
+:is(.contracts-page, .projects-page).document-menu-collapsed #menuToggle { left: 12px; }
+:is(.contracts-page, .projects-page).document-menu-collapsed .page-shell { margin-left: 0; }
+:is(.contracts-page, .projects-page) .document-menu-backdrop[hidden] { display: none !important; }
+
+:is(.contracts-page, .projects-page) .page-shell {
+    min-height: 100vh;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    transition: margin-left .22s ease;
+}
+:is(.contracts-page, .projects-page) .page-header {
+    min-height: 86px;
+    padding: 15px clamp(24px, 4vw, 56px) 15px 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-bottom: 1px solid var(--workspace-line);
+    background: #fff;
+}
+:is(.contracts-page, .projects-page) .header-title { display: grid; gap: 2px; color: var(--workspace-navy); }
+:is(.contracts-page, .projects-page) .header-title strong { font-size: 1.3rem; line-height: 1.2; letter-spacing: -.02em; }
+:is(.contracts-page, .projects-page) .eyebrow { color: #3478a7; font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
+:is(.contracts-page, .projects-page) .header-actions { display: flex; align-items: center; gap: 18px; }
+:is(.contracts-page, .projects-page) .username { color: var(--workspace-muted); font-size: .88rem; }
+:is(.contracts-page, .projects-page) .username strong { color: var(--workspace-navy); }
+:is(.contracts-page, .projects-page) .home-link {
+    min-height: 40px;
+    padding: 8px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #bbcede;
+    border-radius: 9px;
+    color: var(--workspace-navy);
+    text-decoration: none;
+    font-size: .86rem;
+    font-weight: 720;
+}
+:is(.contracts-page, .projects-page) .home-link:hover { border-color: var(--workspace-blue); background: #edf5fb; }
+:is(.contracts-page, .projects-page) .main-content {
+    width: min(1320px, 100%);
+    min-width: 0;
+    flex: 1;
+    margin: 0 auto;
+    padding: 34px clamp(24px, 4vw, 56px) 64px;
+    transition: none;
+}
+:is(.contracts-page, .projects-page) .workspace-hero {
+    min-height: 220px;
+    margin: 0 auto 24px;
+    padding: clamp(28px, 4vw, 46px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    overflow: hidden;
+    border: 1px solid #17466f;
+    border-radius: 18px;
+    background: radial-gradient(circle at 96% 110%, #246da7 0, transparent 44%), linear-gradient(110deg, #0b2545, #0e4778);
+    color: #fff;
+    box-shadow: 0 18px 44px rgba(15, 55, 91, .13);
+}
+:is(.contracts-page, .projects-page) .workspace-hero .eyebrow { color: #a9dbf1; }
+:is(.contracts-page, .projects-page) .workspace-hero h1 { margin: 12px 0 13px; color: #fff; font-size: clamp(2rem, 3.5vw, 2.75rem); line-height: 1.15; letter-spacing: -.04em; }
+:is(.contracts-page, .projects-page) .workspace-hero p { max-width: 640px; margin: 0; color: #dcebf6; font-size: .98rem; }
+:is(.contracts-page, .projects-page) .workspace-hero-mark {
+    display: grid;
+    place-items: center;
+    flex: 0 0 104px;
+    width: 104px;
+    height: 104px;
+    border: 1px solid rgba(255, 255, 255, .25);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, .1);
+    color: #fff;
+}
+:is(.contracts-page, .projects-page) .workspace-hero-mark .ui-icon { width: 54px; height: 54px; }
+:is(.contracts-page, .projects-page) .document-section { margin-inline: auto; }
+:is(.contracts-page, .projects-page) .page-footer {
+    padding: 20px clamp(24px, 4vw, 56px);
+    border-top: 1px solid var(--workspace-line);
+    background: #fff;
+    color: var(--workspace-muted);
+    font-size: .78rem;
+}
+:is(.contracts-page, .projects-page) .skip-link { z-index: 1100; top: -80px; }
+:is(.contracts-page, .projects-page) .skip-link:focus { top: 12px; }
+
+@media (max-width: 768px) {
+    :is(.contracts-page, .projects-page) .sidebar,
+    :is(.contracts-page, .projects-page) .sidebar.closed { width: min(280px, calc(100vw - 56px)); z-index: 1000; }
+    :is(.contracts-page, .projects-page) .sidebar:not(.closed) { transform: translateX(0); }
+    :is(.contracts-page, .projects-page) #menuToggle { top: 16px; left: 12px; z-index: 1001; }
+    :is(.contracts-page, .projects-page) .page-shell { margin-left: 0; }
+    :is(.contracts-page, .projects-page) .page-header { min-height: 72px; padding: 12px 20px 12px 64px; }
+    :is(.contracts-page, .projects-page) .header-title strong { font-size: 1rem; }
+    :is(.contracts-page, .projects-page) .header-actions { gap: 8px; }
+    :is(.contracts-page, .projects-page) .username { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; }
+    :is(.contracts-page, .projects-page) .home-link { min-height: 36px; padding: 6px 9px; font-size: .78rem; }
+    :is(.contracts-page, .projects-page) .main-content { padding: 24px 20px 52px; }
+    :is(.contracts-page, .projects-page) .workspace-hero { min-height: 0; padding: 30px 24px; }
+    :is(.contracts-page, .projects-page) .workspace-hero-mark { flex-basis: 76px; width: 76px; height: 76px; border-radius: 18px; }
+    :is(.contracts-page, .projects-page) .workspace-hero-mark .ui-icon { width: 40px; height: 40px; }
+    :is(.contracts-page, .projects-page) .document-menu-backdrop:not([hidden]) {
+        position: fixed;
+        z-index: 999;
+        inset: 0;
+        display: block;
+        background: rgba(8, 28, 52, .48);
+    }
+    :is(.contracts-page, .projects-page).document-menu-mobile-open { overflow: hidden; }
+    :is(.contracts-page, .projects-page) .page-footer { padding-inline: 20px; }
+}
+
+@media (max-width: 700px) {
+    :is(.contracts-page, .projects-page) .page-header { align-items: flex-start; }
+    :is(.contracts-page, .projects-page) .header-actions { width: 100%; justify-content: space-between; }
+    :is(.contracts-page, .projects-page) .workspace-hero-mark { display: none; }
+}
+
+@media (max-width: 430px) {
+    :is(.contracts-page, .projects-page) .username { display: none; }
+    :is(.contracts-page, .projects-page) .workspace-hero h1 { font-size: 1.85rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(.contracts-page, .projects-page) .sidebar,
+    :is(.contracts-page, .projects-page) #menuToggle,
+    :is(.contracts-page, .projects-page) .page-shell { transition: none; }
+}
