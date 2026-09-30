@@ -263,6 +263,66 @@ router.get('/dashboard/summary', authenticateJWT, async (req, res) => {
     }
 });
 
+// Dados agregados para a página de análises. O período usa a data do contrato,
+// a data de início do projeto e a data de cadastro da identidade.
+router.get('/analysis/summary', authenticateJWT, async (req, res) => {
+    const queryAll = (sql, params = []) => new Promise((resolve, reject) => {
+        db.all(sql, params, (error, rows) => error ? reject(error) : resolve(rows));
+    });
+    const from = /^\d{4}-\d{2}-\d{2}$/.test(req.query.from || '') ? req.query.from : null;
+    const to = /^\d{4}-\d{2}-\d{2}$/.test(req.query.to || '') ? req.query.to : null;
+    if (from && to && from > to) return res.status(400).json({ error: 'O início do período deve ser anterior ao fim.' });
+    const dateCondition = (field) => {
+        const clauses = [];
+        const params = [];
+        if (from) { clauses.push(`${field} >= ?`); params.push(from); }
+        if (to) { clauses.push(`${field} <= ?`); params.push(to); }
+        return { where: clauses.length ? ` WHERE ${clauses.join(' AND ')}` : '', params };
+    };
+
+    try {
+        const contracts = readContracts().filter(contract => {
+            const date = String(contract.date || '').slice(0, 10);
+            return (!from || date >= from) && (!to || date <= to);
+        });
+        const contractsByType = Object.entries(contracts.reduce((counts, contract) => {
+            const tipo = String(contract.type || 'Outro').toLowerCase();
+            counts[tipo] = (counts[tipo] || 0) + 1;
+            return counts;
+        }, {})).map(([tipo, count]) => ({ tipo, count }));
+        const projectsFilter = dateCondition('start_date');
+        const identitiesFilter = dateCondition('created_at');
+        const [projectGroups, identityGroups, projectCount, identityCount, completedProjects, overdueProjects, recentProjects, recentIdentities] = await Promise.all([
+            queryAll(`SELECT status, COUNT(*) AS count FROM projects${projectsFilter.where} GROUP BY status`, projectsFilter.params),
+            queryAll(`SELECT perfil, COUNT(*) AS count FROM identities${identitiesFilter.where} GROUP BY perfil`, identitiesFilter.params),
+            queryAll(`SELECT COUNT(*) AS count FROM projects${projectsFilter.where}`, projectsFilter.params),
+            queryAll(`SELECT COUNT(*) AS count FROM identities${identitiesFilter.where}`, identitiesFilter.params),
+            queryAll(`SELECT COUNT(*) AS count FROM projects${projectsFilter.where}${projectsFilter.where ? ' AND' : ' WHERE'} status = 'concluido'`, projectsFilter.params),
+            queryAll(`SELECT COUNT(*) AS count FROM projects${projectsFilter.where}${projectsFilter.where ? ' AND' : ' WHERE'} status != 'concluido' AND end_date IS NOT NULL AND end_date < DATE('now')`, projectsFilter.params),
+            queryAll(`SELECT name, code, manager, status, start_date FROM projects${projectsFilter.where} ORDER BY start_date DESC LIMIT 10`, projectsFilter.params),
+            queryAll(`SELECT nome, cpf, perfil, created_at FROM identities${identitiesFilter.where} ORDER BY created_at DESC LIMIT 10`, identitiesFilter.params)
+        ]);
+        const recentContracts = [...contracts].sort((first, second) => String(second.date || '').localeCompare(String(first.date || ''))).slice(0, 10);
+        const totals = {
+            contracts: contracts.length,
+            projects: Number(projectCount[0]?.count || 0),
+            identities: Number(identityCount[0]?.count || 0),
+            completedProjects: Number(completedProjects[0]?.count || 0),
+            overdueProjects: Number(overdueProjects[0]?.count || 0)
+        };
+        totals.all = totals.contracts + totals.projects + totals.identities;
+        res.json({
+            totals,
+            groups: { contracts: contractsByType, projects: projectGroups, identities: identityGroups },
+            recent: { contracts: recentContracts, projects: recentProjects, identities: recentIdentities },
+            updatedAt: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Erro ao carregar resumo de análises:', error);
+        res.status(500).json({ error: 'Não foi possível carregar o resumo das análises.' });
+    }
+});
+
 
 // ATUALIZAÇÃO DO BADGE - REGISTROS
 router.get('/contracts/count', authenticateJWT, (req, res) => {
@@ -376,6 +436,9 @@ app.get('/api/user', authenticateJWT, async (req, res) => {
                         username: user.username,
                         nome: user.nome || user.username,
                         email: user.email,
+                        cpf: user.cpf,
+                        departamento: user.departamento,
+                        cargo: user.cargo,
                         isAdmin: user.is_admin === 1
                     }
                 });

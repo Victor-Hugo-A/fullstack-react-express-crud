@@ -117,6 +117,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       '/api/projects/groupby/status',
       '/api/identities/groupby/perfil',
       '/api/dashboard/summary',
+      '/api/analysis/summary',
       '/uploads/identities/test-image.png',
       '/project-files/test-file.pdf'
     ]) {
@@ -176,7 +177,8 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       '/api/contracts/groupby/type',
       '/api/projects/groupby/status',
       '/api/identities/groupby/perfil',
-      '/api/dashboard/summary'
+      '/api/dashboard/summary',
+      '/api/analysis/summary'
     ]) {
       assert.equal((await fetch(base + route, {
         headers: { Authorization: `Bearer ${token}` }
@@ -187,6 +189,11 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     });
     assert.equal(dashboardSummary.status, 200);
     assert.deepEqual(Object.keys((await dashboardSummary.json()).totals).sort(), ['all', 'contracts', 'identities', 'projects']);
+    const analysisSummary = await fetch(`${base}/api/analysis/summary?from=2026-01-01&to=2026-12-31`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(analysisSummary.status, 200);
+    assert.ok(Object.hasOwn(await analysisSummary.json(), 'recent'));
     assert.equal((await fetch(`${base}/api/contracts/check?number=nenhum`, {
       headers: { Authorization: `Bearer ${token}` }
     })).status, 200);
@@ -259,7 +266,11 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const regularUser = await fetch(`${base}/api/user`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    assert.equal((await regularUser.json()).user.isAdmin, false);
+    const regularUserBody = await regularUser.json();
+    assert.equal(regularUserBody.user.isAdmin, false);
+    assert.equal(regularUserBody.user.cpf, '52998224725');
+    assert.equal(regularUserBody.user.departamento, null);
+    assert.equal(regularUserBody.user.cargo, null);
     const individualDeletes = [
       `/api/contracts/${contract.id}`,
       `/api/project-files/${projectFiles[0].id}`,

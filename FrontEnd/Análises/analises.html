@@ -19,55 +19,41 @@
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
     <div class="top-bar"><div class="page-container"><span>Ministério da Justiça e Segurança Pública · SENAPPEN</span><time id="current-date"></time></div></div>
     <header class="main-header"><div class="page-container header-content">
-        <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema">
-            <span class="brand-mark"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></span>
-            <span class="brand-copy"><strong>Análises</strong><small>Secretaria Nacional de Políticas Penais</small></span>
-        </a>
+        <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><span class="brand-mark"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></span><span class="brand-copy"><strong>Análises</strong><small>Secretaria Nacional de Políticas Penais</small></span></a>
         <div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div>
     </div></header>
-    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links">
-        <a href="/FrontEnd/Sistema/sistema.html">Início</a>
-        <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
-        <a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a>
-        <a href="/FrontEnd/Análises/analises.html" aria-current="page">Análises</a>
-        <a href="/FrontEnd/Perfil/perfil.html">Perfil</a>
-    </div></nav>
-
+    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links"><a href="/FrontEnd/Sistema/sistema.html">Início</a><a href="/FrontEnd/Documentos/documentos.html">Documentos</a><a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a><a href="/FrontEnd/Análises/analises.html" aria-current="page">Análises</a><a href="/FrontEnd/Perfil/perfil.html">Perfil</a></div></nav>
     <main id="conteudo" class="main-content page-container">
         <p id="analises-error" role="alert" hidden></p>
-        <div class="module-heading">
-            <div><span class="eyebrow">CONSULTA DE DADOS</span><h1>Análises dos registros</h1><p>Consulte quantitativos, distribuições por categoria e registros recentes.</p></div>
-            <a class="module-link" href="/FrontEnd/Dashboard/dashboard.html">Ver indicadores gerais <span aria-hidden="true">↗</span></a>
-        </div>
-
+        <div class="module-heading"><div><span class="eyebrow">CONSULTA DE DADOS</span><h1>Análises dos registros</h1><p>Explore os indicadores, compare a distribuição e consulte os cadastros mais recentes.</p></div><a class="module-link" href="/FrontEnd/Dashboard/dashboard.html">Ver indicadores gerais <span aria-hidden="true">↗</span></a></div>
+        <section class="analysis-filter-panel" aria-labelledby="period-title"><div><span class="eyebrow">RECORTE DA CONSULTA</span><h2 id="period-title">Período de análise</h2></div><form id="analysis-period" class="analysis-period"><label>Início <input id="period-from" type="date"></label><label>Fim <input id="period-to" type="date"></label><button type="submit">Aplicar</button><button id="clear-period" type="button">Limpar</button></form></section>
         <section class="module-section" aria-labelledby="summary-title">
-            <div class="module-section__heading"><h2 id="summary-title">Resumo dos cadastros</h2><p>Totais disponíveis no momento da consulta.</p></div>
+            <div class="analysis-section-heading"><div><h2 id="summary-title">Resumo dos cadastros</h2><p>Dados disponíveis no período selecionado.</p></div><p id="analysis-updated" aria-live="polite">Carregando dados...</p></div>
             <div class="analysis-summary">
-                <article class="module-card summary-card"><span>Contratos cadastrados</span><strong id="contratos-ativos">—</strong><small>Total de contratos</small></article>
-                <article class="module-card summary-card"><span>Projetos cadastrados</span><strong id="projetos-andamento">—</strong><small>Total de projetos</small></article>
-                <article class="module-card summary-card"><span>Identidades cadastradas</span><strong id="identidades-cadastradas">—</strong><small>Total de identidades</small></article>
+                <article class="module-card summary-card summary-card--contracts"><span class="summary-icon" aria-hidden="true">▤</span><div><span>Contratos</span><strong id="metric-contracts">—</strong><small>registros cadastrados</small></div></article>
+                <article class="module-card summary-card summary-card--projects"><span class="summary-icon" aria-hidden="true">◈</span><div><span>Projetos</span><strong id="metric-projects">—</strong><small>registros cadastrados</small></div></article>
+                <article class="module-card summary-card summary-card--identities"><span class="summary-icon" aria-hidden="true">◉</span><div><span>Identidades</span><strong id="metric-identities">—</strong><small>perfis cadastrados</small></div></article>
+                <article class="module-card summary-card summary-card--completed"><span class="summary-icon" aria-hidden="true">✓</span><div><span>Projetos concluídos</span><strong id="metric-completed">—</strong><small id="completed-rate">— do total</small></div></article>
+                <article class="module-card summary-card summary-card--overdue"><span class="summary-icon" aria-hidden="true">!</span><div><span>Projetos com prazo vencido</span><strong id="metric-overdue">—</strong><small>exclui projetos concluídos</small></div></article>
             </div>
         </section>
-
         <section class="module-section" aria-labelledby="distribution-title">
-            <div class="module-section__heading"><h2 id="distribution-title">Distribuição dos registros</h2><p>Comparativos por tipo, situação e perfil.</p></div>
+            <div class="module-section__heading"><h2 id="distribution-title">Distribuição dos registros</h2><p>Compare categorias, situação dos projetos e perfis de acesso.</p></div>
             <div class="analysis-charts">
-                <article class="module-card analysis-chart"><h3>Contratos por tipo</h3><div class="analysis-canvas"><canvas id="contratosStatusChart" role="img" aria-label="Gráfico de contratos por tipo"></canvas></div></article>
-                <article class="module-card analysis-chart"><h3>Projetos por situação</h3><div class="analysis-canvas"><canvas id="projetosStatusChart" role="img" aria-label="Gráfico de projetos por situação"></canvas></div></article>
-                <article class="module-card analysis-chart"><h3>Identidades por perfil</h3><fieldset id="perfil-filtros" class="analysis-filters"><legend>Perfis exibidos</legend><label><input type="checkbox" value="administrador" checked> Administrador</label><label><input type="checkbox" value="usuário" checked> Usuário</label><label><input type="checkbox" value="visitante" checked> Visitante</label></fieldset><div class="analysis-canvas"><canvas id="identidadesChart" role="img" aria-label="Gráfico de identidades por perfil"></canvas></div></article>
+                <article class="module-card analysis-chart analysis-chart--wide"><div class="chart-heading"><div><h3>Contratos por tipo</h3><p class="module-card__description">Quantidade de contratos em cada categoria.</p></div><span id="contracts-total" class="chart-total">—</span></div><div class="analysis-canvas"><canvas id="contratosStatusChart" role="img" aria-label="Gráfico de contratos por tipo"></canvas></div></article>
+                <article class="module-card analysis-chart"><div class="chart-heading"><div><h3>Projetos por situação</h3><p class="module-card__description">Acompanhamento da carteira de projetos.</p></div><span id="projects-total" class="chart-total">—</span></div><div class="analysis-canvas"><canvas id="projetosStatusChart" role="img" aria-label="Gráfico de projetos por situação"></canvas></div></article>
+                <article class="module-card analysis-chart"><div class="chart-heading"><div><h3>Identidades por perfil</h3><p class="module-card__description">Use os filtros para comparar perfis específicos.</p></div><span id="identities-total" class="chart-total">—</span></div><div id="perfil-filtros" class="analysis-filters" aria-label="Perfis exibidos"></div><div class="analysis-canvas"><canvas id="identidadesChart" role="img" aria-label="Gráfico de identidades por perfil"></canvas></div></article>
             </div>
         </section>
-
         <section class="module-section" aria-labelledby="recent-title">
-            <div class="module-section__heading"><h2 id="recent-title">Registros recentes</h2><p>Últimos cadastros disponíveis em cada categoria.</p></div>
-            <div class="recent-lists">
-                <article class="module-card"><h3>Contratos</h3><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Data</th><th>Número</th><th>Tipo</th><th>Descrição</th></tr></thead><tbody id="contratos-recentes"></tbody></table></div></article>
-                <article class="module-card"><h3>Projetos</h3><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Início</th><th>Nome</th><th>Código</th><th>Situação</th><th>Responsável</th></tr></thead><tbody id="projetos-recentes"></tbody></table></div></article>
-                <article class="module-card"><h3>Identidades</h3><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Cadastro</th><th>CPF</th><th>Nome</th><th>Perfil</th></tr></thead><tbody id="identidades-recentes"></tbody></table></div></article>
+            <div class="module-section__heading"><h2 id="recent-title">Registros recentes</h2><p>Até dez registros por categoria, de acordo com o período selecionado.</p></div>
+            <div class="module-card recent-card"><div class="analysis-tabs" role="tablist" aria-label="Categorias de registros"><button id="tab-contracts" type="button" role="tab" aria-selected="true" aria-controls="panel-contracts">Contratos</button><button id="tab-projects" type="button" role="tab" aria-selected="false" aria-controls="panel-projects">Projetos</button><button id="tab-identities" type="button" role="tab" aria-selected="false" aria-controls="panel-identities">Identidades</button></div>
+                <div id="panel-contracts" role="tabpanel" aria-labelledby="tab-contracts" class="tab-panel"><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Data</th><th>Número</th><th>Tipo</th><th>Descrição</th></tr></thead><tbody id="contratos-recentes"></tbody></table></div></div>
+                <div id="panel-projects" role="tabpanel" aria-labelledby="tab-projects" class="tab-panel" hidden><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Início</th><th>Nome</th><th>Código</th><th>Situação</th><th>Responsável</th></tr></thead><tbody id="projetos-recentes"></tbody></table></div></div>
+                <div id="panel-identities" role="tabpanel" aria-labelledby="tab-identities" class="tab-panel" hidden><div class="module-table-wrap"><table class="module-table"><thead><tr><th>Cadastro</th><th>CPF</th><th>Nome</th><th>Perfil</th></tr></thead><tbody id="identidades-recentes"></tbody></table></div></div>
             </div>
         </section>
     </main>
-
     <footer class="footer"><div class="page-container footer-bottom">Ministério da Justiça e Segurança Pública · SENAPPEN</div></footer>
 </body>
 </html>
