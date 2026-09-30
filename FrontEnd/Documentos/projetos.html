@@ -10,90 +10,51 @@
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos.css">
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos-internal.css">
     <link rel="stylesheet" href="/FrontEnd/Documentos/documentos-pages.css">
+    <link rel="stylesheet" href="/FrontEnd/Documentos/documentos-workspace.css">
     <link rel="stylesheet" href="/FrontEnd/notice.css">
     <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
     <script src="/FrontEnd/Documentos/documentos-nav.js" defer></script>
 </head>
 
 <body class="documents-workspace projects-page">
-    
-    <div class="app-container">
-<!-- Sidebar -->
-<button id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button>
-<nav id="sidebar" class="sidebar closed" aria-label="Navegação de documentos">
-
-    <div class="sidebar-brand">
-        <a href="/FrontEnd/Documentos/documentos.html">
-            <img src="/FrontEnd/img/MJ.png" alt="Logo MJ" class="logo">
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <aside id="sidebar" class="sidebar closed" aria-label="Navegação do portal">
+        <a class="sidebar-brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Voltar ao início do portal">
+            <img src="/FrontEnd/img/MJ.png" alt="Brasão da República">
+            <span>SENAPPEN<small>Sistema de gestão</small></span>
         </a>
-    </div>
-
-    <ul class="sidebar-nav">
-        <li class="nav-item has-submenu">
-            <a href="#submenuDocumentos" class="nav-link" id="documentosToggle" aria-controls="submenuDocumentos" aria-expanded="true">
-<span class="icon"></span>
-                <span class="link-text">Documentos</span>
-<span class="submenu-arrow rotated"></span>
-            </a>
-            <ul class="submenu" id="submenuDocumentos">
-                <li class="nav-item contract">
-                    <a href="/FrontEnd/Documentos/contrato.html" class="nav-link nav-contract">
-<span class="icon"></span>
-                        <span class="link-text">Contratos</span>
-                    </a>
-                </li>
-                <li class="nav-item project">
-                    <a href="/FrontEnd/Documentos/projetos.html" class="nav-link nav-project">
-<span class="icon"></span>
-                        <span class="link-text">Projetos</span>
-                    </a>
-                </li>
-                <li class="nav-item identity">
-                    <a href="/FrontEnd/Documentos/identidades.html" class="nav-link nav-identify">
-<span class="icon"></span>
-                        <span class="link-text">Identidades</span>
-                    </a>
-                </li>
-                <li class="nav-item others">
-                    <a href="/FrontEnd/Documentos/graficos.html" class="nav-link nav-others">
-<span class="icon"></span>
-                        <span class="link-text">Gráficos</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
-            <li class="nav-item others">
-                <a href="/FrontEnd/Dashboard/dashboard.html" class="nav-link nav-others">
-<span class="icon"></span>
-                    <span class="link-text">Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item others">
-                <a href="/FrontEnd/Análises/analises.html" class="nav-link nav-others">
-<span class="icon"></span>
-                    <span class="link-text">Análises</span>
-                </a>
-            </li>
-            <li class="nav-item others">
-                <a href="/FrontEnd/Perfil/perfil.html" class="nav-link nav-others">
-<span class="icon"></span>
-                    <span class="link-text">Perfil</span>
-                </a>
-            </li>
-    </ul>
-</nav>
-
-        <!-- Conteúdo Principal -->
-        <main class="main-content">
-            <header class="main-header">
-                <div class="page-heading"><span class="page-eyebrow">DOCUMENTOS / PROJETOS</span><h1 class="page-title">Projetos</h1><p>Registre iniciativas, acompanhe sua situação e consulte os arquivos vinculados.</p></div>
-                <div class="user-actions">
-                    <span class="username" id="username-display">Usuário</span>
-                    <a href="/FrontEnd/Sistema/sistema.html" class="home-btn"><span data-icon="home"></span> Início</a>
-                </div>
-            </header>
-
+        <nav class="sidebar-nav" aria-label="Áreas do portal">
+            <span class="nav-label">ÁREA DE TRABALHO</span>
+            <a class="nav-link" href="/FrontEnd/Documentos/documentos.html"><span class="icon"></span>Documentos</a>
+            <a class="nav-link" href="/FrontEnd/Documentos/contrato.html"><span class="icon"></span>Contratos</a>
+            <a class="nav-link" href="/FrontEnd/Documentos/projetos.html"><span class="icon"></span>Projetos</a>
+            <a class="nav-link" href="/FrontEnd/Documentos/identidades.html"><span class="icon"></span>Identidades</a>
+            <a class="nav-link" href="/FrontEnd/Documentos/graficos.html"><span class="icon"></span>Gráficos</a>
+            <span class="nav-label other-label">OUTRAS ÁREAS</span>
+            <a class="nav-link" href="/FrontEnd/Dashboard/dashboard.html"><span class="icon"></span>Dashboard</a>
+            <a class="nav-link" href="/FrontEnd/Análises/analises.html"><span class="icon"></span>Análises</a>
+            <a class="nav-link" href="/FrontEnd/Perfil/perfil.html"><span class="icon"></span>Perfil</a>
+        </nav>
+    </aside>
+    <button id="menuToggle" class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Abrir menu"></button>
+    <div class="page-shell">
+        <header class="page-header">
+            <div class="header-title"><span class="eyebrow">SISTEMA DE GESTÃO</span><strong>Projetos</strong></div>
+            <div class="header-actions">
+                <span class="username">Usuário: <strong id="username-display">Usuário</strong></span>
+                <a href="/FrontEnd/Sistema/sistema.html" class="home-link">Início <span aria-hidden="true">↗</span></a>
+            </div>
+        </header>
+        <main id="conteudo" class="main-content">
             <div id="project-message" class="message" role="status" aria-live="polite" hidden></div>
+            <section class="workspace-hero" aria-labelledby="projects-title">
+                <div>
+                    <span class="eyebrow">ÁREA DE DOCUMENTOS&nbsp; / &nbsp;GESTÃO DE PROJETOS</span>
+                    <h1 id="projects-title">Gestão de projetos</h1>
+                    <p>Registre iniciativas, acompanhe prazos e status e consulte os arquivos vinculados em um ambiente centralizado.</p>
+                </div>
+                <div class="workspace-hero-mark" aria-hidden="true"><span data-icon="projects"></span></div>
+            </section>
             <!-- Seção de Criação de Projeto -->
             <section class="document-section">
                 <h2 class="section-title"><span class="section-icon" data-icon="plus"></span>Cadastrar projeto</h2>
@@ -200,6 +161,7 @@
                 <nav class="pagination" aria-label="Paginação de projetos" hidden></nav>
             </section>
         </main>
+        <footer class="page-footer">Ministério da Justiça e Segurança Pública · SENAPPEN</footer>
     </div>
     
     

@@ -32,6 +32,13 @@ const utils = {
     return statusTexts[status] || status;
   },
 
+  getStatusClass: (status) => ({
+    planejamento: 'planejamento',
+    andamento: 'andamento',
+    suspenso: 'suspenso',
+    concluido: 'concluido'
+  }[status] || ''),
+
   debounce: (func, wait) => {
     let timeout;
     return function(...args) {
@@ -75,17 +82,21 @@ function renderProjectsPage(page) {
 
   const table = document.createElement('table');
   table.className = 'projects-table';
+  const caption = document.createElement('caption');
+  caption.className = 'visually-hidden';
+  caption.textContent = 'Projetos cadastrados. Use os botões de ação para visualizar, editar ou excluir cada projeto.';
+  table.appendChild(caption);
 
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
-      <th>Código</th>
-      <th>Nome</th>
-      <th>Responsável</th>
-      <th>Início</th>
-      <th>Término</th>
-      <th>Status</th>
-      <th>Ações</th>
+      <th scope="col">Código</th>
+      <th scope="col">Projeto</th>
+      <th scope="col">Responsável</th>
+      <th scope="col">Início</th>
+      <th scope="col">Término previsto</th>
+      <th scope="col">Status</th>
+      <th scope="col">Ações</th>
     </tr>
   `;
   table.appendChild(thead);
@@ -94,16 +105,16 @@ function renderProjectsPage(page) {
   projectsToShow.forEach(project => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${utils.sanitize(project.code)}</td>
-      <td>${utils.sanitize(project.name)}</td>
+      <td class="project-code-cell">${utils.sanitize(project.code)}</td>
+      <th scope="row" class="project-name-cell">${utils.sanitize(project.name)}</th>
       <td>${utils.sanitize(project.manager)}</td>
-      <td>${utils.formatDate(project.start_date)}</td>
-      <td>${project.end_date ? utils.formatDate(project.end_date) : '-'}</td>
-      <td><span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></td>
+      <td class="project-date-cell">${utils.formatDate(project.start_date)}</td>
+      <td class="project-date-cell">${project.end_date ? utils.formatDate(project.end_date) : 'Não definida'}</td>
+      <td><span class="status-badge ${utils.getStatusClass(project.status)}">${utils.sanitize(utils.getStatusText(project.status))}</span></td>
       <td class="actions">
-        <button class="btn-view project" type="button" data-id="${project.id}" title="Visualizar projeto" aria-label="Visualizar projeto">${window.documentIcons.markup('eye')}</button>
-        <button class="btn-edit project" type="button" data-id="${project.id}" title="Editar projeto" aria-label="Editar projeto">${window.documentIcons.markup('edit')}</button>
-        <button class="btn-delete project" type="button" data-admin-only data-id="${project.id}" title="Excluir projeto" aria-label="Excluir projeto">${window.documentIcons.markup('trash')}</button>
+        <button class="btn-view project" type="button" data-id="${utils.sanitize(project.id)}" title="Visualizar projeto" aria-label="Visualizar ${utils.sanitize(project.name)}">${window.documentIcons.markup('eye')}<span>Ver</span></button>
+        <button class="btn-edit project" type="button" data-id="${utils.sanitize(project.id)}" title="Editar projeto" aria-label="Editar ${utils.sanitize(project.name)}">${window.documentIcons.markup('edit')}<span>Editar</span></button>
+        <button class="btn-delete project" type="button" data-admin-only data-id="${utils.sanitize(project.id)}" title="Excluir projeto" aria-label="Excluir ${utils.sanitize(project.name)}">${window.documentIcons.markup('trash')}<span>Excluir</span></button>
       </td>
     `;
     tbody.appendChild(row);
@@ -397,77 +408,121 @@ function renderProjectsPage(page) {
       ErroMessage('Erro ao carregar detalhes do projeto', 'error');
       return;
     }
+    document.querySelector('.project-modal .close-modal')?.click();
+    const previousFocus = document.activeElement;
     const modal = document.createElement('div');
     modal.className = 'project-modal';
     modal.innerHTML = `
-      <div class="modal-content">
-        <button type="button" class="close-modal" aria-label="Fechar detalhes">&times;</button>
-        <h3> ${utils.sanitize(project.name)} - <span class="status-badge ${utils.sanitize(project.status)}">${utils.getStatusText(project.status)}</span></h3>
-        
-        <div class="project-details">
-          <div class="detail-row">
-            <span class="detail-label">Código:</span>
-            <span class="detail-value">${utils.sanitize(project.code)}</span>
+      <section class="modal-content" role="dialog" aria-modal="true" aria-labelledby="project-modal-title" tabindex="-1">
+        <header class="project-modal-header">
+          <div class="project-modal-heading">
+            <span class="project-modal-eyebrow">DETALHES DO PROJETO</span>
+            <h2 id="project-modal-title">${utils.sanitize(project.name)}</h2>
+            <span class="project-modal-code">Código ${utils.sanitize(project.code)}</span>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Responsável:</span>
-            <span class="detail-value">${utils.sanitize(project.manager)}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Data de Início:</span>
-            <span class="detail-value">${utils.formatDate(project.start_date)}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Previsão de Término:</span>
-            <span class="detail-value">${project.end_date ? utils.formatDate(project.end_date) : 'Não definida'}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Descrição:</span>
-            <p class="detail-value">${utils.sanitize(project.description)}</p>
-          </div>
-          
-          ${project.files && project.files.length > 0 ? `
+          <button type="button" class="close-modal" aria-label="Fechar detalhes do projeto">&times;</button>
+        </header>
+        <div class="project-modal-body">
+          <div class="project-modal-status"><span class="detail-label">Situação</span><span class="status-badge ${utils.getStatusClass(project.status)}">${utils.sanitize(utils.getStatusText(project.status))}</span></div>
+          <dl class="project-details">
             <div class="detail-row">
-              <span class="detail-label">Documentos:</span>
+              <dt class="detail-label">Responsável</dt>
+              <dd class="detail-value">${utils.sanitize(project.manager) || 'Não informado'}</dd>
+            </div>
+            <div class="detail-row">
+              <dt class="detail-label">Data de início</dt>
+              <dd class="detail-value">${utils.formatDate(project.start_date)}</dd>
+            </div>
+            <div class="detail-row">
+              <dt class="detail-label">Término previsto</dt>
+              <dd class="detail-value">${project.end_date ? utils.formatDate(project.end_date) : 'Não definida'}</dd>
+            </div>
+          </dl>
+          <section class="project-description-section" aria-labelledby="project-description-title">
+            <h3 id="project-description-title">Descrição</h3>
+            <p>${utils.sanitize(project.description) || 'Nenhuma descrição informada.'}</p>
+          </section>
+          ${Array.isArray(project.files) && project.files.length > 0 ? `
+            <section class="project-files-section" aria-labelledby="project-files-title">
+              <div class="project-files-heading">
+                <h3 id="project-files-title">Documentos relacionados</h3>
+                <span>${project.files.length} ${project.files.length === 1 ? 'arquivo' : 'arquivos'}</span>
+              </div>
               <div class="files-container">
                 ${project.files.map(file => {
-                  const ext = file.filename.split('.').pop().toLowerCase();
-                  const fileUrl = `${API_URL}/project-files/${encodeURIComponent(file.filename)}`;
+                  const filename = String(file.filename || '');
+                  const originalname = String(file.originalname || filename || 'Arquivo');
+                  const ext = filename.split('.').pop().toLowerCase();
+                  const fileUrl = `${API_URL}/project-files/${encodeURIComponent(filename)}`;
                   return `
-                  <div class="file-item" data-file-id="${file._id || file.id}">
+                  <div class="file-item" data-file-id="${utils.sanitize(file._id || file.id)}">
                     <div class="file-info">
                       ${window.documentIcons.markup(ext === 'pdf' ? 'file' : 'image')}
-                      <a href="#" class="project-file-link" data-file-url="${fileUrl}" data-filename="${utils.sanitize(file.originalname)}">${utils.sanitize(file.originalname)}</a>
-                      <span class="file-size">(${formatFileSize(file.size)})</span>
+                      <a href="#" class="project-file-link" data-file-url="${fileUrl}" data-filename="${utils.sanitize(originalname)}">${utils.sanitize(originalname)}</a>
+                      <span class="file-size">${formatFileSize(file.size)}</span>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-download-file" type="button" data-file-url="${fileUrl}" data-filename="${utils.sanitize(file.originalname)}" title="Baixar arquivo" aria-label="Baixar arquivo">
+                      <button class="btn-download-file" type="button" data-file-url="${fileUrl}" data-filename="${utils.sanitize(originalname)}" title="Baixar arquivo" aria-label="Baixar ${utils.sanitize(originalname)}">
                         ${window.documentIcons.markup('download')}
                       </button>
-                      <button class="btn-delete-file" type="button" data-admin-only data-file-id="${file._id || file.id}" data-project-id="${project.id}" title="Excluir o arquivo" aria-label="Excluir o arquivo">
+                      <button class="btn-delete-file" type="button" data-admin-only data-file-id="${utils.sanitize(file._id || file.id)}" data-project-id="${utils.sanitize(project.id)}" title="Excluir o arquivo" aria-label="Excluir ${utils.sanitize(originalname)}">
                         ${window.documentIcons.markup('trash')}
                       </button>
                     </div>
                   </div>`;
                 }).join('')}
               </div>
-            </div>
-          ` : ''}
+            </section>
+          ` : `
+            <section class="project-files-section project-files-empty" aria-labelledby="project-files-title">
+              <div class="project-files-heading">
+                <h3 id="project-files-title">Documentos relacionados</h3>
+              </div>
+              <p>Nenhum documento anexado a este projeto.</p>
+            </section>
+          `}
         </div>
-      </div>
+      </section>
     `;
     
     modal.classList.add('active');
     document.body.appendChild(modal);
+    const closeButton = modal.querySelector('.close-modal');
+    const closeModal = () => {
+      document.removeEventListener('keydown', handleModalKeydown);
+      modal.remove();
+      document.body.classList.remove('project-modal-open');
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+    const handleModalKeydown = event => {
+      if (event.key === 'Escape') {
+        closeModal();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = [...modal.querySelectorAll('a[href], button:not([disabled]), [tabindex="0"]')]
+        .filter(element => !element.hidden && element.getAttribute('aria-hidden') !== 'true' && element.getClientRects().length > 0);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        modal.querySelector('.modal-content').focus();
+      } else if (event.shiftKey && document.activeElement === focusable[0]) {
+        event.preventDefault();
+        focusable[focusable.length - 1].focus();
+      } else if (!event.shiftKey && document.activeElement === focusable[focusable.length - 1]) {
+        event.preventDefault();
+        focusable[0].focus();
+      }
+    };
+    document.addEventListener('keydown', handleModalKeydown);
+    document.body.classList.add('project-modal-open');
+    modal.querySelector('.modal-content').focus();
 
     // Fechamento do modal
-    modal.querySelector('.close-modal').addEventListener('click', () => {
-      modal.remove();
-    });
+    closeButton.addEventListener('click', closeModal);
 
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        modal.remove();
+        closeModal();
       }
     });
 
@@ -498,11 +553,14 @@ function renderProjectsPage(page) {
   }
 
   function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
+    const size = Number(bytes);
+    if (!Number.isFinite(size) || size < 0) return 'Tamanho indisponível';
+    if (size === 0) return '0 bytes';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    const sizes = ['bytes', 'KB', 'MB', 'GB'];
+    const i = Math.min(Math.floor(Math.log(size) / Math.log(k)), sizes.length - 1);
+    const value = size / Math.pow(k, i);
+    return `${Number(value.toFixed(2))} ${sizes[i]}`;
   }
 
   async function getProjectFile(url) {
