@@ -18,40 +18,38 @@
 <body class="internal-page dashboard-page">
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
     <div class="top-bar"><div class="page-container"><span>Ministério da Justiça e Segurança Pública · SENAPPEN</span><time id="current-date"></time></div></div>
-    <header class="main-header">
-        <div class="page-container header-content">
-            <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema">
-                <span class="brand-mark"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></span>
-                <span class="brand-copy"><strong>Dashboard</strong><small>Secretaria Nacional de Políticas Penais</small></span>
-            </a>
-            <div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div>
-        </div>
-    </header>
+    <header class="main-header"><div class="page-container header-content">
+        <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><span class="brand-mark"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></span><span class="brand-copy"><strong>Dashboard</strong><small>Secretaria Nacional de Políticas Penais</small></span></a>
+        <div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div>
+    </div></header>
     <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links">
-        <a href="/FrontEnd/Sistema/sistema.html">Início</a>
-        <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
-        <a href="/FrontEnd/Dashboard/dashboard.html" aria-current="page">Dashboard</a>
-        <a href="/FrontEnd/Análises/analises.html">Análises</a>
-        <a href="/FrontEnd/Perfil/perfil.html">Perfil</a>
+        <a href="/FrontEnd/Sistema/sistema.html">Início</a><a href="/FrontEnd/Documentos/documentos.html">Documentos</a><a href="/FrontEnd/Dashboard/dashboard.html" aria-current="page">Dashboard</a><a href="/FrontEnd/Análises/analises.html">Análises</a><a href="/FrontEnd/Perfil/perfil.html">Perfil</a>
     </div></nav>
-
     <main id="conteudo" class="main-content page-container">
         <p id="dashboard-error" role="alert" hidden></p>
-        <div class="module-heading">
-            <div><span class="eyebrow">INDICADORES GERAIS</span><h1>Painel de indicadores</h1><p>Distribuição dos registros por tipo, situação e perfil cadastrado.</p></div>
-            <a class="module-link" href="/FrontEnd/Documentos/graficos.html">Gráficos de documentos <span aria-hidden="true">↗</span></a>
-        </div>
-
-        <section class="module-section" aria-labelledby="dashboard-charts-title">
-            <div class="module-section__heading"><h2 id="dashboard-charts-title">Visão consolidada</h2><p>Dados obtidos dos registros disponíveis no sistema.</p></div>
-            <div class="dashboard-charts">
-                <article class="chart-box module-card"><h3>Contratos por tipo</h3><p class="module-card__description">Quantidade de contratos em cada categoria.</p><div class="chart-canvas"><canvas id="contratosChart" aria-label="Gráfico de contratos por tipo" role="img"></canvas></div></article>
-                <article class="chart-box module-card"><h3>Projetos por situação</h3><p class="module-card__description">Distribuição dos projetos registrados.</p><div class="chart-canvas"><canvas id="projetosChart" aria-label="Gráfico de projetos por situação" role="img"></canvas></div></article>
-                <article class="chart-box module-card"><h3>Identidades por perfil</h3><p class="module-card__description">Distribuição das identidades cadastradas.</p><div class="chart-canvas"><canvas id="identidadesChart" aria-label="Gráfico de identidades por perfil" role="img"></canvas></div></article>
+        <div class="module-heading"><div><span class="eyebrow">INDICADORES GERAIS</span><h1>Painel de indicadores</h1><p>Uma visão clara dos registros, da composição dos cadastros e das atualizações mais recentes.</p></div><div class="dashboard-heading-actions"><button id="refresh-dashboard" class="dashboard-refresh" type="button">Atualizar dados <span aria-hidden="true">↻</span></button><a class="module-link" href="/FrontEnd/Documentos/graficos.html">Gráficos de documentos <span aria-hidden="true">↗</span></a></div></div>
+        <section class="dashboard-overview" aria-labelledby="dashboard-summary-title">
+            <div class="dashboard-overview__heading"><div><span class="eyebrow">VISÃO GERAL</span><h2 id="dashboard-summary-title">Base de registros</h2></div><p id="dashboard-updated" aria-live="polite">Carregando dados...</p></div>
+            <div class="dashboard-metrics">
+                <article class="dashboard-metric dashboard-metric--contracts"><span class="metric-icon" aria-hidden="true">▤</span><div><span class="metric-label">Contratos</span><strong id="metric-contracts">—</strong><small>registros cadastrados</small></div></article>
+                <article class="dashboard-metric dashboard-metric--projects"><span class="metric-icon" aria-hidden="true">◈</span><div><span class="metric-label">Projetos</span><strong id="metric-projects">—</strong><small>registros cadastrados</small></div></article>
+                <article class="dashboard-metric dashboard-metric--identities"><span class="metric-icon" aria-hidden="true">◉</span><div><span class="metric-label">Identidades</span><strong id="metric-identities">—</strong><small>perfis cadastrados</small></div></article>
+                <article class="dashboard-metric dashboard-metric--total"><span class="metric-icon" aria-hidden="true">∑</span><div><span class="metric-label">Total consolidado</span><strong id="metric-total">—</strong><small>registros no sistema</small></div></article>
             </div>
         </section>
+        <section class="module-section" aria-labelledby="dashboard-charts-title">
+            <div class="module-section__heading"><h2 id="dashboard-charts-title">Distribuição dos registros</h2><p>Compare os grupos registrados e identifique rapidamente onde está a maior concentração.</p></div>
+            <div class="dashboard-charts">
+                <article class="chart-box chart-box--contracts module-card"><div class="chart-heading"><div><h3>Contratos por tipo</h3><p class="module-card__description">Quantidade em cada categoria contratual.</p></div><span id="contracts-total" class="chart-total">—</span></div><div class="chart-canvas"><canvas id="contratosChart" aria-label="Gráfico de contratos por tipo" role="img"></canvas></div></article>
+                <article class="chart-box module-card"><div class="chart-heading"><div><h3>Projetos por situação</h3><p class="module-card__description">Acompanhamento do andamento dos projetos.</p></div><span id="projects-total" class="chart-total">—</span></div><div class="chart-canvas"><canvas id="projetosChart" aria-label="Gráfico de projetos por situação" role="img"></canvas></div></article>
+                <article class="chart-box module-card"><div class="chart-heading"><div><h3>Identidades por perfil</h3><p class="module-card__description">Composição dos perfis de acesso cadastrados.</p></div><span id="identities-total" class="chart-total">—</span></div><div class="chart-canvas"><canvas id="identidadesChart" aria-label="Gráfico de identidades por perfil" role="img"></canvas></div></article>
+            </div>
+        </section>
+        <section class="module-section dashboard-activity" aria-labelledby="dashboard-activity-title">
+            <div class="module-section__heading"><h2 id="dashboard-activity-title">Atividade recente</h2><p>Os cinco registros mais recentes entre contratos, projetos e identidades.</p></div>
+            <article class="module-card"><ol id="recent-activity" class="activity-list" aria-live="polite"></ol></article>
+        </section>
     </main>
-
     <footer class="footer"><div class="page-container footer-bottom">Ministério da Justiça e Segurança Pública · SENAPPEN</div></footer>
 </body>
 </html>

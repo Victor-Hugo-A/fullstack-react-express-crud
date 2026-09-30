@@ -210,6 +210,59 @@ router.get('/identities/groupby/perfil', authenticateJWT, (req, res) => {
     });
 });
 
+// Resumo único para a página inicial do dashboard. Evita que a interface faça
+// várias requisições independentes para montar a mesma visão.
+router.get('/dashboard/summary', authenticateJWT, async (req, res) => {
+    const queryAll = (sql, params = []) => new Promise((resolve, reject) => {
+        db.all(sql, params, (error, rows) => error ? reject(error) : resolve(rows));
+    });
+
+    try {
+        const contracts = readContracts();
+        const contractsByType = Object.entries(contracts.reduce((counts, contract) => {
+            const tipo = String(contract.type || 'Outro').toLowerCase();
+            counts[tipo] = (counts[tipo] || 0) + 1;
+            return counts;
+        }, {})).map(([tipo, count]) => ({ tipo, count }));
+
+        const [projectGroups, identityGroups, projectCount, identityCount, recentProjects, recentIdentities] = await Promise.all([
+            queryAll('SELECT status, COUNT(*) AS count FROM projects GROUP BY status'),
+            queryAll('SELECT perfil, COUNT(*) AS count FROM identities GROUP BY perfil'),
+            queryAll('SELECT COUNT(*) AS count FROM projects'),
+            queryAll('SELECT COUNT(*) AS count FROM identities'),
+            queryAll('SELECT name, status, COALESCE(updated_at, created_at, start_date) AS date FROM projects ORDER BY date DESC LIMIT 3'),
+            queryAll('SELECT nome, perfil, created_at AS date FROM identities ORDER BY date DESC LIMIT 3')
+        ]);
+
+        const recentContracts = contracts
+            .map(contract => ({ title: contract.number || 'Contrato sem número', detail: contract.type || 'Contrato', date: contract.createdAt || contract.date, kind: 'contract' }))
+            .sort((first, second) => String(second.date || '').localeCompare(String(first.date || '')))
+            .slice(0, 3);
+        const recent = [
+            ...recentContracts,
+            ...recentProjects.map(project => ({ title: project.name, detail: project.status || 'Projeto', date: project.date, kind: 'project' })),
+            ...recentIdentities.map(identity => ({ title: identity.nome, detail: identity.perfil || 'Identidade', date: identity.date, kind: 'identity' }))
+        ].sort((first, second) => String(second.date || '').localeCompare(String(first.date || ''))).slice(0, 5);
+
+        const totals = {
+            contracts: contracts.length,
+            projects: Number(projectCount[0]?.count || 0),
+            identities: Number(identityCount[0]?.count || 0)
+        };
+        totals.all = totals.contracts + totals.projects + totals.identities;
+
+        res.json({
+            totals,
+            groups: { contracts: contractsByType, projects: projectGroups, identities: identityGroups },
+            recent,
+            updatedAt: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Erro ao carregar resumo do dashboard:', error);
+        res.status(500).json({ error: 'Não foi possível carregar o resumo do dashboard.' });
+    }
+});
+
 
 // ATUALIZAÇÃO DO BADGE - REGISTROS
 router.get('/contracts/count', authenticateJWT, (req, res) => {

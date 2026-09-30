@@ -116,6 +116,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       '/api/contracts/groupby/type',
       '/api/projects/groupby/status',
       '/api/identities/groupby/perfil',
+      '/api/dashboard/summary',
       '/uploads/identities/test-image.png',
       '/project-files/test-file.pdf'
     ]) {
@@ -174,12 +175,18 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       '/api/identities/count',
       '/api/contracts/groupby/type',
       '/api/projects/groupby/status',
-      '/api/identities/groupby/perfil'
+      '/api/identities/groupby/perfil',
+      '/api/dashboard/summary'
     ]) {
       assert.equal((await fetch(base + route, {
         headers: { Authorization: `Bearer ${token}` }
       })).status, 200, route);
     }
+    const dashboardSummary = await fetch(`${base}/api/dashboard/summary`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(dashboardSummary.status, 200);
+    assert.deepEqual(Object.keys((await dashboardSummary.json()).totals).sort(), ['all', 'contracts', 'identities', 'projects']);
     assert.equal((await fetch(`${base}/api/contracts/check?number=nenhum`, {
       headers: { Authorization: `Bearer ${token}` }
     })).status, 200);
