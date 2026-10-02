@@ -61,6 +61,17 @@ img { max-width: 100%; }
 .nav-links a { display: inline-flex; align-items: center; padding: 0 18px; color: #d9e8f4; text-decoration: none; font-size: 0.9rem; font-weight: 650; }
 .nav-links a:hover, .nav-links a[aria-current="page"] { background: #17466f; color: #fff; }
 .nav-links a[aria-current="page"] { box-shadow: inset 0 -3px #80c8e9; }
+.nav-dropdown { position: relative; display: flex; align-items: stretch; }
+.nav-dropdown > a { padding-right: 7px; }
+.nav-dropdown-toggle { width: 34px; padding: 0; display: grid; place-items: center; border: 0; border-left: 1px solid transparent; background: transparent; color: #d9e8f4; cursor: pointer; }
+.dropdown-chevron { width: 8px; height: 8px; display: block; border: solid currentColor; border-width: 0 1.8px 1.8px 0; transform: rotate(45deg) translateY(-2px); transition: transform .16s ease; }
+.nav-dropdown:hover > a, .nav-dropdown:focus-within > a, .nav-dropdown.is-open > a,
+.nav-dropdown:hover .nav-dropdown-toggle, .nav-dropdown:focus-within .nav-dropdown-toggle, .nav-dropdown.is-open .nav-dropdown-toggle { border-left-color: rgba(255,255,255,.16); background: #17466f; color: #fff; }
+.nav-dropdown:hover .dropdown-chevron, .nav-dropdown:focus-within .dropdown-chevron, .nav-dropdown.is-open .dropdown-chevron { transform: rotate(225deg) translate(-2px, -2px); }
+.nav-dropdown-menu { position: absolute; z-index: 30; top: calc(100% - 1px); left: 0; min-width: 210px; padding: 8px; display: none; border: 1px solid #b9cede; border-radius: 0 0 11px 11px; background: #fff; box-shadow: 0 14px 26px rgba(8, 31, 55, .18); }
+.nav-dropdown:hover .nav-dropdown-menu, .nav-dropdown:focus-within .nav-dropdown-menu, .nav-dropdown.is-open .nav-dropdown-menu { display: grid; }
+.nav-dropdown-menu a { min-height: 38px; padding: 8px 10px; border-radius: 7px; color: #173d58; font-size: .84rem; font-weight: 650; }
+.nav-dropdown-menu a:hover, .nav-dropdown-menu a:focus-visible { background: #eaf3fa; color: #0b4f88; }
 
 .main-content { flex: 1; padding-block: 38px 76px; }
 .session-feedback {
@@ -159,6 +170,10 @@ a:focus-visible, button:focus-visible { outline: 3px solid #f1a53b; outline-offs
     .logout-btn { min-height: 36px; padding: 6px 9px; font-size: 0.8rem; }
     .nav-links { min-height: 46px; overflow-x: auto; gap: 0; }
     .nav-links a { flex-shrink: 0; padding-inline: 12px; font-size: 0.8rem; }
+    .nav-dropdown { flex-shrink: 0; }
+    .nav-dropdown > a { padding-right: 5px; }
+    .nav-dropdown-toggle { width: 30px; }
+    .nav-dropdown-menu { position: fixed; top: 156px; left: 16px; right: 16px; min-width: 0; margin-top: 0; border-radius: 11px; }
     .main-content { padding-block: 22px 50px; }
     .welcome-card { min-height: 0; padding: 30px 24px; }
     .welcome-copy p { font-size: 0.94rem; }

@@ -271,3 +271,25 @@
     :is(.contracts-page, .projects-page, .identities-page, .graphics-page) .page-shell,
     :is(.contracts-page, .projects-page, .identities-page, .graphics-page) .sidebar .nav-link { transition: none; }
 }
+
+/* MantÃ©m contratos, projetos, identidades e grÃ¡ficos na mesma identidade da
+   pÃ¡gina inicial de Documentos e das demais Ã¡reas do sistema. */
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) {
+    background: #f2f6fa;
+    color: #172b44;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .sidebar {
+    background: #081c34;
+}
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .sidebar .nav-link {
+    color: #dceaf5;
+    font-family: inherit;
+    font-weight: 650;
+}
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .page-header,
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .document-section,
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .identity-form-section,
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .identity-list-section {
+    border-color: #dce6ee;
+}

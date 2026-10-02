@@ -37,7 +37,17 @@
     <nav class="main-nav" aria-label="Navegação principal">
         <div class="page-container nav-links">
             <a href="/FrontEnd/Sistema/sistema.html" aria-current="page">Início</a>
-            <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
+            <div class="nav-dropdown">
+                <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
+                <button class="nav-dropdown-toggle" type="button" aria-label="Abrir opções de documentos" aria-controls="documents-submenu" aria-expanded="false"><span class="dropdown-chevron" aria-hidden="true"></span></button>
+                <div id="documents-submenu" class="nav-dropdown-menu" aria-label="Páginas de documentos">
+                    <a href="/FrontEnd/Documentos/documentos.html">Visão geral</a>
+                    <a href="/FrontEnd/Documentos/contrato.html">Contratos</a>
+                    <a href="/FrontEnd/Documentos/projetos.html">Projetos</a>
+                    <a href="/FrontEnd/Documentos/identidades.html">Identidades</a>
+                    <a href="/FrontEnd/Documentos/graficos.html">Gráficos</a>
+                </div>
+            </div>
             <a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a>
             <a href="/FrontEnd/Análises/analises.html">Análises</a>
             <a href="/FrontEnd/Perfil/perfil.html">Perfil</a>
