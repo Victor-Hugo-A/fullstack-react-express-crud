@@ -328,6 +328,9 @@ async function loadContracts(filters = {}) {
                 <button class="btn-download" title="Baixar contrato" data-id="${escapeHTML(contract.id)}">
                     ${window.documentIcons.markup('download')} Baixar
                 </button>
+                <button class="btn-edit" type="button" title="Editar contrato" data-id="${escapeHTML(contract.id)}">
+                    ${window.documentIcons.markup('edit')} Editar
+                </button>
                 <button class="btn-delete" type="button" title="Excluir contrato" data-admin-only data-id="${escapeHTML(contract.id)}">
                     ${window.documentIcons.markup('trash')} Excluir
                 </button>
@@ -335,8 +338,9 @@ async function loadContracts(filters = {}) {
         `;
 
         // Adiciona eventos aos botões
-        element.querySelector('.btn-view').addEventListener('click', () => viewContract(contract.id));
+        element.querySelector('.btn-view').addEventListener('click', event => viewContract(contract.id, event.currentTarget));
         element.querySelector('.btn-download').addEventListener('click', () => downloadContract(contract.id));
+        element.querySelector('.btn-edit').addEventListener('click', event => editContract(contract, event.currentTarget));
         element.querySelector('.btn-delete').addEventListener('click', () => deleteContract(contract.id));
 
         return element;
@@ -388,39 +392,109 @@ async function loadContracts(filters = {}) {
     }
 
     // Visualizar contrato
-async function viewContract(id) {
-    let newWindow;
+async function viewContract(id, trigger) {
     try {
         showLoading(true);
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Acesso restrito! Faça login para continuar.');
-        newWindow = window.open('', '_blank');
-        if (!newWindow) throw new Error('Permita a abertura de janelas para visualizar o contrato.');
 
-        // Pré-carrega o PDF em segundo plano
-        const preloadResponse = await fetch(`${API_BASE_URL}/contracts/${id}/view`, {
+        const previewResponse = await fetch(`${API_BASE_URL}/contracts/${id}/view`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
-        if (!preloadResponse.ok) throw new Error('Falha ao carregar PDF');
-
-        // Cria um blob e URL temporária
-        const blob = await preloadResponse.blob();
-        const pdfUrl = URL.createObjectURL(blob);
-
-        // Abre em nova aba com a URL em cache
-        newWindow.location.href = pdfUrl;
-
-        setTimeout(() => URL.revokeObjectURL(pdfUrl), 60000);
+        if (!previewResponse.ok) throw new Error('Falha ao carregar o documento');
+        openContractPreview(await previewResponse.blob(), trigger);
 
     } catch (error) {
-        showErrorMessage(error.message);
-        
-        newWindow?.close();
+        showErrorMessage(window.documentFeedback.errorMessage(error, 'Não foi possível visualizar o contrato.'));
     } finally {
         showLoading(false);
     }
 }
+
+    function openContractPreview(blob, trigger) {
+        const previousFocus = trigger || document.activeElement;
+        const url = URL.createObjectURL(blob);
+        const contentType = String(blob.type || '').toLowerCase();
+        const modal = document.createElement('div');
+        modal.className = 'contract-preview-modal';
+        modal.innerHTML = `<section class="contract-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="contract-preview-title" tabindex="-1"><header><div><span>VISUALIZAÇÃO DO DOCUMENTO</span><h2 id="contract-preview-title">Contrato</h2></div><button type="button" aria-label="Fechar visualização">&times;</button></header><div class="contract-preview-content"></div></section>`;
+        const content = modal.querySelector('.contract-preview-content');
+        if (contentType.startsWith('image/')) {
+            const image = document.createElement('img');
+            image.src = url; image.alt = 'Imagem do contrato'; content.appendChild(image);
+        } else if (contentType === 'application/pdf') {
+            const frame = document.createElement('iframe');
+            frame.src = url; frame.title = 'Documento do contrato'; content.appendChild(frame);
+        } else {
+            content.innerHTML = '<p>Este formato não possui visualização no sistema. Utilize o botão Baixar para acessar o arquivo.</p>';
+        }
+        const close = () => {
+            document.removeEventListener('keydown', onKeydown);
+            URL.revokeObjectURL(url);
+            modal.remove();
+            document.body.classList.remove('contract-preview-open');
+            if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+        };
+        const onKeydown = event => { if (event.key === 'Escape') close(); };
+        modal.querySelector('button').addEventListener('click', close);
+        modal.addEventListener('click', event => { if (event.target === modal) close(); });
+        document.addEventListener('keydown', onKeydown);
+        document.body.appendChild(modal);
+        document.body.classList.add('contract-preview-open');
+        modal.classList.add('active');
+        modal.querySelector('.contract-preview-dialog').focus();
+    }
+
+    function editContract(contract, trigger) {
+        const previousFocus = trigger || document.activeElement;
+        const selected = type => contract.type === type ? ' selected' : '';
+        const modal = document.createElement('div');
+        modal.className = 'contract-edit-modal';
+        modal.innerHTML = `<section class="contract-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="contract-edit-title" tabindex="-1"><header><div><span>EDIÇÃO DO CONTRATO</span><h2 id="contract-edit-title">Contrato nº ${escapeHTML(contract.number)}</h2><p>Revise os dados e salve as alterações quando finalizar.</p></div><button type="button" aria-label="Cancelar e fechar edição">&times;</button></header><form class="contract-edit-form"><div class="contract-edit-grid"><div class="form-group"><label for="edit-contract-type">Tipo de contrato</label><select id="edit-contract-type" class="form-control" required><option value="aditivo"${selected('aditivo')}>Aditivo Contratual</option><option value="servicos"${selected('servicos')}>Prestação de Serviços</option><option value="fornecimento"${selected('fornecimento')}>Fornecimento de Materiais</option><option value="convenio"${selected('convenio')}>Termo de Convênio</option><option value="outro"${selected('outro')}>Outro</option></select></div><div class="form-group"><label for="edit-contract-number">Número do contrato</label><input id="edit-contract-number" class="form-control" value="${escapeHTML(contract.number)}" pattern="[A-Za-z0-9_-]+" required></div><div class="form-group"><label for="edit-contract-date">Data do contrato</label><input id="edit-contract-date" type="date" class="form-control" value="${escapeHTML(String(contract.date || '').slice(0, 10))}" required></div><div class="form-group"><label for="edit-contract-file">Substituir documento <small>(opcional)</small></label><input id="edit-contract-file" type="file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"><small class="form-text">Se não selecionar um arquivo, o documento atual será mantido.</small></div><div class="form-group form-wide"><label for="edit-contract-description">Descrição</label><textarea id="edit-contract-description" class="form-control" rows="4" required>${escapeHTML(contract.description || '')}</textarea></div></div><footer><button type="button" class="btn-cancel-edit">Cancelar edição</button><button type="submit" class="btn-submit">${window.documentIcons.markup('save')} Salvar alterações</button></footer></form></section>`;
+        let changed = false;
+        const close = () => {
+            document.removeEventListener('keydown', onKeydown);
+            modal.remove(); document.body.classList.remove('contract-edit-open');
+            if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+        };
+        const requestClose = () => { if (!changed || window.confirm('Descartar as alterações não salvas deste contrato?')) close(); };
+        const onKeydown = event => { if (event.key === 'Escape') requestClose(); };
+        modal.querySelector('header button').addEventListener('click', requestClose);
+        modal.querySelector('.btn-cancel-edit').addEventListener('click', requestClose);
+        modal.addEventListener('click', event => { if (event.target === modal) requestClose(); });
+        modal.querySelector('form').addEventListener('input', () => { changed = true; });
+        modal.querySelector('form').addEventListener('change', () => { changed = true; });
+        modal.querySelector('form').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            if (!form.reportValidity()) return;
+            const file = form.querySelector('#edit-contract-file').files[0];
+            if (file && (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'].includes(file.type) || file.size > 10 * 1024 * 1024)) {
+                showErrorMessage('O novo arquivo deve ser PDF, Word ou imagem de até 10MB.'); return;
+            }
+            const submit = form.querySelector('[type="submit"]');
+            const original = submit.innerHTML;
+            try {
+                submit.disabled = true;
+                submit.innerHTML = `${window.documentIcons.markup('loading', 'ui-icon is-loading')} Salvando...`;
+                const formData = new FormData();
+                formData.append('type', form.querySelector('#edit-contract-type').value);
+                formData.append('number', form.querySelector('#edit-contract-number').value.trim());
+                formData.append('date', form.querySelector('#edit-contract-date').value);
+                formData.append('description', form.querySelector('#edit-contract-description').value.trim());
+                if (file) formData.append('file', file);
+                const response = await fetch(`${API_BASE_URL}/contracts/${contract.id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }, body: formData });
+                if (!response.ok) throw await window.documentFeedback.requestError(response, 'Não foi possível atualizar o contrato.');
+                changed = false; close();
+                const refreshed = await loadContracts();
+                showSuccessMessage(refreshed ? 'Contrato atualizado com sucesso!' : 'Contrato atualizado, mas a lista não foi atualizada. Recarregue a página.');
+            } catch (error) {
+                showErrorMessage(window.documentFeedback.errorMessage(error, 'Não foi possível atualizar o contrato.'));
+            } finally { if (submit.isConnected) { submit.disabled = false; submit.innerHTML = original; } }
+        });
+        document.addEventListener('keydown', onKeydown);
+        document.body.appendChild(modal); document.body.classList.add('contract-edit-open'); modal.classList.add('active'); modal.querySelector('.contract-edit-dialog').focus();
+    }
 
     // Download de contrato
     async function downloadContract(id) {

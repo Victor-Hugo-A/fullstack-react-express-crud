@@ -228,6 +228,21 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const contractFilePath = path.join(tempDir, 'uploads', 'contracts', contract.fileName);
     assert.equal(fs.existsSync(contractFilePath), true);
 
+    const updateContractForm = new FormData();
+    updateContractForm.set('type', 'servico');
+    updateContractForm.set('number', contract.number);
+    updateContractForm.set('date', '2026-02-01');
+    updateContractForm.set('description', 'Contrato atualizado sem substituir o arquivo');
+    const updateContract = await fetch(`${base}/api/contracts/${contract.id}`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }, body: updateContractForm
+    });
+    assert.equal(updateContract.status, 200, await updateContract.text());
+    const updatedContract = await fetch(`${base}/api/contracts/${contract.id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json());
+    assert.equal(updatedContract.description, 'Contrato atualizado sem substituir o arquivo');
+    assert.equal(fs.existsSync(contractFilePath), true);
+
     const projectForm = new FormData();
     projectForm.set('project', JSON.stringify({
       name: 'Projeto de teste', code: `projeto-${suffix}`, manager: 'Equipe de teste',

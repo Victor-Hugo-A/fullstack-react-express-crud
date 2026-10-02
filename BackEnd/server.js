@@ -634,6 +634,52 @@ app.post('/api/contracts', authenticateJWT, upload.single('file'), (req, res) =>
     }
 });
 
+// Atualiza os dados do contrato e, opcionalmente, substitui o arquivo vinculado.
+app.put('/api/contracts/:id', authenticateJWT, upload.single('file'), (req, res) => {
+    try {
+        const { type, number, date, description } = req.body;
+        if (!type || !number || !date) {
+            return res.status(400).json({ success: false, error: 'Campos obrigatórios faltando' });
+        }
+        if (!/^[a-zA-Z0-9\-_]+$/.test(number)) {
+            return res.status(400).json({ success: false, error: 'Número do contrato inválido' });
+        }
+        const contractDate = new Date(date);
+        const minDate = new Date('2025-01-01');
+        const maxDate = new Date('2040-12-31');
+        if (Number.isNaN(contractDate.getTime()) || contractDate < minDate || contractDate > maxDate) {
+            return res.status(400).json({ success: false, error: 'Data do contrato deve estar entre Janeiro/2025 e Dezembro/2040' });
+        }
+
+        const contracts = getContracts();
+        const index = contracts.findIndex(contract => contract.id === req.params.id);
+        if (index === -1) return res.status(404).json({ success: false, error: 'Contrato não encontrado' });
+        if (contracts.some(contract => contract.id !== req.params.id && contract.number === number)) {
+            return res.status(400).json({ success: false, error: 'Este número de contrato já está em uso' });
+        }
+
+        const previous = contracts[index];
+        const updated = { ...previous, type, number, date, description: description || '', updatedAt: new Date().toISOString() };
+        if (req.file) {
+            updated.fileName = req.file.filename;
+            updated.originalName = req.file.originalname;
+            updated.filePath = `/uploads/contracts/${req.file.filename}`;
+            updated.mimeType = req.file.mimetype;
+        }
+        contracts[index] = updated;
+        saveContracts(contracts);
+
+        if (req.file && previous.fileName && previous.fileName !== updated.fileName) {
+            const previousFile = path.join(uploadsDir, previous.fileName);
+            if (fs.existsSync(previousFile)) fs.unlinkSync(previousFile);
+        }
+        res.json({ success: true, contract: updated });
+    } catch (error) {
+        console.error('Erro ao atualizar contrato:', error);
+        res.status(500).json({ success: false, error: 'Erro interno ao atualizar o contrato' });
+    }
+});
+
 
 
 // Função para salvar contratos no arquivo
