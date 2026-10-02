@@ -275,8 +275,10 @@ router.get('/analysis/summary', authenticateJWT, async (req, res) => {
     const dateCondition = (field) => {
         const clauses = [];
         const params = [];
-        if (from) { clauses.push(`${field} >= ?`); params.push(from); }
-        if (to) { clauses.push(`${field} <= ?`); params.push(to); }
+        // Compara somente a parte de data para aceitar registros antigos e novos com horário.
+        const datePart = `substr(${field}, 1, 10)`;
+        if (from) { clauses.push(`${datePart} >= ?`); params.push(from); }
+        if (to) { clauses.push(`${datePart} <= ?`); params.push(to); }
         return { where: clauses.length ? ` WHERE ${clauses.join(' AND ')}` : '', params };
     };
 
@@ -1278,7 +1280,7 @@ router.delete('/projects/:id', authenticateJWT, requireAdmin, async (req, res) =
         console.log('Recebido:', req.body, req.file);
         const {nome, cpf, endereco, perfil} = req.body;
         const foto = req.file ? `/uploads/identities/${req.file.filename}` : null;
-        const createdAt = new Date().toISOString().slice(0, 10);
+        const createdAt = new Date().toISOString();
         db.run(
             `INSERT INTO identities (nome, cpf, endereco, perfil, foto, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
             [nome, cpf, endereco, perfil, foto, createdAt],

@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('token')) return;
 
     const number = new Intl.NumberFormat('pt-BR');
+    const dateOnly = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
     const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
     const palette = { fornecimento: '#20795e', servicos: '#3867aa', servico: '#3867aa', aditivo: '#d17a25', convenio: '#7460a9', outro: '#667d91', concluido: '#20795e', andamento: '#3867aa', planejamento: '#d17a25', suspenso: '#b54e5d', administrador: '#3867aa', 'usuário': '#20795e', visitante: '#d17a25' };
     const statusNames = { concluido: 'Concluído', andamento: 'Em andamento', planejamento: 'Planejamento', suspenso: 'Suspenso', servicos: 'Serviços', servico: 'Serviço', convenio: 'Convênio' };
@@ -30,7 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function label(value) { const text = String(value || 'Não informado').trim(); return statusNames[text.toLowerCase()] || text.replace(/^./, character => character.toUpperCase()); }
-    function formatDate(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : dateTime.format(date); }
+    function formatDate(value) {
+        const text = String(value || '').trim();
+        const dateOnlyMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (dateOnlyMatch) return `${dateOnlyMatch[3]}/${dateOnlyMatch[2]}/${dateOnlyMatch[1]}`;
+        const date = new Date(text);
+        return Number.isNaN(date.getTime()) ? '—' : dateTime.format(date);
+    }
     function totalText(value) { return `${number.format(value)} registro${value === 1 ? '' : 's'}`; }
     function removeChart(canvas) { charts.get(canvas.id)?.destroy(); charts.delete(canvas.id); canvas.hidden = false; canvas.parentElement.querySelector('.analysis-empty')?.remove(); }
     function showChartMessage(canvas, message) { removeChart(canvas); canvas.hidden = true; const text = document.createElement('p'); text.className = 'analysis-empty'; text.textContent = message; canvas.parentElement.append(text); }
