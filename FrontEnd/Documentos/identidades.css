@@ -28,6 +28,7 @@
     border: 1px solid #dce6ef;
     border-radius: 12px;
     background: #fff;
+    background-clip: padding-box;
     box-shadow: 0 5px 16px rgba(20, 53, 84, .045);
     scrollbar-color: #9ab5ca #edf3f7;
 }
@@ -131,10 +132,11 @@
 }
 .identities-page .identity-list-section .table-responsive {
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+    /* Não reserva uma faixa lateral quando não há rolagem horizontal. */
+    scrollbar-gutter: auto;
     scrollbar-width: thin;
     scrollbar-color: #82a9c1 transparent;
-    padding-bottom: 2px;
+    padding-bottom: 0;
 }
 .identities-page .identity-list-section .table-responsive::-webkit-scrollbar { width: 0; height: 8px; }
 .identities-page .identity-list-section .table-responsive::-webkit-scrollbar-track { margin: 0 12px; border-radius: 999px; background: #edf3f7; }

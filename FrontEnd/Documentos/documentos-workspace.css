@@ -362,7 +362,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+    scrollbar-gutter: auto;
     scrollbar-width: thin;
     scrollbar-color: #82a9c1 transparent;
     padding-bottom: 2px;

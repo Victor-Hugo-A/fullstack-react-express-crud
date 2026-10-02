@@ -147,6 +147,16 @@
                             <option value="2023">2023</option>
                         </select>
                     </div>
+
+                    <div class="filter-group">
+                        <label for="filter-start-date">Início a partir de:</label>
+                        <input type="date" id="filter-start-date" class="form-control">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-end-date">Término até:</label>
+                        <input type="date" id="filter-end-date" class="form-control">
+                    </div>
                     
                     <div class="filter-group">
                         <label for="search-project">Pesquisar:</label>
@@ -154,6 +164,9 @@
                             <input type="text" id="search-project" class="form-control" placeholder="Nome, código ou responsável...">
                             <button class="search-btn" type="button" aria-label="Pesquisar projetos"><span data-icon="search"></span></button>
                         </div>
+                    </div>
+                    <div class="filter-actions">
+                        <button id="clear-project-filters" class="btn-clear-filters" type="button">Limpar filtros</button>
                     </div>
                 </div>
                 

@@ -75,7 +75,14 @@ function renderProjectsPage(page) {
   projectsTable.innerHTML = '';
 
   if (projectsToShow.length === 0) {
-    projectsTable.innerHTML = '<p class="no-projects">Nenhum projeto encontrado</p>';
+    projectsTable.innerHTML = `
+      <div class="no-projects" role="status">
+        <span class="no-projects-icon" aria-hidden="true">${window.documentIcons.markup('search')}</span>
+        <strong>Nenhum projeto encontrado</strong>
+        <span>Altere ou limpe os filtros para consultar outros projetos.</span>
+        <button class="btn-clear-empty-state" type="button">Limpar filtros</button>
+      </div>`;
+    projectsTable.querySelector('.btn-clear-empty-state').addEventListener('click', clearProjectFilters);
     renderPagination();
     return;
   }
@@ -162,11 +169,14 @@ function renderProjectsPage(page) {
     // Filtros com debounce para melhor performance
     document.getElementById('filter-status').addEventListener('change', filterProjects);
     document.getElementById('filter-year').addEventListener('change', filterProjects);
+    document.getElementById('filter-start-date').addEventListener('change', filterProjects);
+    document.getElementById('filter-end-date').addEventListener('change', filterProjects);
     document.getElementById('search-project').addEventListener(
       'input', 
       utils.debounce(filterProjects, 300)
     );
     document.querySelector('.search-btn').addEventListener('click', filterProjects);
+    document.getElementById('clear-project-filters').addEventListener('click', clearProjectFilters);
   }
 
   async function handleProjectSubmit(e) {
@@ -313,6 +323,8 @@ function renderProjectsPage(page) {
   function filterProjects() {
     const statusFilter = document.getElementById('filter-status').value;
     const yearFilter = document.getElementById('filter-year').value;
+    const startDateFilter = document.getElementById('filter-start-date').value;
+    const endDateFilter = document.getElementById('filter-end-date').value;
     const searchTerm = document.getElementById('search-project').value.toLowerCase();
 
     let filtered = [...allProjects];
@@ -323,8 +335,18 @@ function renderProjectsPage(page) {
 
     if (yearFilter) {
       filtered = filtered.filter(p => {
-        const startYear = new Date(p.start_date).getFullYear();
-        return startYear.toString() === yearFilter;
+        return String(p.start_date || '').slice(0, 4) === yearFilter;
+      });
+    }
+
+    if (startDateFilter) {
+      filtered = filtered.filter(project => String(project.start_date || '').slice(0, 10) >= startDateFilter);
+    }
+
+    if (endDateFilter) {
+      filtered = filtered.filter(project => {
+        const projectEndDate = String(project.end_date || '').slice(0, 10);
+        return projectEndDate && projectEndDate <= endDateFilter;
       });
     }
 
@@ -339,6 +361,15 @@ function renderProjectsPage(page) {
     displayedProjects = filtered;
     currentPage = 1;
     renderProjectsPage(currentPage);
+  }
+
+  function clearProjectFilters() {
+    document.getElementById('filter-status').value = '';
+    document.getElementById('filter-year').value = '';
+    document.getElementById('filter-start-date').value = '';
+    document.getElementById('filter-end-date').value = '';
+    document.getElementById('search-project').value = '';
+    filterProjects();
   }
 
   function addProjectActionEvents() {
