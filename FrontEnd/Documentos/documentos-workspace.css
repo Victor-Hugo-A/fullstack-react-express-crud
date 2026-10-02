@@ -293,3 +293,87 @@
 :is(.contracts-page, .projects-page, .identities-page, .graphics-page) .identity-list-section {
     border-color: #dce6ee;
 }
+
+/* CabeÃ§alho e listas de registros com a mesma leitura do Dashboard e AnÃ¡lises. */
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .username {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    color: #52657b;
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+}
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .username strong {
+    color: #0b2545;
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: normal;
+    text-transform: none;
+}
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .projects-table-container,
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .table-responsive {
+    border-color: #d8e4ed;
+    border-radius: 14px;
+    box-shadow: 0 7px 20px rgba(12, 45, 79, .055);
+}
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .projects-table thead th,
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) #identities-table thead th {
+    padding-block: .9rem;
+    background: #eef4f9;
+    color: #173d58;
+    font-family: inherit;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .055em;
+}
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .projects-table tbody td,
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) #identities-table tbody td {
+    padding-block: .9rem;
+    color: #334d64;
+}
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) .projects-table tbody tr:hover,
+:is(.contracts-page, .projects-page, .identities-page, .graphics-page) #identities-table tbody tr:hover {
+    background: #eef7fc;
+}
+:is(.contracts-page) .document-card {
+    border-top-width: 4px;
+    border-top-color: #667d91;
+    border-radius: 14px;
+    box-shadow: 0 7px 20px rgba(12, 45, 79, .055);
+}
+:is(.contracts-page) .document-card .document-header {
+    padding-bottom: .7rem;
+    border-bottom: 1px solid #e5edf3;
+}
+:is(.contracts-page) .document-card .document-description {
+    min-height: 3.1em;
+}
+:is(.contracts-page) .contract-type--fornecimento { border-top-color: #20795e; }
+:is(.contracts-page) .contract-type--servicos { border-top-color: #3867aa; }
+:is(.contracts-page) .contract-type--aditivo { border-top-color: #d17a25; }
+:is(.contracts-page) .contract-type--convenio { border-top-color: #7460a9; }
+:is(.contracts-page) .contract-type--outro { border-top-color: #667d91; }
+
+:is(.projects-page) .projects-table-container {
+    /* A tabela acompanha a altura do conteúdo; só rola lateralmente quando necessário. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #82a9c1 transparent;
+    padding-bottom: 2px;
+}
+:is(.projects-page) .projects-table-container::-webkit-scrollbar { width: 0; height: 8px; }
+:is(.projects-page) .projects-table-container::-webkit-scrollbar-track { margin: 0 12px; border-radius: 999px; background: #edf3f7; }
+:is(.projects-page) .projects-table-container::-webkit-scrollbar-thumb { border: 2px solid #edf3f7; border-radius: 999px; background: #82a9c1; }
+:is(.projects-page) .projects-table-container::-webkit-scrollbar-thumb:hover { background: #5f90af; }
+:is(.projects-page) .projects-table-container::-webkit-scrollbar-button { width: 0; height: 0; display: none; }
+:is(.projects-page) .projects-table tbody td,
+:is(.projects-page) .projects-table tbody th {
+    border-bottom-color: rgba(42, 83, 113, .11);
+}
+:is(.projects-page) .projects-table tbody tr:nth-child(even) { background: #fbfcfd; }

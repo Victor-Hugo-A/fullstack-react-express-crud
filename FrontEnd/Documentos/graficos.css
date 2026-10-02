@@ -95,15 +95,35 @@
 }
 
 .graphics-metric {
+    position: relative;
     display: grid;
     gap: 0.2rem;
-    padding: 1.15rem 1.35rem;
+    min-height: 112px;
+    padding: 1.15rem 1.35rem 1.15rem 4.7rem;
     border: 1px solid #e1e8f0;
     border-left: 4px solid var(--metric-color);
     border-radius: 16px;
     background: #fff;
     box-shadow: 0 6px 20px rgba(25, 55, 90, 0.04);
 }
+
+.graphics-metric::before {
+    position: absolute;
+    top: 1.2rem;
+    left: 1.15rem;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--metric-color) 12%, white);
+    color: var(--metric-color);
+    font-size: 1.15rem;
+    font-weight: 800;
+    content: "▤";
+}
+.graphics-metric--projects::before { content: "◈"; }
+.graphics-metric--identities::before { content: "◉"; }
 
 .graphics-metric--contracts { --metric-color: #20795e; }
 .graphics-metric--projects { --metric-color: #d17a25; }
@@ -114,6 +134,9 @@
     font-size: 0.87rem;
     font-weight: 600;
 }
+.graphics-metric--contracts > span::after { content: " cadastrados"; }
+.graphics-metric--projects > span::after { content: " cadastrados"; }
+.graphics-metric--identities > span::after { content: " cadastradas"; }
 
 .graphics-metric strong {
     overflow-wrap: anywhere;

@@ -22,7 +22,9 @@
 .identities-page .identity-list-section { border-top: 3px solid #2b6e9f; }
 .identities-page .identity-list-section .table-responsive {
     margin-top: 0;
-    overflow: auto;
+    /* Evita a barra vertical vazia e preserva a leitura em telas menores. */
+    overflow-x: auto;
+    overflow-y: hidden;
     border: 1px solid #dce6ef;
     border-radius: 12px;
     background: #fff;
@@ -127,6 +129,22 @@
     color: #60768a;
     text-align: center;
 }
+.identities-page .identity-list-section .table-responsive {
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #82a9c1 transparent;
+    padding-bottom: 2px;
+}
+.identities-page .identity-list-section .table-responsive::-webkit-scrollbar { width: 0; height: 8px; }
+.identities-page .identity-list-section .table-responsive::-webkit-scrollbar-track { margin: 0 12px; border-radius: 999px; background: #edf3f7; }
+.identities-page .identity-list-section .table-responsive::-webkit-scrollbar-thumb { border: 2px solid #edf3f7; border-radius: 999px; background: #82a9c1; }
+.identities-page .identity-list-section .table-responsive::-webkit-scrollbar-thumb:hover { background: #5f90af; }
+.identities-page .identity-list-section .table-responsive::-webkit-scrollbar-button { width: 0; height: 0; display: none; }
+.identities-page #identities-table tbody td {
+    border-bottom-color: rgba(42, 83, 113, .11);
+}
+.identities-page #identities-table tbody tr:nth-child(even) { background: #fbfcfd; }
 .identities-page .identity-image-modal { z-index: 1100; }
 .identities-page .identity-image-modal button {
     display: grid;

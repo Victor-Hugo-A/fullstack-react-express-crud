@@ -311,7 +311,7 @@ async function loadContracts(filters = {}) {
     function createContractElement(contract) {
         const typeClass = `badge-${(contract.type || 'outro').toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
         const element = document.createElement('div');
-        element.className = 'document-card contracts';
+        element.className = `document-card contracts contract-type--${(contract.type || 'outro').toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
         element.innerHTML = `
             <div class="document-header">
                 <span class="document-type badge ${typeClass}">${escapeHTML(getContractTypeName(contract.type))}</span>
