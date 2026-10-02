@@ -650,134 +650,134 @@ function renderProjectsPage(page) {
   }
 
   async function editProject(projectId) {
-    let editBtn;
-    let originalContent;
+    const editBtn = document.querySelector(`.btn-edit[data-id="${projectId}"]`);
+    const originalContent = editBtn?.innerHTML;
     try {
-      // Mostrar loader
-      editBtn = document.querySelector(`.btn-edit[data-id="${projectId}"]`);
-      originalContent = editBtn.innerHTML;
-      editBtn.innerHTML = window.documentIcons.markup('loading', 'ui-icon is-loading');
-      editBtn.disabled = true;
-
-      // Carrega os dados do projeto
-      const response = await fetch(`${API_URL}/projects/${projectId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw await window.documentFeedback.requestError(response, 'Não foi possível carregar o projeto para edição.');
+      if (editBtn) {
+        editBtn.innerHTML = window.documentIcons.markup('loading', 'ui-icon is-loading');
+        editBtn.disabled = true;
       }
+      const response = await fetch(`${API_URL}/projects/${projectId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw await window.documentFeedback.requestError(response, 'Não foi possível carregar o projeto para edição.');
 
       const data = await response.json();
-
-      // Preenche o formulário com os dados do projeto
-      const project = data.project;
-      document.getElementById('project-name').value = project.name;
-      document.getElementById('project-code').value = project.code;
-      document.getElementById('project-manager').value = project.manager;
-      document.getElementById('project-start').value = project.start_date.split('T')[0];
-      document.getElementById('project-end').value = project.end_date ? project.end_date.split('T')[0] : '';
-      document.getElementById('project-status').value = project.status;
-      document.getElementById('project-description').value = project.description;
-      
-      // Rola até o formulário
-      document.getElementById('project-form').scrollIntoView({ behavior: 'smooth' });
-
-      // Altera o botão de submit para "Atualizar"
-      const submitBtn = projectForm.querySelector('button[type="submit"]');
-      submitBtn.innerHTML = `${window.documentIcons.markup('save')} Atualizar projeto`;
-      submitBtn.dataset.editing = projectId;
-      submitBtn.classList.add('btn-update');
-      
-      SuccessMessage('Preencha os campos que deseja alterar!', 'info');
-
-      // Remove o evento antigo e adiciona o novo
-      projectForm.removeEventListener('submit', handleProjectSubmit);
-      projectForm.addEventListener('submit', handleProjectUpdate);
-
-      
+      if (!data.project?.id) throw new Error('Projeto não encontrado.');
+      showProjectEditor(data.project, editBtn);
     } catch (error) {
-      console.error('Erro ao editar projeto', error);
-      ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível editar o projeto.'));
+      console.error('Erro ao editar projeto:', error);
+      ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível abrir a edição do projeto.'));
     } finally {
-      if (editBtn) {
+      if (editBtn?.isConnected) {
         editBtn.innerHTML = originalContent;
         editBtn.disabled = false;
       }
     }
   }
 
-  async function handleProjectUpdate(e) {
-    e.preventDefault();
-    
-    const projectId = e.target.querySelector('button[type="submit"]').dataset.editing;
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    let updated = false;
-    
-    try {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `${window.documentIcons.markup('loading', 'ui-icon is-loading')} Atualizando...`;
+  function showProjectEditor(project, trigger) {
+    document.querySelector('.project-modal .close-modal')?.click();
+    const previousFocus = trigger || document.activeElement;
+    const dateValue = value => value ? String(value).split('T')[0] : '';
+    const selected = value => project.status === value ? ' selected' : '';
+    const modal = document.createElement('div');
+    modal.className = 'project-modal project-edit-modal';
+    modal.innerHTML = `
+      <section class="modal-content" role="dialog" aria-modal="true" aria-labelledby="project-edit-title" tabindex="-1">
+        <header class="project-modal-header">
+          <div class="project-modal-heading">
+            <span class="project-modal-eyebrow">EDIÇÃO DO PROJETO</span>
+            <h2 id="project-edit-title">${utils.sanitize(project.name)}</h2>
+            <span class="project-modal-code">Código ${utils.sanitize(project.code)}</span>
+          </div>
+          <button type="button" class="close-modal" aria-label="Cancelar e fechar edição">&times;</button>
+        </header>
+        <form class="project-edit-form" novalidate>
+          <div class="edit-context" role="status"><strong>Modo de edição ativo.</strong> Revise os campos e salve somente quando terminar.</div>
+          <div class="project-modal-body document-form">
+            <div class="form-group"><label for="edit-project-name">Nome do projeto</label><input id="edit-project-name" class="form-control" value="${utils.sanitize(project.name)}" required></div>
+            <div class="form-group"><label for="edit-project-code">Código do projeto</label><input id="edit-project-code" class="form-control" value="${utils.sanitize(project.code)}" minlength="3" required></div>
+            <div class="form-group"><label for="edit-project-manager">Responsável</label><input id="edit-project-manager" class="form-control" value="${utils.sanitize(project.manager)}" required></div>
+            <div class="form-group"><label for="edit-project-start">Data de início</label><input id="edit-project-start" type="date" class="form-control" value="${dateValue(project.start_date)}" required></div>
+            <div class="form-group"><label for="edit-project-end">Previsão de término</label><input id="edit-project-end" type="date" class="form-control" value="${dateValue(project.end_date)}"></div>
+            <div class="form-group"><label for="edit-project-status">Status</label><select id="edit-project-status" class="form-control" required><option value="planejamento"${selected('planejamento')}>Planejamento</option><option value="andamento"${selected('andamento')}>Em andamento</option><option value="suspenso"${selected('suspenso')}>Suspenso</option><option value="concluido"${selected('concluido')}>Concluído</option></select></div>
+            <div class="form-group form-wide"><label for="edit-project-description">Descrição</label><textarea id="edit-project-description" class="form-control" rows="4" required>${utils.sanitize(project.description || '')}</textarea></div>
+            <div class="form-group form-wide"><label for="edit-project-files">Adicionar documentos</label><input id="edit-project-files" type="file" class="form-control" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"><small class="form-text">Os documentos atuais serão preservados; selecione arquivos apenas para adicionar novos.</small></div>
+          </div>
+          <footer class="project-edit-actions"><button type="button" class="btn-cancel-edit">Cancelar edição</button><button type="submit" class="btn-submit">${window.documentIcons.markup('save')} Salvar alterações</button></footer>
+        </form>
+      </section>`;
 
-      const formData = new FormData();
-      const projectData = {
-        name: document.getElementById('project-name').value.trim(),
-        code: document.getElementById('project-code').value.trim(),
-        manager: document.getElementById('project-manager').value.trim(),
-        start_date: document.getElementById('project-start').value,
-        end_date: document.getElementById('project-end').value || null,
-        status: document.getElementById('project-status').value,
-        description: document.getElementById('project-description').value.trim()
-      };
-      
-      formData.append('project', JSON.stringify(projectData));
-      
-      const filesInput = document.getElementById('project-files');
-      for (let i = 0; i < filesInput.files.length; i++) {
-        formData.append('files', filesInput.files[i]);
+    document.body.appendChild(modal);
+    document.body.classList.add('project-modal-open');
+    const form = modal.querySelector('.project-edit-form');
+    const content = modal.querySelector('.modal-content');
+    let changed = false;
+    const closeModal = () => {
+      document.removeEventListener('keydown', handleModalKeydown);
+      modal.remove();
+      document.body.classList.remove('project-modal-open');
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+    const requestClose = () => {
+      if (!changed || window.confirm('Descartar as alterações não salvas deste projeto?')) closeModal();
+    };
+    const handleModalKeydown = event => {
+      if (event.key === 'Escape') { requestClose(); return; }
+      if (event.key !== 'Tab') return;
+      const focusable = [...modal.querySelectorAll('input, select, textarea, button:not([disabled])')].filter(element => element.getClientRects().length > 0);
+      const lastFocusable = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === focusable[0]) { event.preventDefault(); lastFocusable.focus(); }
+      else if (!event.shiftKey && document.activeElement === lastFocusable) { event.preventDefault(); focusable[0].focus(); }
+    };
+    modal.querySelector('.close-modal').addEventListener('click', requestClose);
+    modal.querySelector('.btn-cancel-edit').addEventListener('click', requestClose);
+    modal.addEventListener('click', event => { if (event.target === modal) requestClose(); });
+    form.addEventListener('input', () => { changed = true; });
+    form.addEventListener('change', () => { changed = true; });
+    form.querySelector('#edit-project-start').addEventListener('change', event => { form.querySelector('#edit-project-end').min = event.target.value; });
+    document.addEventListener('keydown', handleModalKeydown);
+    modal.classList.add('active');
+    content.focus();
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const start = form.querySelector('#edit-project-start').value;
+      const end = form.querySelector('#edit-project-end').value;
+      if (end && end < start) { ErroMessage('A data de término não pode ser anterior à data de início.'); return; }
+      const submitBtn = form.querySelector('[type="submit"]');
+      const originalLabel = submitBtn.innerHTML;
+      try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `${window.documentIcons.markup('loading', 'ui-icon is-loading')} Salvando alterações...`;
+        const projectData = {
+          name: form.querySelector('#edit-project-name').value.trim(),
+          code: form.querySelector('#edit-project-code').value.trim(),
+          manager: form.querySelector('#edit-project-manager').value.trim(),
+          start_date: start,
+          end_date: end || null,
+          status: form.querySelector('#edit-project-status').value,
+          description: form.querySelector('#edit-project-description').value.trim()
+        };
+        const formData = new FormData();
+        formData.append('project', JSON.stringify(projectData));
+        for (const file of form.querySelector('#edit-project-files').files) formData.append('files', file);
+        const response = await fetch(`${API_URL}/projects/${project.id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
+        if (!response.ok) throw await window.documentFeedback.requestError(response, 'Não foi possível atualizar o projeto.');
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || 'Não foi possível atualizar o projeto.');
+        changed = false;
+        closeModal();
+        const refreshed = await loadProjects();
+        SuccessMessage(refreshed ? 'Projeto atualizado com sucesso!' : 'Projeto atualizado, mas a lista não foi atualizada. Recarregue a página.', refreshed ? 'success' : 'info');
+      } catch (error) {
+        ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível atualizar o projeto.'));
+      } finally {
+        if (submitBtn.isConnected) { submitBtn.disabled = false; submitBtn.innerHTML = originalLabel; }
       }
-      
-      const response = await fetch(`${API_URL}/projects/${projectId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw await window.documentFeedback.requestError(response, 'Não foi possível atualizar o projeto.');
-      }
-
-      const data = await response.json();
-      if (!data.success) throw new Error(data.message || 'Não foi possível atualizar o projeto.');
-      console.log('Projeto atualizado:', data);
-      updated = true;
-      // Limpa o formulário
-      projectForm.reset();
-      const refreshed = await loadProjects();
-      
-      // Exibe mensagem de sucesso
-      SuccessMessage(refreshed ? 'Projeto atualizado com sucesso!' : 'Projeto atualizado, mas a lista não foi atualizada. Recarregue a página.', refreshed ? 'success' : 'info');
-
-      // Restaura o formulário para modo de criação
-      submitBtn.innerHTML = `${window.documentIcons.markup('save')} Salvar projeto`;
-      delete submitBtn.dataset.editing;
-      submitBtn.classList.remove('btn-update');
-
-
-      
-      projectForm.removeEventListener('submit', handleProjectUpdate);
-      projectForm.addEventListener('submit', handleProjectSubmit);
-    } catch (error) {
-      console.error('Erro ao atualizar projeto:', error);
-      ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível atualizar o projeto.'), 'error');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = updated ? `${window.documentIcons.markup('save')} Salvar projeto` : originalBtnText;
-    }
+    });
   }
 
   async function deleteProject(projectId) {

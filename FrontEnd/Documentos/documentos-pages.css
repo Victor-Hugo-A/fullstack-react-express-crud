@@ -459,6 +459,47 @@
 .documents-workspace .project-modal .btn-download-file { border-color: #cde6db; }
 .documents-workspace .project-modal .btn-delete-file { border-color: #eccdd0; }
 
+/* Edição mantém o usuário na lista e deixa a ação pendente evidente. */
+.documents-workspace .project-edit-modal .modal-content { width: min(100%, 920px); }
+.documents-workspace .project-edit-modal .project-modal-body { padding-bottom: 1.25rem; }
+.documents-workspace .project-edit-modal .document-form { gap: .8rem 1.1rem; }
+.documents-workspace .project-edit-modal .form-group { margin: 0; }
+.documents-workspace .project-edit-modal .edit-context {
+    margin: 1.25rem 1.8rem 0;
+    padding: .8rem 1rem;
+    border: 1px solid #c9dfed;
+    border-radius: 10px;
+    background: #edf7fc;
+    color: #23597d;
+    font-size: .84rem;
+}
+.documents-workspace .project-edit-modal .edit-context strong { color: #124d77; }
+.documents-workspace .project-edit-actions {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: .7rem;
+    padding: 1rem 1.8rem;
+    border-top: 1px solid #dfe9f0;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 -8px 18px rgba(20, 55, 82, .04);
+}
+.documents-workspace .project-edit-actions button {
+    min-height: 42px;
+    padding: .55rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font: inherit;
+    font-size: .86rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.documents-workspace .project-edit-actions .btn-cancel-edit { border-color: #d4e1e9; background: #fff; color: #36536b; }
+.documents-workspace .project-edit-actions .btn-cancel-edit:hover { background: #f1f5f8; }
+.documents-workspace .project-edit-actions .btn-submit { display: inline-flex; align-items: center; gap: .45rem; background: #175488; color: #fff; }
+.documents-workspace .project-edit-actions .btn-submit:hover { background: #123f69; }
+
 .documents-workspace .identity-image-modal[hidden] { display: none !important; }
 .documents-workspace .identity-image-modal {
     position: fixed;
@@ -498,6 +539,8 @@
     .documents-workspace .project-modal .file-item { align-items: flex-start; flex-wrap: wrap; }
     .documents-workspace .project-modal .file-info { flex: 1 1 calc(100% - 50px); }
     .documents-workspace .project-modal .file-actions { margin-left: auto; }
+    .documents-workspace .project-edit-modal .edit-context { margin: 1rem 1.15rem 0; }
+    .documents-workspace .project-edit-actions { padding: .85rem 1.15rem; }
 }
 
 @media (max-width: 380px) {
