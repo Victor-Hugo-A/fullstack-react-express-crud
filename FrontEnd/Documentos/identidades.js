@@ -3,7 +3,7 @@ const API_URL = 'http://localhost:3000/api/identities';
     
 let allIdentidades = [];
 let currentPage = 1;
-const IDENTIDADES_PER_PAGE = 5;
+const IDENTIDADES_PER_PAGE = 6;
 const activeImageUrls = new Set();
 const BACKEND_URL = 'http://localhost:3000';
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({

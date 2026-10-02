@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('.pagination').before(projectsTable);
 
   // Logica de Páginação
-  const PROJECTS_PER_PAGE = 5;
+  const PROJECTS_PER_PAGE = 6;
   let currentPage = 1;
 
   // Variáveis Globais

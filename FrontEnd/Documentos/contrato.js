@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 
-    const CONTRACTS_PER_PAGE = 4;
+    const CONTRACTS_PER_PAGE = 6;
     function updateContractList(contracts, page = 1) {
         const container = elements.documentsContainer;
         const start = (page - 1) * CONTRACTS_PER_PAGE
