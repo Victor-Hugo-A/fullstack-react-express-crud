@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sidebar = document.getElementById('sidebar');
     const toggle = document.getElementById('menuToggle');
     const backdrop = document.getElementById('menuBackdrop');
-    const mobile = window.matchMedia('(max-width: 760px)');
+    const mobile = window.matchMedia('(max-width: 768px)');
     function setMenuOpen(open) {
         const mobileOpen = mobile.matches && open;
         document.body.classList.toggle('menu-open', mobileOpen);
@@ -27,9 +27,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggle.innerHTML = icon(open ? 'close' : 'menu');
     }
     setMenuOpen(!mobile.matches);
-    toggle.addEventListener('click', () => setMenuOpen(sidebar.inert));
+    toggle.addEventListener('click', () => {
+        const open = sidebar.inert;
+        setMenuOpen(open);
+        if (open && mobile.matches) sidebar.querySelector('a[href]')?.focus();
+    });
     backdrop.addEventListener('click', () => { setMenuOpen(false); toggle.focus(); });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !sidebar.inert) { setMenuOpen(false); toggle.focus(); } });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !sidebar.inert) {
+            setMenuOpen(false);
+            toggle.focus();
+            return;
+        }
+        if (event.key !== 'Tab' || !mobile.matches || sidebar.inert) return;
+        const focusable = [...sidebar.querySelectorAll('a[href], button:not([disabled]), [tabindex="0"]'), toggle]
+            .filter(element => !element.inert && element.getClientRects().length > 0);
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
     mobile.addEventListener('change', () => setMenuOpen(!mobile.matches));
 
     if (!localStorage.getItem('token')) { window.location.replace('/FrontEnd/login.html'); return; }

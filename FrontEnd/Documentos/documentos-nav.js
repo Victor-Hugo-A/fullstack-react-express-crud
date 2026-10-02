@@ -104,12 +104,32 @@
         }
 
         setOpen(!mobile.matches);
-        toggle.addEventListener('click', () => setOpen(sidebar.classList.contains('closed')));
+        toggle.addEventListener('click', () => {
+            const open = sidebar.classList.contains('closed');
+            setOpen(open);
+            if (open && mobile.matches) sidebar.querySelector('a[href]')?.focus();
+        });
         backdrop.addEventListener('click', () => { setOpen(false); toggle.focus(); });
         document.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && !sidebar.classList.contains('closed')) {
+            const isOpen = !sidebar.classList.contains('closed');
+            if (event.key === 'Escape' && isOpen) {
                 setOpen(false);
                 toggle.focus();
+                return;
+            }
+            if (event.key !== 'Tab' || !mobile.matches || !isOpen) return;
+            const focusable = [
+                ...sidebar.querySelectorAll('a[href], button:not([disabled]), [tabindex="0"]'),
+                toggle
+            ].filter(element => !element.inert && element.getClientRects().length > 0);
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
             }
         });
         sidebar.addEventListener('click', event => {
