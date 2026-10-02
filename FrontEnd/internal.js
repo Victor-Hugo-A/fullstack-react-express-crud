@@ -1,17 +1,11 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!sessionStorage.getItem('portal-session')) {
         sessionStorage.setItem('auth-notice', 'required');
         window.location.replace('/FrontEnd/login.html');
         return;
     }
 
-    document.getElementById('logout')?.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userData');
-        sessionStorage.setItem('auth-notice', 'logout');
-        window.location.assign('/FrontEnd/login.html');
-    });
+    document.getElementById('logout')?.addEventListener('click', () => window.portalAuth?.logout());
 
     const documentsDropdown = document.querySelector('.nav-dropdown');
     const documentsToggle = documentsDropdown?.querySelector('.nav-dropdown-toggle');
@@ -46,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const username = document.getElementById('username-display');
     if (!username) return;
     try {
-        const cached = JSON.parse(localStorage.getItem('userData'));
+        const cached = JSON.parse(sessionStorage.getItem('userData'));
         username.textContent = cached?.nome || cached?.username || 'Usuário';
     } catch {
         username.textContent = 'Usuário';

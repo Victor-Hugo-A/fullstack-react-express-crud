@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+﻿const API_BASE_URL = 'http://localhost:3000/api';
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(`${API_BASE_URL}/contracts/check?number=${encodeURIComponent(contractNumber)}`, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}`
                 }
             });
 
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`${API_BASE_URL}/contracts`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}`
                 },
                 body: formData
             });
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}`
                 }
             });
 
@@ -273,7 +273,7 @@ async function loadContracts(filters = {}) {
         const query = new URLSearchParams(filters).toString();
         const response = await fetch(`${API_BASE_URL}/contracts?${query}`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}`
             }
         });
 
@@ -356,7 +356,7 @@ async function loadContracts(filters = {}) {
             const response = await fetch(`${API_BASE_URL}/contracts/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}`
                 }
             });
 
@@ -395,7 +395,7 @@ async function loadContracts(filters = {}) {
 async function viewContract(id, trigger) {
     try {
         showLoading(true);
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('portal-session');
         if (!token) throw new Error('Acesso restrito! Faça login para continuar.');
 
         const previewResponse = await fetch(`${API_BASE_URL}/contracts/${id}/view`, {
@@ -483,7 +483,7 @@ async function viewContract(id, trigger) {
                 formData.append('date', form.querySelector('#edit-contract-date').value);
                 formData.append('description', form.querySelector('#edit-contract-description').value.trim());
                 if (file) formData.append('file', file);
-                const response = await fetch(`${API_BASE_URL}/contracts/${contract.id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }, body: formData });
+                const response = await fetch(`${API_BASE_URL}/contracts/${contract.id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}` }, body: formData });
                 if (!response.ok) throw await window.documentFeedback.requestError(response, 'Não foi possível atualizar o contrato.');
                 changed = false; close();
                 const refreshed = await loadContracts();
@@ -505,7 +505,7 @@ async function viewContract(id, trigger) {
         try {
             showLoading(true);
 
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('portal-session');
             if (!token) {
                 throw new Error('Autenticação necessária');
             }

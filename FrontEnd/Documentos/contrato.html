@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Recupera o token do localStorage (armazenado durante o login)
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('portal-session');
 
         if (!token) {
             sessionStorage.setItem('auth-notice', 'required');
@@ -196,8 +196,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (token.length < 30) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userData');
+            sessionStorage.removeItem('portal-session');
+            sessionStorage.removeItem('userData');
             sessionStorage.setItem('auth-notice', 'expired');
             window.location.replace('/FrontEnd/login.html');
             return;
@@ -214,8 +214,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (response.status === 401 || response.status === 403) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userData');
+            sessionStorage.removeItem('portal-session');
+            sessionStorage.removeItem('userData');
             sessionStorage.setItem('auth-notice', 'expired');
             window.location.replace('/FrontEnd/login.html');
             return;

@@ -1,15 +1,13 @@
 const LOGIN_URL = '/FrontEnd/login.html';
 
 function redirectToLogin(reason) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
+    sessionStorage.removeItem('portal-session');
+    sessionStorage.removeItem('userData');
     if (reason) sessionStorage.setItem('auth-notice', reason);
     window.location.assign(LOGIN_URL);
 }
 
-function logout() {
-    redirectToLogin('logout');
-}
+function logout() { window.portalAuth?.logout(); }
 
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('logout')?.addEventListener('click', logout);
@@ -28,8 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.addEventListener('click', event => { if (!documentsDropdown.contains(event.target)) setDocumentsMenu(false); });
         document.addEventListener('keydown', event => { if (event.key === 'Escape') { setDocumentsMenu(false); documentsToggle.focus(); } });
     }
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!sessionStorage.getItem('portal-session')) {
         redirectToLogin();
         return;
     }
@@ -43,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const usernameDisplay = document.getElementById('username-display');
     try {
-        const cachedUser = JSON.parse(localStorage.getItem('userData'));
+        const cachedUser = JSON.parse(sessionStorage.getItem('userData'));
         if (usernameDisplay && cachedUser) {
             usernameDisplay.textContent = cachedUser.nome || cachedUser.username || 'Usuário';
         }
@@ -68,9 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/api/user', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await fetch('http://localhost:3000/api/user');
         if (response.status === 401 || response.status === 403 || response.status === 404) {
             redirectToLogin('expired');
             return;

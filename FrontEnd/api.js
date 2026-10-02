@@ -1,6 +1,5 @@
 window.apiGet = async function apiGet(path) {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!sessionStorage.getItem('portal-session')) {
         sessionStorage.setItem('auth-notice', 'required');
         window.location.replace('/FrontEnd/login.html');
         throw new Error('Faça login para acessar os dados.');
@@ -10,12 +9,12 @@ window.apiGet = async function apiGet(path) {
     const timeout = setTimeout(() => controller.abort(), 10000);
     try {
         const response = await fetch(`http://localhost:3000${path}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: 'include',
             signal: controller.signal
         });
         if (response.status === 401 || response.status === 403) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userData');
+            sessionStorage.removeItem('portal-session');
+            sessionStorage.removeItem('userData');
             sessionStorage.setItem('auth-notice', 'expired');
             window.location.replace('/FrontEnd/login.html');
             throw new Error('Sessão encerrada. Faça login novamente.');

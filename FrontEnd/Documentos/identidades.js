@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
 const API_URL = 'http://localhost:3000/api/identities';
     
 let allIdentidades = [];
@@ -14,7 +14,7 @@ async function loadIdentityPhoto(img, filePath) {
     if (!/^\/uploads\/identities\/[^/]+$/.test(filePath || '')) return;
     try {
         const response = await fetch(`${BACKEND_URL}${filePath}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            headers: { Authorization: `Bearer ${sessionStorage.getItem('portal-session')}` }
         });
         if (!response.ok) return;
         const imageUrl = URL.createObjectURL(await response.blob());
@@ -50,7 +50,7 @@ async function loadIdentityPhoto(img, filePath) {
         
         async function cpfJaCadastrado(cpf) {
             const response = await fetch(API_URL, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}` }
             });
             if (!response.ok) throw await window.documentFeedback.requestError(response, 'Não foi possível verificar o CPF.');
             const identidades = await response.json();
@@ -63,7 +63,7 @@ async function loadIdentityPhoto(img, filePath) {
     const submitButton = this.querySelector('button[type="submit"]');
     submitButton.disabled = true;
     try {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('portal-session');
         if (!token) throw new Error('Sua sessão terminou. Faça login novamente.');
         const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
         if (!cpfValue(cpf)) return;
@@ -94,7 +94,7 @@ async function loadIdentityPhoto(img, filePath) {
 
     async function carregarIdentidades() {
         const response = await fetch(API_URL, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}` }
         });
         if(!response.ok) {
             const error = await window.documentFeedback.requestError(response, 'Não foi possível carregar as identidades.');
@@ -174,7 +174,7 @@ async function loadIdentityPhoto(img, filePath) {
         try {
             const res = await fetch(`${API_URL}/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('portal-session')}` }
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.success) {

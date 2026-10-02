@@ -89,12 +89,12 @@ if (loginForm) {
             // Fazer requisição de login
             const response = await makeRequest('/login', 'POST', { username, password });
 
-            if (!response.success || !response.token) {
+            if (!response.success || !response.user) {
                 throw new Error(response.error || 'invalid_response')
             }
 
-            localStorage.setItem('token', response.token); // Token puro, sem JSON.stringify
-            localStorage.setItem('userData', JSON.stringify(response.user));
+            sessionStorage.setItem('portal-session', 'active');
+            sessionStorage.setItem('userData', JSON.stringify(response.user));
             sessionStorage.setItem('auth-notice', 'login');
             loginSucceeded = true;
             exibirMensagemSucesso('Login realizado com sucesso. Redirecionando...');

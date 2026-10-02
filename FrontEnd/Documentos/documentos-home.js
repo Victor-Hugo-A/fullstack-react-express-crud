@@ -54,12 +54,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     mobile.addEventListener('change', () => setMenuOpen(!mobile.matches));
 
-    if (!localStorage.getItem('token')) { window.location.replace('/FrontEnd/login.html'); return; }
+    if (!sessionStorage.getItem('portal-session')) { window.location.replace('/FrontEnd/login.html'); return; }
     try {
         const result = await apiGet('/api/user');
         if (!result.success || !result.user) throw new Error('Usuário não encontrado');
         document.getElementById('username-display').textContent = result.user.nome || result.user.username;
-    } catch (error) { console.error('Não foi possível carregar o usuário:', error); if (!localStorage.getItem('token')) return; }
+    } catch (error) { console.error('Não foi possível carregar o usuário:', error); if (!sessionStorage.getItem('portal-session')) return; }
 
     const resources = ['contracts', 'projects', 'identities'];
     let unavailableCounts = 0;
@@ -72,5 +72,5 @@ document.addEventListener('DOMContentLoaded', async () => {
             badge.textContent = `${new Intl.NumberFormat('pt-BR').format(count)} ${count === 1 ? 'registro' : 'registros'}`;
         } catch (error) { badge.textContent = 'Contagem indisponível'; unavailableCounts += 1; console.error(`Não foi possível contar ${resource}:`, error); }
     }));
-    if (unavailableCounts > 0 && localStorage.getItem('token')) { const notice = document.createElement('p'); document.body.appendChild(notice); window.appNotice.show(notice, 'Não foi possível atualizar todas as contagens de documentos.', 'warning'); }
+    if (unavailableCounts > 0 && sessionStorage.getItem('portal-session')) { const notice = document.createElement('p'); document.body.appendChild(notice); window.appNotice.show(notice, 'Não foi possível atualizar todas as contagens de documentos.', 'warning'); }
 });

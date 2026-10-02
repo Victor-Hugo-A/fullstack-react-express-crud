@@ -39,7 +39,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
   const port = await freePort();
   const backendDir = path.resolve(__dirname, '..');
   const sqlite3 = require(path.join(backendDir, 'node_modules', 'sqlite3'));
-  for (const file of ['server.js', 'database.js', 'keycloak-config.js']) {
+  for (const file of ['server.js', 'database.js', 'keycloak-config.js', 'config.js']) {
     fs.copyFileSync(path.join(backendDir, file), path.join(tempDir, file));
   }
   fs.writeFileSync(path.join(tempDir, '.env'), [
@@ -98,6 +98,20 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     });
   }
 
+  const nativeFetch = global.fetch;
+  global.fetch = async (url, options = {}) => {
+    const headers = new Headers(options.headers || {});
+    const bearer = headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];
+    if (bearer) {
+      headers.delete('Authorization');
+      headers.set('Cookie', `senappen_session=${bearer}; senappen_csrf=integration-csrf-token`);
+      if (!['GET', 'HEAD', 'OPTIONS'].includes(String(options.method || 'GET').toUpperCase())) {
+        headers.set('X-CSRF-Token', 'integration-csrf-token');
+      }
+    }
+    return nativeFetch(url, { ...options, headers });
+  };
+
   try {
     const base = `http://127.0.0.1:${port}`;
     await waitForHealth(`${base}/health`, processHandle, () => serverOutput);
@@ -105,6 +119,16 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       headers: { Origin: 'http://localhost:5500' }
     });
     assert.equal(corsResponse.headers.get('access-control-allow-origin'), 'http://localhost:5500');
+    const preflight = await fetch(`${base}/api/contracts`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'http://localhost:5500',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'content-type,x-csrf-token'
+      }
+    });
+    assert.equal(preflight.status, 200);
+    assert.match(preflight.headers.get('access-control-allow-headers') || '', /x-csrf-token/i);
 
     for (const route of [
       '/api/identities',
@@ -169,7 +193,9 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
 
     const login = await postJson('/login', { username: first, password });
     assert.equal(login.status, 200);
-    const { token } = await login.json();
+    const sessionCookie = login.headers.getSetCookie().find(cookie => cookie.startsWith('senappen_session='));
+    const token = sessionCookie?.match(/^senappen_session=([^;]+)/)?.[1];
+    assert.ok(token, 'o login deve emitir o cookie de sessão HttpOnly');
     for (const route of [
       '/api/contracts/count',
       '/api/projects/count',
@@ -248,8 +274,8 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       name: 'Projeto de teste', code: `projeto-${suffix}`, manager: 'Equipe de teste',
       start_date: '2026-01-01', end_date: null, status: 'planejamento', description: 'Projeto temporário'
     }));
-    projectForm.append('files', new Blob(['primeiro']), 'primeiro.txt');
-    projectForm.append('files', new Blob(['segundo']), 'segundo.txt');
+    projectForm.append('files', new Blob(['%PDF-1.4'], { type: 'application/pdf' }), 'primeiro.pdf');
+    projectForm.append('files', new Blob(['%PDF-1.4'], { type: 'application/pdf' }), 'segundo.pdf');
     const projectResponse = await fetch(`${base}/api/projects`, {
       method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: projectForm
     });
@@ -268,7 +294,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     identityForm.set('cpf', '529.982.247-25');
     identityForm.set('endereco', 'Endereço de teste');
     identityForm.set('perfil', 'Usuário');
-    identityForm.set('foto', new Blob(['imagem'], { type: 'image/png' }), 'foto.png');
+    identityForm.set('foto', new Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], { type: 'image/png' }), 'foto.png');
     const identityResponse = await fetch(`${base}/api/identities`, {
       method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: identityForm
     });
@@ -416,6 +442,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     assert.equal(blockedLogin.status, 429);
     assert.ok(Number(blockedLogin.headers.get('retry-after')) > 0);
   } finally {
+    global.fetch = nativeFetch;
     if (processHandle.exitCode === null) {
       processHandle.kill();
       await new Promise(resolve => processHandle.once('exit', resolve));

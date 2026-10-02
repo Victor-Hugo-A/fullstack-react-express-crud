@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -195,7 +195,7 @@
             const usernameElement = document.getElementById('username-display')
         try {
             // Recupera o token do localStorage (armazenado durante o login)
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('portal-session');
         if (!token) {
             sessionStorage.setItem('auth-notice', 'required');
             window.location.replace('/FrontEnd/login.html');
@@ -212,8 +212,8 @@
 
 
         if (response.status === 401 || response.status === 403) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userData');
+            sessionStorage.removeItem('portal-session');
+            sessionStorage.removeItem('userData');
             sessionStorage.setItem('auth-notice', 'expired');
             window.location.replace('/FrontEnd/login.html');
             return;

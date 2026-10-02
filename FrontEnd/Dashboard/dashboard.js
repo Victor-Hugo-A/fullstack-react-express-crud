@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    if (!localStorage.getItem('token')) return;
+    if (!sessionStorage.getItem('portal-session')) return;
 
     const number = new Intl.NumberFormat('pt-BR');
     const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });

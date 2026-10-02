@@ -1,8 +1,9 @@
-const API_URL = 'http://localhost:3000';
+﻿const API_URL = 'http://localhost:3000';
 
 function logout(reason = 'logout') {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
+    if (window.portalAuth?.logout) return window.portalAuth.logout(reason);
+    sessionStorage.removeItem('portal-session');
+    sessionStorage.removeItem('userData');
     sessionStorage.setItem('auth-notice', reason);
     window.location.assign('/FrontEnd/login.html');
 }
@@ -25,7 +26,7 @@ async function request(path, method, token, body) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('logout')?.addEventListener('click', () => logout());
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('portal-session');
     if (!token) { logout('expired'); return; }
     const form = document.getElementById('perfil-form');
     const saveStatus = document.getElementById('profile-save-status');
@@ -58,9 +59,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const profile = await request('/api/user', 'GET', token);
         if (!profile) return;
         setFieldValues(profile.user);
-        localStorage.setItem('userData', JSON.stringify(profile.user));
+        sessionStorage.setItem('userData', JSON.stringify(profile.user));
     } catch (error) {
-        try { const cached = JSON.parse(localStorage.getItem('userData')); if (cached) setFieldValues(cached); else throw error; }
+        try { const cached = JSON.parse(sessionStorage.getItem('userData')); if (cached) setFieldValues(cached); else throw error; }
         catch { showFeedback('Não foi possível carregar os dados atualizados do perfil.', 'warning'); }
     }
     const now = new Date();
@@ -94,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (changePassword) { const passwordResult = await request('/change-password', 'POST', token, { currentPassword, newPassword, confirmNewPassword }); if (!passwordResult) return; passwordUpdated = true; }
             const result = await request('/update-profile', 'PUT', token, { departamento: document.getElementById('departamento').value.trim(), cargo: document.getElementById('cargo').value.trim(), cpf: usuario?.cpf || document.getElementById('cpf').value });
             if (!result) return;
-            setFieldValues(result.user); localStorage.setItem('userData', JSON.stringify(result.user)); form.querySelectorAll('input[type="password"]').forEach(input => { input.value = ''; }); updatePasswordStrength(); saveStatus.textContent = 'Alterações salvas agora';
+            setFieldValues(result.user); sessionStorage.setItem('userData', JSON.stringify(result.user)); form.querySelectorAll('input[type="password"]').forEach(input => { input.value = ''; }); updatePasswordStrength(); saveStatus.textContent = 'Alterações salvas agora';
             showFeedback(changePassword ? 'Perfil e senha atualizados com sucesso.' : 'Perfil atualizado com sucesso.', 'success');
         } catch (error) {
             const reason = error instanceof TypeError ? 'Não foi possível conectar ao servidor.' : error.message;

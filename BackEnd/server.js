@@ -1,12 +1,6 @@
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
-const PORT = Number(process.env.PORT) || 3000;
-const SECRET_KEY = process.env.SECRET_KEY;
-if (!SECRET_KEY) {
-    throw new Error('Configure SECRET_KEY em BackEnd/.env antes de iniciar a API');
-}
-if (!process.env.SESSION_SECRET) {
-    throw new Error('Configure SESSION_SECRET em BackEnd/.env antes de iniciar a API');
-}
+const config = require('./config');
+const PORT = config.port;
+const SECRET_KEY = config.jwtSecret;
 const express = require('express');
 const keycloak = require('./keycloak-config')
 const session = require('express-session')
@@ -23,13 +17,33 @@ const router = express.Router();
 const contractsFilePath = path.join(__dirname, 'data', 'contracts.json');
 const mime = require('mime-types');
 const compression = require('compression'); // npm install compression
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const crypto = require('node:crypto');
 const { count } = require('console');
 app.use(compression()); // Ativa compressão globalmente
 
+if (config.isProduction) app.set('trust proxy', 1);
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'same-site' },
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'none'"],
+            frameAncestors: ["'none'"],
+            baseUri: ["'none'"],
+            formAction: ["'self'"],
+            scriptSrc: ["'none'"],
+            styleSrc: ["'none'"],
+            imgSrc: ["'self'", 'data:', 'blob:']
+        }
+    }
+}));
+app.use(cookieParser());
+
 const corsOptions = {
-    origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.1:3001'],
+    origin: config.allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
     credentials: true,
     optionsSuccessStatus: 200
 };
@@ -37,24 +51,24 @@ app.use(cors(corsOptions));
 app.use('/uploads', authenticateJWT, express.static(path.join(__dirname, 'uploads')));
 
 // CONFIG KEYCLOAK
-const config = {
+const keycloakRuntimeConfig = {
   keycloak: {
-    logoutRedirect: 'http://127.0.0.1:5500/FrontEnd/login.html',
-    frontendUrl: 'http://127.0.0.1:5500',
-    keycloakUrl: 'http://localhost:8080',
-    realm: 'meu-realm',
-    clientId: 'nodejs-app'
+    logoutRedirect: `${config.frontendOrigin}/FrontEnd/login.html`,
+    frontendUrl: config.frontendOrigin,
+    keycloakUrl: process.env.KEYCLOAK_URL || 'http://localhost:8080',
+    realm: process.env.KEYCLOAK_REALM || 'meu-realm',
+    clientId: process.env.KEYCLOAK_CLIENT_ID || 'nodejs-app'
   },
   session: {
-    secret: process.env.SESSION_SECRET,
+    secret: config.sessionSecret,
     resave: false,
     saveUninitialized: true,
     store: keycloak.memoryStore,
-    cookie: { secure: false } // true em produção com HTTPS
+    cookie: { secure: config.isProduction, sameSite: 'lax', httpOnly: true }
   }
 };
 
-app.use(session(config.session));
+app.use(session(keycloakRuntimeConfig.session));
 app.use(keycloak.middleware());
 
 // Rotas públicas
@@ -71,12 +85,12 @@ app.get('/seguro', keycloak.protect(), (req, res) => {
     // Melhor prática: Enviar token via HTTP Only cookie em vez de URL
     res.cookie('auth_token', token, { 
       httpOnly: true,
-      secure: false, // true em produção
+      secure: config.isProduction,
       sameSite: 'lax',
       maxAge: 3600000 // 1 hora
     });
     
-    res.redirect(`${config.keycloak.frontendUrl}/FrontEnd/Sistema/sistema.html`);
+    res.redirect(`${keycloakRuntimeConfig.keycloak.frontendUrl}/FrontEnd/Sistema/sistema.html`);
   } catch (error) {
     console.error('Erro no redirecionamento:', error);
     res.status(400).json({ error: error.message });
@@ -88,8 +102,8 @@ app.get('/logout', keycloak.protect(), (req, res) => {
   try {
     // Parâmetros para a URL de login do Keycloak
     const loginParams = new URLSearchParams({
-      client_id: 'nodejs-app',
-      redirect_uri: 'http://127.0.0.1:5500/FrontEnd/Sistema/sistema.html',
+      client_id: keycloakRuntimeConfig.keycloak.clientId,
+      redirect_uri: `${keycloakRuntimeConfig.keycloak.frontendUrl}/FrontEnd/Sistema/sistema.html`,
       response_type: 'code',
       scope: 'openid',
       state: crypto.randomUUID(), // Gera um state único
@@ -100,7 +114,7 @@ app.get('/logout', keycloak.protect(), (req, res) => {
       code_challenge: 'gerar-um-code-challenge-valido' // Substitua por um valor real
     });
 
-    const keycloakLoginUrl = `http://localhost:8080/realms/meu-realm/protocol/openid-connect/auth?${loginParams.toString()}`;
+    const keycloakLoginUrl = `${keycloakRuntimeConfig.keycloak.keycloakUrl}/realms/${encodeURIComponent(keycloakRuntimeConfig.keycloak.realm)}/protocol/openid-connect/auth?${loginParams.toString()}`;
 
     // Limpeza de sessão e cookies
     res.clearCookie('auth_token');
@@ -143,28 +157,50 @@ app.use(express.json());
 // Adicionar o router ao app
 app.use('/api', router);
 
-// Para proteger rotas Privadas como /POST
-function authenticateJWT(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+function issueAuthCookies(res, token) {
+    const csrfToken = crypto.randomBytes(32).toString('base64url');
+    res.cookie(config.authCookieName, token, config.cookieOptions);
+    res.cookie(config.csrfCookieName, csrfToken, config.csrfCookieOptions);
+}
 
+function clearAuthCookies(res) {
+    const options = { path: '/', secure: config.cookieOptions.secure, sameSite: config.cookieOptions.sameSite };
+    res.clearCookie(config.authCookieName, options);
+    res.clearCookie(config.csrfCookieName, options);
+}
+
+function validCsrfToken(req) {
+    const cookieToken = req.cookies?.[config.csrfCookieName];
+    const headerToken = req.get('X-CSRF-Token');
+    if (typeof cookieToken !== 'string' || typeof headerToken !== 'string') return false;
+    const cookieValue = Buffer.from(cookieToken);
+    const headerValue = Buffer.from(headerToken);
+    return cookieValue.length === headerValue.length && crypto.timingSafeEqual(cookieValue, headerValue);
+}
+
+// Protege recursos privados pela sessão armazenada em cookie HttpOnly.
+function authenticateJWT(req, res, next) {
+    const token = req.cookies?.[config.authCookieName];
     if (!token) {
         return res.status(401).json({
             success: false,
-            message: 'Token de acesso não fornecido'
-        })
+            message: 'Sessão de acesso não fornecida'
+        });
     }
 
     jwt.verify(token, SECRET_KEY, (err, user) => {
         if (err) {
             return res.status(403).json({
                 success: false,
-                message: 'Token inválido ou expirado'
-            })
+                message: 'Sessão inválida ou expirada'
+            });
+        }
+        if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !validCsrfToken(req)) {
+            return res.status(403).json({ success: false, message: 'Token CSRF ausente ou inválido.' });
         }
         req.user = user;
-        next();
-    })
+        return next();
+    });
 }
 
 
@@ -389,72 +425,25 @@ app.post('/api/contracts/sync', authenticateJWT, requireAdmin, (req, res) => {
 
 
 app.get('/api/user', authenticateJWT, async (req, res) => {
-
     try {
-        const authHeader = req.headers['authorization'];
-
-        if (!authHeader) {
-            return res.status(401).json({
-                success: false,
-                message: 'Token de acesso não fornecido'
-            });
-        }
-
-        const token = authHeader.split(' ')[1];
-
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: 'Formato de token inválido'
-            });
-        }
-
-        jwt.verify(token, SECRET_KEY, async (err, decoded) => {
-            if (err) {
-                console.error('Erro na verificação do token', err);
-                return res.status(403).json({
-                    success: false,
-                    message: 'Token inválido ou expirado',
-                    error: err.message
-                });
-            }
-
-            try {
-                console.log('Buscando usuário com ID:', decoded.userId);
-                const user = await userRepository.findById(decoded.userId);
-
-                if (!user) {
-                    console.log('Usuário não encontrado no banco de dados');
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Usuário não encontrado'
-                    });
-                }
-
-                res.json({
-                    success: true,
-                    user: {
-                        id: user.id,
-                        username: user.username,
-                        nome: user.nome || user.username,
-                        email: user.email,
-                        cpf: user.cpf,
-                        departamento: user.departamento,
-                        cargo: user.cargo,
-                        isAdmin: user.is_admin === 1
-                    }
-                });
-            } catch (error) { // Corrigido: variável Error para error
-                console.error('Erro no banco de dados', error);
-                res.status(500).json({
-                    success: false,
-                    message: 'Erro interno no servidor',
-                });
+        const user = await userRepository.findById(req.user.userId);
+        if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+        return res.json({
+            success: true,
+            user: {
+                id: user.id,
+                username: user.username,
+                nome: user.nome || user.username,
+                email: user.email,
+                cpf: user.cpf,
+                departamento: user.departamento,
+                cargo: user.cargo,
+                isAdmin: user.is_admin === 1
             }
         });
     } catch (error) {
         console.error('Erro geral no endpoint:', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: 'Erro interno no servidor',
         });
@@ -481,9 +470,9 @@ const upload = multer({
     storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
     fileFilter: (req, file, cb) => {
-        const filetypes = /pdf|doc|docx|jpg|jpeg|png/;
+        const filetypes = /^(application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|image\/jpeg|image\/png)$/;
         const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const extname = uploadPolicies.contract.has(path.extname(file.originalname).toLowerCase());
         
         if (mimetype && extname) {
             return cb(null, true);
@@ -582,7 +571,7 @@ function getContracts() {
 
 
 // Rota para cadastrar novo contrato
-app.post('/api/contracts', authenticateJWT, upload.single('file'), (req, res) => {
+app.post('/api/contracts', authenticateJWT, upload.single('file'), validateUploadedFiles('contract'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ 
@@ -634,8 +623,63 @@ app.post('/api/contracts', authenticateJWT, upload.single('file'), (req, res) =>
     }
 });
 
+const uploadPolicies = {
+    contract: new Set(['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png']),
+    project: new Set(['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png']),
+    identity: new Set(['.jpg', '.jpeg', '.png'])
+};
+
+function detectedFileType(buffer) {
+    if (buffer.subarray(0, 5).toString('ascii') === '%PDF-') return 'pdf';
+    if (buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
+    if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return 'jpeg';
+    if (buffer.subarray(0, 8).equals(Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]))) return 'office-legacy';
+    if (buffer.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]))) return 'office-zip';
+    return null;
+}
+
+function signatureMatchesExtension(extension, type) {
+    const expected = {
+        '.pdf': ['pdf'], '.png': ['png'], '.jpg': ['jpeg'], '.jpeg': ['jpeg'],
+        '.doc': ['office-legacy'], '.xls': ['office-legacy'],
+        '.docx': ['office-zip'], '.xlsx': ['office-zip']
+    };
+    return expected[extension]?.includes(type) || false;
+}
+
+function removeRejectedUploads(files) {
+    files.forEach(file => {
+        if (file?.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    });
+}
+
+function validateUploadedFiles(policyName) {
+    return async (req, res, next) => {
+        const files = [...(req.file ? [req.file] : []), ...(req.files || [])];
+        if (!files.length) return next();
+        try {
+            const allowedExtensions = uploadPolicies[policyName];
+            for (const file of files) {
+                const extension = path.extname(file.originalname).toLowerCase();
+                const sample = Buffer.alloc(16);
+                const handle = await fs.promises.open(file.path, 'r');
+                await handle.read(sample, 0, sample.length, 0);
+                await handle.close();
+                if (!allowedExtensions?.has(extension) || !signatureMatchesExtension(extension, detectedFileType(sample))) {
+                    removeRejectedUploads(files);
+                    return res.status(400).json({ success: false, message: 'Arquivo rejeitado: a extensão e o conteúdo não correspondem a um formato permitido.' });
+                }
+            }
+            return next();
+        } catch (error) {
+            removeRejectedUploads(files);
+            return next(error);
+        }
+    };
+}
+
 // Atualiza os dados do contrato e, opcionalmente, substitui o arquivo vinculado.
-app.put('/api/contracts/:id', authenticateJWT, upload.single('file'), (req, res) => {
+app.put('/api/contracts/:id', authenticateJWT, upload.single('file'), validateUploadedFiles('contract'), (req, res) => {
     try {
         const { type, number, date, description } = req.body;
         if (!type || !number || !date) {
@@ -936,7 +980,7 @@ const projectsUpload = multer({
                                                        // PARTE DE PROJETOS // 
 
 // Rotas para projetos
-router.post('/projects', authenticateJWT, projectsUpload.array('files'), async (req, res) => {
+router.post('/projects', authenticateJWT, projectsUpload.array('files'), validateUploadedFiles('project'), async (req, res) => {
         try {
         const projectData = JSON.parse(req.body.project);
 
@@ -1162,7 +1206,7 @@ router.delete('/project-files/:id', authenticateJWT, requireAdmin, async (req, r
 });
 
 
-router.put('/projects/:id', authenticateJWT, projectsUpload.array('files'), async (req, res) => {
+router.put('/projects/:id', authenticateJWT, projectsUpload.array('files'), validateUploadedFiles('project'), async (req, res) => {
         try {
         const projectData = JSON.parse(req.body.project);
 
@@ -1322,7 +1366,7 @@ router.delete('/projects/:id', authenticateJWT, requireAdmin, async (req, res) =
         limits: { fileSize: 5 * 1024 * 1024 }, // 5MB   
     });
 
-    app.post('/api/identities', authenticateJWT, identitiesUpload.single('foto'), (req, res) => {
+    app.post('/api/identities', authenticateJWT, identitiesUpload.single('foto'), validateUploadedFiles('identity'), (req, res) => {
         console.log('Recebido:', req.body, req.file);
         const {nome, cpf, endereco, perfil} = req.body;
         const foto = req.file ? `/uploads/identities/${req.file.filename}` : null;
@@ -1398,109 +1442,14 @@ router.delete('/projects/:id', authenticateJWT, requireAdmin, async (req, res) =
     }
 });
 
-// Funções de gerenciamento de token
-const tokenUtils = {
-    // Verifica se o token existe e é válido
-    checkToken: () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            return { isValid: false, reason: 'Token não encontrado' };
-        }
-        
-        try {
-            const decoded = jwt(token);
-            const isExpired = decoded.exp < Date.now() / 1000;
-            
-            return {
-                isValid: !isExpired,
-                isExpired,
-                decoded,
-                reason: isExpired ? 'Token expirado' : 'Token válido'
-            };
-        } catch (e) {
-            return { isValid: false, reason: 'Token inválido' };
-        }
-    },
-    
-    // Redireciona para login se o token for inválido
-    redirectIfInvalid: () => {
-        const tokenCheck = tokenUtils.checkToken();
-        if (!tokenCheck.isValid) {
-            localStorage.removeItem('token');
-            window.location.href = '/login.html';
-            return false;
-        }
-        return true;
-    },
-    
-    // Renova o token se estiver perto de expirar
-    async renewToken() {
-        const tokenCheck = tokenUtils.checkToken();
-        if (!tokenCheck.isValid) return false;
-        
-        // Renova se estiver nos últimos 15 minutos de validade
-        const expiresIn = tokenCheck.decoded.exp - (Date.now() / 1000);
-        if (expiresIn > 900) return true; // 15 minutos em segundos
-        
-        try {
-            const response = await fetch('http://localhost:3000/api/renew-token', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('token', data.token);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error('Erro ao renovar token:', error);
-            return false;
-        }
-    }
-};
-
-app.post('/api/renew-token', async (req, res) => {
-    try {
-        const authHeader = req.headers['authorization'];
-        const token = authHeader?.split(' ')[1];
-        
-        if (!token) {
-            return res.status(401).json({ 
-                success: false,
-                message: 'Token não fornecido' 
-            });
-        }
-
-        jwt.verify(token, SECRET_KEY, (err, decoded) => {
-            if (err) {
-                return res.status(403).json({ 
-                    success: false,
-                    message: 'Token inválido' 
-                });
-            }
-            
-            // Cria novo token com os mesmos dados
-            const newToken = jwt.sign(
-                { userId: decoded.userId, username: decoded.username }, 
-                SECRET_KEY, 
-                { expiresIn: '8h' }
-            );
-            
-            res.json({ 
-                success: true,
-                token: newToken 
-            });
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false,
-            message: 'Erro ao renovar token' 
-        });
-    }
+app.post('/api/renew-token', authenticateJWT, (req, res) => {
+    const token = jwt.sign(
+        { userId: req.user.userId, username: req.user.username },
+        SECRET_KEY,
+        { expiresIn: '8h' }
+    );
+    issueAuthCookies(res, token);
+    res.json({ success: true });
 });
 
 app.use((err, req, res, next) => {
@@ -1654,10 +1603,10 @@ app.post('/login', limitLoginAttempts, async (req, res) => {
             SECRET_KEY, 
             { expiresIn: '8h' }
         );
+        issueAuthCookies(res, token);
 
         res.status(200).json({ 
             success: true,
-            token,
             message: 'Login realizado com sucesso!', 
             user: {
                 id: user.id,
@@ -1677,6 +1626,11 @@ app.post('/login', limitLoginAttempts, async (req, res) => {
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
+});
+
+app.post('/api/logout', authenticateJWT, (req, res) => {
+    clearAuthCookies(res);
+    res.status(204).end();
 });
 
 app.post('/upload', authenticateJWT, upload.single('file'), (req, res) => {
@@ -1843,16 +1797,9 @@ app.post('/register', async (req, res) => {
 
         const createdUser = await userRepository.create(newUser);
         
-        const token = jwt.sign(
-            { userId: createdUser.id, username: createdUser.username }, 
-            SECRET_KEY, 
-            { expiresIn: '3h' }
-        );
-
         res.status(201).json({ 
             success: true,
             message: 'Usuário criado com sucesso', 
-            token,
             user: {
                 id: createdUser.id,
                 username: createdUser.username,

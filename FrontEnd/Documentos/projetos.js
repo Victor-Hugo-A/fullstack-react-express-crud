@@ -1,4 +1,4 @@
-// Configurações
+﻿// Configurações
 const API_URL = 'http://localhost:3000/api';
 const UPLOADS_DIR = 'uploads/projects/';
 
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Variáveis Globais
   let allProjects = [];
   let displayedProjects = [];
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('portal-session');
   
 function renderProjectsPage(page) {
   const start = (page - 1) * PROJECTS_PER_PAGE;
@@ -284,8 +284,8 @@ function renderProjectsPage(page) {
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           sessionStorage.setItem('auth-notice', 'expired');
-          localStorage.removeItem('token');
-          localStorage.removeItem('userData');
+          sessionStorage.removeItem('portal-session');
+          sessionStorage.removeItem('userData');
           window.location.href = '/FrontEnd/login.html';
           return false;
         }
@@ -596,7 +596,7 @@ function renderProjectsPage(page) {
 
   async function getProjectFile(url) {
     const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `Bearer ${sessionStorage.getItem('portal-session')}` }
     });
     if (!response.ok) throw new Error('Não foi possível carregar o arquivo');
     return response.blob();
