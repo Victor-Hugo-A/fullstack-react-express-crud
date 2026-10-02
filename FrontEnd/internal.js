@@ -13,6 +13,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.assign('/FrontEnd/login.html');
     });
 
+    const documentsDropdown = document.querySelector('.nav-dropdown');
+    const documentsToggle = documentsDropdown?.querySelector('.nav-dropdown-toggle');
+    if (documentsDropdown && documentsToggle) {
+        const setDocumentsMenu = open => {
+            documentsDropdown.classList.toggle('is-open', open);
+            documentsToggle.setAttribute('aria-expanded', String(open));
+            documentsToggle.setAttribute('aria-label', open ? 'Fechar opções de documentos' : 'Abrir opções de documentos');
+        };
+        documentsToggle.addEventListener('click', event => {
+            event.preventDefault();
+            setDocumentsMenu(!documentsDropdown.classList.contains('is-open'));
+        });
+        document.addEventListener('click', event => {
+            if (!documentsDropdown.contains(event.target)) setDocumentsMenu(false);
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                setDocumentsMenu(false);
+                documentsToggle.focus();
+            }
+        });
+    }
+
     const date = document.getElementById('current-date');
     if (date) {
         const now = new Date();
