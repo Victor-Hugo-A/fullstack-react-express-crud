@@ -14,7 +14,16 @@ const { v4: uuidv4 } = require('uuid');
 const { db, userRepository, auditRepository, initializeDatabase, closeDatabase } = require('./database');
 const app = express();
 const router = express.Router();
-const contractsFilePath = path.join(__dirname, 'data', 'contracts.json');
+const contractsRepository = require('./repositories/contracts.repository');
+const { createContractsService } = require('./services/contracts.service');
+const { createContractsRouter } = require('./routes/contracts.routes');
+const { errorHandler } = require('./middlewares/error-handler');
+const { createProjectsRepository } = require('./repositories/projects.repository');
+const { createProjectsService } = require('./services/projects.service');
+const { createProjectsRouter } = require('./routes/projects.routes');
+const { createIdentitiesRepository } = require('./repositories/identities.repository');
+const { createIdentitiesService } = require('./services/identities.service');
+const { createIdentitiesRouter } = require('./routes/identities.routes');
 const mime = require('mime-types');
 const compression = require('compression'); // npm install compression
 const helmet = require('helmet');
@@ -132,19 +141,10 @@ app.get('/logout', keycloak.protect(), (req, res) => {
 
 // Configuração de diretórios
 const uploadsDir = path.join(__dirname, 'uploads', 'contracts');
-const DATA_FILE = path.join(__dirname, 'data', 'contracts.json');
+const contractsService = createContractsService({ uploadsDir });
 
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-if (!fs.existsSync(path.dirname(DATA_FILE))) {
-    fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
-}
-
-// Inicializar arquivo de dados se não existir
-if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify([]));
 }
 
 app.use('/projects/files', authenticateJWT, express.static(path.join(__dirname, 'uploads', 'projects')));
@@ -341,33 +341,6 @@ router.get('/admin/audit', authenticateJWT, requireAdmin, async (req, res, next)
     }
 });
 
-// RETORNA DASHBOARD PARA OS TIPOS, STATUS E PERFIL
-router.get('/contracts/groupby/type', authenticateJWT, (req, res) => {
-    const contracts = readContracts();
-    const counts = {};
-    contracts.forEach(c => {
-        const tipo = (c.type || 'Outro').toLowerCase();
-        counts[tipo] = (counts[tipo] || 0) +1;
-    });
-    res.json(Object.entries(counts).map(([tipo,count]) => ({ tipo, count })));
-});
-
-// Identidades por status
-router.get('/projects/groupby/status', authenticateJWT, (req, res) => {
-    db.all('SELECT status, COUNT(*) as count FROM projects GROUP BY status', [], (err, rows) => {
-        if (err) return res.status(500).json([]);
-        res.json(rows);
-    });
-});
-
-// Identidades por perfil
-router.get('/identities/groupby/perfil', authenticateJWT, (req, res) => {
-    db.all('SELECT perfil, COUNT(*) as count FROM identities GROUP BY perfil', [], (err, rows) => {
-        if (err) return res.status(500).json([]);
-        res.json(rows);
-    });
-});
-
 // Resumo único para a página inicial do dashboard. Evita que a interface faça
 // várias requisições independentes para montar a mesma visão.
 router.get('/dashboard/summary', authenticateJWT, async (req, res) => {
@@ -376,7 +349,7 @@ router.get('/dashboard/summary', authenticateJWT, async (req, res) => {
     });
 
     try {
-        const contracts = readContracts();
+        const contracts = await contractsRepository.list({});
         const contractsByType = Object.entries(contracts.reduce((counts, contract) => {
             const tipo = String(contract.type || 'Outro').toLowerCase();
             counts[tipo] = (counts[tipo] || 0) + 1;
@@ -441,7 +414,7 @@ router.get('/analysis/summary', authenticateJWT, async (req, res) => {
     };
 
     try {
-        const contracts = readContracts().filter(contract => {
+        const contracts = (await contractsRepository.listByDateRange(from, to)).filter(contract => {
             const date = String(contract.date || '').slice(0, 10);
             return (!from || date >= from) && (!to || date <= to);
         });
@@ -480,68 +453,6 @@ router.get('/analysis/summary', authenticateJWT, async (req, res) => {
     } catch (error) {
         console.error('Erro ao carregar resumo de análises:', error);
         res.status(500).json({ error: 'Não foi possível carregar o resumo das análises.' });
-    }
-});
-
-
-// ATUALIZAÇÃO DO BADGE - REGISTROS
-router.get('/contracts/count', authenticateJWT, (req, res) => {
-    try {
-        const year = req.query.year;
-        const contracts = readContracts();
-        const filtered = year
-        ? contracts.filter(c => c.date && c.date.startsWith(year))
-        : contracts;
-        res.json({ count: filtered.length });
-    } catch (error) {
-        res.status(500).json({ count: 0, error: 'Erro ao contar contratos' })
-    }
-});
-
-router.get('/projects/count', authenticateJWT, (req, res) => {
-    const year = req.query.year;
-    let sql = 'SELECT COUNT(*) as count FROM projects';
-    let params = [];
-    if (year) {
-        sql += ' WHERE start_date LIKE ?';
-        params.push(`${year}%`);
-    }
-    db.get(sql, params, (err, row) => {
-        if (err) return res.status(500).json({ count: 0, error: 'Erro ao contar projetos' });
-        res.json({ count: row.count });
-    });
-});
-
-router.get('/identities/count', authenticateJWT, (req, res) => {
-    const year = req.query.year;
-    let sql = 'SELECT COUNT(*) as count FROM identities';
-    let params = [];
-    if (year) {
-        sql += ' WHERE created_at LIKE ?';
-        params.push(`${year}%`);
-    }
-    db.get(sql, params, (err, row) => {
-        if (err) return res.status(500).json({ count: 0, error: 'Erro ao contar identidades' });
-        res.json({ count: row.count });
-    });
-});
-
-
-app.post('/api/contracts/sync', authenticateJWT, requireAdmin, (req, res) => {
-    try {
-        // Atualiza a lista de contratos com o sistema de arquivos
-        const files = fs.readdirSync(path.join(__dirname, 'uploads/contracts'));
-        const currentContracts = loadContracts();
-        
-        // Filtra contratos que não existem mais
-        const validContracts = currentContracts.filter(contract => 
-            files.includes(contract.fileName)
-        );
-        
-        saveContracts(validContracts);
-        res.json({ success: true, count: validContracts.length });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -599,149 +510,10 @@ const upload = multer({
         if (mimetype && extname) {
             return cb(null, true);
         }
-        cb(new Error('Apenas arquivos PDF, DOC, DOCX, JPG, JPEG ou PNG são permitidos'));
-    }
-});
-
-function readContracts() {
-    try {
-        if (!fs.existsSync(DATA_FILE)) {
-            fs.writeFileSync(DATA_FILE, '[]');
-            return [];
-        }
-        const data = fs.readFileSync(DATA_FILE, 'utf8');
-        return JSON.parse(data || '[]');
-    } catch (error) {
-        console.error('Erro ao ler contratos', error);
-        return [];
-    }
-}
-
-app.delete('/api/contracts/clean-all', authenticateJWT, requireAdmin, (req, res) => {
-    try {
-        // 1. Ler os contratos existentes para obter os nomes dos arquivos
-        const contracts = readContracts();
-        const uploadsDir = path.join(__dirname, 'uploads', 'contracts');
-
-        // 2. Excluir todos os arquivos físicos
-        if (fs.existsSync(uploadsDir)) {
-            // Primeiro: excluir arquivos listados nos contratos
-            contracts.forEach(contract => {
-                try {
-                    const filePath = path.join(uploadsDir, contract.fileName);
-                    if (fs.existsSync(filePath)) {
-                        fs.unlinkSync(filePath);
-                    }
-                } catch (fileError) {
-                    console.error(`Erro ao excluir ${contract.fileName}:`, fileError);
-                }
-            });
-
-            // Segundo: limpar outros arquivos que possam existir na pasta
-            fs.readdirSync(uploadsDir).forEach(file => {
-                try {
-                    fs.unlinkSync(path.join(uploadsDir, file));
-                } catch (dirError) {
-                    console.error(`Erro ao excluir ${file}:`, dirError);
-                }
-            });
-        }
-
-        // 3. Limpar o arquivo contracts.json de forma atômica
-        saveContracts([]);
-
-        // 4. Responder com sucesso
-        res.json({ 
-            success: true, 
-            message: 'Todos os contratos e arquivos foram removidos com sucesso',
-            contracts: []
-        });
-    } catch (error) {
-        console.error('Erro ao limpar contratos:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Falha ao remover contratos',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-    }
-});
-
-
-// Função para carregar contratos do arquivo
-function loadContracts() {
-    try {
-        if (!fs.existsSync(contractsFilePath)) {
-            fs.writeFileSync(contractsFilePath, '[]', 'utf8');
-            return [];
-        }
-        const data = fs.readFileSync(contractsFilePath, 'utf8');
-
-        if (!data.trim()) {
-            return [];
-        } 
-
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Erro ao carregar contratos:', error);
-        return [];
-    }
-}
-
-function getContracts() {
-    return loadContracts();
-}
-
-
-// Rota para cadastrar novo contrato
-app.post('/api/contracts', authenticateJWT, upload.single('file'), validateUploadedFiles('contract'), (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ 
-                success: false,
-                error: 'Nenhum arquivo enviado' 
-            });
-        }
-    
-        const { type, number, date, description } = req.body;
-        
-        // Validação básica
-        if (!type || !number || !date) {
-            return res.status(400).json({ error: 'Campos obrigatórios faltando' });
-        }
-
-        // Verifica se a data está dentro do intervalo permitido.
-        const contractDate = new Date(date);
-        const minDate = new Date('2025-01-01');
-        const maxDate = new Date('2040-12-31');
-        
-        if (Number.isNaN(contractDate.getTime()) || contractDate < minDate || contractDate > maxDate) {
-            return res.status(400).json({ 
-                error: 'Data do contrato deve estar entre Janeiro/2025 e Dezembro/2040'
-            });
-        }
-
-        const contracts = getContracts();
-    
-        const newContract = {
-            id: uuidv4(),
-            type,
-            number,
-            date,
-            description: description || '',
-            fileName: req.file.filename,
-            originalName: req.file.originalname,
-            filePath: `/uploads/contracts/${req.file.filename}`,
-            mimeType: req.file.mimetype,
-            createdAt: new Date().toISOString()
-        };
-
-        contracts.push(newContract);
-        saveContracts(contracts);
-    
-        res.status(201).json(newContract);
-    } catch (error) {
-        console.error('Erro ao cadastrar contrato:', error);
-        res.status(500).json({ error: 'Erro interno ao processar o contrato' });
+        const error = new Error('Apenas arquivos PDF, DOC, DOCX, JPG, JPEG ou PNG são permitidos.');
+        error.status = 400;
+        error.code = 'unsupported_media_type';
+        cb(error);
     }
 });
 
@@ -769,10 +541,15 @@ function signatureMatchesExtension(extension, type) {
     return expected[extension]?.includes(type) || false;
 }
 
-function removeRejectedUploads(files) {
-    files.forEach(file => {
-        if (file?.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
-    });
+async function removeRejectedUploads(files) {
+    for (const file of files) {
+        if (!file?.path) continue;
+        try {
+            await fs.promises.unlink(file.path);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+    }
 }
 
 function validateUploadedFiles(policyName) {
@@ -785,276 +562,41 @@ function validateUploadedFiles(policyName) {
                 const extension = path.extname(file.originalname).toLowerCase();
                 const sample = Buffer.alloc(16);
                 const handle = await fs.promises.open(file.path, 'r');
-                await handle.read(sample, 0, sample.length, 0);
-                await handle.close();
-                if (!allowedExtensions?.has(extension) || !signatureMatchesExtension(extension, detectedFileType(sample))) {
-                    removeRejectedUploads(files);
-                    return res.status(400).json({ success: false, message: 'Arquivo rejeitado: a extensão e o conteúdo não correspondem a um formato permitido.' });
+                try {
+                    await handle.read(sample, 0, sample.length, 0);
+                } finally {
+                    await handle.close();
+                }
+                const validIdentityMime = policyName !== 'identity' ||
+                    file.mimetype === (extension === '.png' ? 'image/png' : 'image/jpeg');
+                if (!allowedExtensions?.has(extension) || !validIdentityMime ||
+                    !signatureMatchesExtension(extension, detectedFileType(sample))) {
+                    await removeRejectedUploads(files);
+                    const error = new Error('Arquivo rejeitado: a extensão e o conteúdo não correspondem a um formato permitido.');
+                    error.status = 400;
+                    error.code = 'invalid_file_signature';
+                    return next(error);
                 }
             }
             return next();
         } catch (error) {
-            removeRejectedUploads(files);
+            try {
+                await removeRejectedUploads(files);
+            } catch (cleanupError) {
+                return next(cleanupError);
+            }
             return next(error);
         }
     };
 }
 
-// Atualiza os dados do contrato e, opcionalmente, substitui o arquivo vinculado.
-app.put('/api/contracts/:id', authenticateJWT, upload.single('file'), validateUploadedFiles('contract'), (req, res) => {
-    try {
-        const { type, number, date, description } = req.body;
-        if (!type || !number || !date) {
-            return res.status(400).json({ success: false, error: 'Campos obrigatórios faltando' });
-        }
-        if (!/^[a-zA-Z0-9\-_]+$/.test(number)) {
-            return res.status(400).json({ success: false, error: 'Número do contrato inválido' });
-        }
-        const contractDate = new Date(date);
-        const minDate = new Date('2025-01-01');
-        const maxDate = new Date('2040-12-31');
-        if (Number.isNaN(contractDate.getTime()) || contractDate < minDate || contractDate > maxDate) {
-            return res.status(400).json({ success: false, error: 'Data do contrato deve estar entre Janeiro/2025 e Dezembro/2040' });
-        }
-
-        const contracts = getContracts();
-        const index = contracts.findIndex(contract => contract.id === req.params.id);
-        if (index === -1) return res.status(404).json({ success: false, error: 'Contrato não encontrado' });
-        if (contracts.some(contract => contract.id !== req.params.id && contract.number === number)) {
-            return res.status(400).json({ success: false, error: 'Este número de contrato já está em uso' });
-        }
-
-        const previous = contracts[index];
-        const updated = { ...previous, type, number, date, description: description || '', updatedAt: new Date().toISOString() };
-        if (req.file) {
-            updated.fileName = req.file.filename;
-            updated.originalName = req.file.originalname;
-            updated.filePath = `/uploads/contracts/${req.file.filename}`;
-            updated.mimeType = req.file.mimetype;
-        }
-        contracts[index] = updated;
-        saveContracts(contracts);
-
-        if (req.file && previous.fileName && previous.fileName !== updated.fileName) {
-            const previousFile = path.join(uploadsDir, previous.fileName);
-            if (fs.existsSync(previousFile)) fs.unlinkSync(previousFile);
-        }
-        res.json({ success: true, contract: updated });
-    } catch (error) {
-        console.error('Erro ao atualizar contrato:', error);
-        res.status(500).json({ success: false, error: 'Erro interno ao atualizar o contrato' });
-    }
-});
-
-
-
-// Função para salvar contratos no arquivo
-function saveContracts(contracts) {
-    try {
-        const dir = path.dirname(contractsFilePath);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        const tempPath = `${contractsFilePath}.tmp`;
-        fs.writeFileSync(tempPath, JSON.stringify(contracts, null, 2), 'utf8');
-        const fileDescriptor = fs.openSync(tempPath, 'r+');
-        try {
-            fs.fsyncSync(fileDescriptor);
-        } finally {
-            fs.closeSync(fileDescriptor);
-        }
-        fs.renameSync(tempPath, contractsFilePath);
-    } catch (error) {
-        console.error('Erro ao salvar contratos:', error);
-        throw error;
-    }
-}
-
-
-// Rota para listar contratos com filtros
-app.get('/api/contracts', authenticateJWT, (req, res) => {
-    try {
-        let contracts = readContracts();
-        const { type, year, search } = req.query;
-
-        // Aplicar filtros
-        if (type) {
-            contracts = contracts.filter(c => c.type === type);
-        }
-        
-        if (year) {
-            contracts = contracts.filter(c => new Date(c.date).getFullYear() == year);
-        }
-        
-        if (search) {
-            const searchTerm = search.toLowerCase();
-            contracts = contracts.filter(c => 
-                c.number.toLowerCase().includes(searchTerm) || 
-                (c.description && c.description.toLowerCase().includes(searchTerm))
-            );
-        }
-        
-        // Ordenar por data mais recente primeiro
-        contracts.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        res.json(contracts);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao listar contratos' });
-    }
-});
-
-// Rota para obter metadados do contrato
-app.get('/api/contracts/:id', authenticateJWT, async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        if (!id || !uuidv4(id)) { // Corrigido: usando uuidv4.validate
-            return res.status(400).json({ error: 'ID do contrato inválido' });
-        }
-
-        const contracts = readContracts();
-        const contract = contracts.find(c => c.id === id);
-
-        if (!contract) {
-            return res.status(404).json({ error: 'Contrato não encontrado' });
-        }
-
-        // Retorna os metadados sem o arquivo
-        const { fileName, filePath, ...contractData } = contract;
-        res.json(contractData);
-    } catch (error) {
-        console.error('Erro ao buscar contrato:', error);
-        res.status(500).json({ error: 'Erro interno ao buscar contrato' });
-    }
-});
-
-
-// Rota para download de contrato
-app.get('/api/contracts/:id/download', authenticateJWT, async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        if (!id || !uuidv4(id)) {     // Corrigido: usando uuidv4.validate
-            return res.status(400).json({ error: 'ID do contrato inválido'});
-        }
-
-        const contracts = readContracts();
-        const contract = contracts.find(c => c.id === id);
-
-        if (!contract) {
-            return res.status(404).json({ error: 'Contrato não encontrado' });
-        }
-
-        const filePath = path.join(uploadsDir, contract.fileName);
-
-        try {
-            await fs.promises.access(filePath, fs.constants.R_OK);
-        } catch (err) {
-            return res.status(404).json({ 
-                error: 'Arquivo não encontrado ou sem permissão de leitura'});
-        }
-            
-        const fileStats = await fs.promises.stat(filePath);
-        const contentType = mime.lookup(contract.originalName) || 'application/octet-stream';
-        const encondedFilename = encodeURIComponent(contract.originalName);
-
-        // Configura headers para forçar download
-        res.setHeader('Content-Type', contentType);
-        res.setHeader('Content-Disposition', `attachment; filename="${encondedFilename}"; filename*=UTF-8''${encondedFilename}`);
-        res.setHeader('Content-Length', fileStats.size);
-        res.setHeader('Cache-Control', 'no-store');
-        res.setHeader('Accept-Ranges', 'bytes');
-
-        // Stream do arquivo
-        const fileStream = fs.createReadStream(filePath);
-        fileStream.on('error', (err) => {
-            console.error('Erro ao ler arquivo:', err);
-            if (!res.headersSent) {
-                res.status(500).json({ error: 'Erro ao ler arquivo'});
-            }
-        });
-
-        fileStream.pipe(res);
-    } catch (error) {
-        console.error('Erro no endpoint de download:', error);
-        if (!res.headersSent) {
-            res.status(500).json({ error: 'Erro interno ao processar download' });
-        }
-    }
-});
-
-
-// Delete de contratos individuais
-app.delete('/api/contracts/:id', authenticateJWT, requireAdmin, async (req, res) => {
-    try {
-        const contracts = readContracts();
-        const index = contracts.findIndex(c => c.id === req.params.id);
-        
-        if (index === -1) {
-            return res.status(404).json({ error: 'Contrato não encontrado' });
-        }
-
-        // Remove arquivo físico
-        const filePath = path.join(uploadsDir, contracts[index].fileName);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
-
-        // Remove do JSON
-        contracts.splice(index, 1);
-        saveContracts(contracts);
-
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao excluir contrato' });
-    }
-});
-
-// Rota para visualização de contrato
-app.get('/api/contracts/:id/view', authenticateJWT, (req, res) => {
-    try {
-        const { id } = req.params;
-        const contracts = readContracts();
-        const contract = contracts.find(c => c.id.toString() === id.toString());
-
-        if (!contract) {
-            return res.status(404).send('Contrato não encontrado');
-        }
-
-        const filePath = path.join(uploadsDir, contract.fileName);
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).send('Arquivo não encontrado');
-        }
-
-        const extension = path.extname(contract.fileName).toLowerCase();
-        const isPdf = extension === '.pdf';
-
-        // Configura os headers para forçar abertura no navegador
-        if (isPdf) {
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(contract.originalName)}"`);
-            res.setHeader('X-Content-Type-Options', 'nosniff'); // Evita que o navegador ignore o Content-Type
-        } else {
-            // Lógica para outros tipos de arquivo (imagens, documentos, etc.)
-            const contentType = contract.mimeType || 'application/octet-stream';
-            res.setHeader('Content-Type', contentType);
-
-            if (contentType.startsWith('image/')) {
-                res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(contract.originalName)}"`);
-            } else {
-                res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(contract.originalName)}"`);
-            }
-        }
-
-        // Envia o arquivo
-        const fileStream = fs.createReadStream(filePath, { highWaterMark: 64 * 1024 });
-        fileStream.pipe(res);
-    } catch (error) {
-        console.error('Erro ao visualizar contrato:', error);
-        res.status(500).send('Erro ao visualizar contrato');
-    }
-});
-
+app.use('/api', createContractsRouter({
+    authenticateJWT,
+    requireAdmin,
+    upload,
+    validateUploadedFiles,
+    service: contractsService
+}));
 
 db.serialize(() => {
     db.run(`
@@ -1085,12 +627,12 @@ db.serialize(() => {
     `);
 });
 
+const projectsUploadDir = path.join(__dirname, 'uploads', 'projects');
 const projectsUpload = multer({
     storage: multer.diskStorage({
         destination: (req, file, cb) => {
-            const dir = path.join(__dirname, 'uploads/projects');
-            fs.mkdirSync(dir, { recursive: true });
-            cb(null, dir);
+            fs.mkdirSync(projectsUploadDir, { recursive: true });
+            cb(null, projectsUploadDir);
         },
         filename: (req, file, cb) => {
             cb(null, Date.now() + '-' + uuidv4() + path.extname(file.originalname).toLowerCase());
@@ -1099,444 +641,41 @@ const projectsUpload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
-                                                       // PARTE DE PROJETOS // 
+const projectsRepository = createProjectsRepository(db);
+const projectsService = createProjectsService({ repository: projectsRepository, uploadsDir: projectsUploadDir });
+app.use('/api', createProjectsRouter({
+    authenticateJWT,
+    requireAdmin,
+    upload: projectsUpload,
+    validateUploadedFiles,
+    service: projectsService
+}));
 
-// Rotas para projetos
-router.post('/projects', authenticateJWT, projectsUpload.array('files'), validateUploadedFiles('project'), async (req, res) => {
-        try {
-        const projectData = JSON.parse(req.body.project);
-
-    const allowedHeaders = ['planejamento', 'andamento', 'suspenso', 'concluido'];
-    if (!allowedHeaders.includes(projectData.status)) {
-        return res.status(400).json({ success: false, message: 'Status inválido' });
-    }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(projectData.start_date)) {
-        return res.status(400).json({ success: false, message: 'Data de início inválida' });
-    }
-
-        
-        // Validação básica
-        if (!projectData.name || !projectData.code || !projectData.manager || !projectData.start_date || !projectData.description) {
-            return res.status(400).json({ success: false, message: 'Preencha todos os campos obrigatórios' });
-        }
-        
-        // Insere o projeto no banco de dados
-        const result = await new Promise((resolve, reject) => {
-            db.run(
-                `INSERT INTO projects (name, code, manager, start_date, end_date, status, description) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    projectData.name,
-                    projectData.code,
-                    projectData.manager,
-                    projectData.start_date,
-                    projectData.end_date,
-                    projectData.status,
-                    projectData.description
-                ],
-                function(err) {
-                    if (err) reject(err);
-                    else resolve(this.lastID);
-                }
-            );
-        });
-        
-        // Processa os arquivos enviados
-        if (req.files && req.files.length > 0) {
-            console.log('Arquivos recebidos:', req.files);
-            for (const file of req.files) {
-                const originalName = file.originalname || path.basename(file.originalname);
-                console.log('Tentando inserir arquivo no banco:', file.filename);
-
-                await new Promise((resolve, reject) => {
-                    db.run(
-                        `INSERT INTO project_files (project_id, filename, originalname, mimetype, size) 
-                        VALUES (?, ?, ?, ?, ?)`,
-                        [
-                            result,
-                            file.filename,
-                            originalName,
-                            file.mimetype,
-                            file.size
-                        ],
-                        function(err) {
-                            if (err) {
-                                console.error('Erro ao inserir arquivo no banco:', err);
-                            reject(err);
-                        }  else {
-                             resolve();
-                    }
-                }
-            );
-        });
-    }
-}
-        
-        res.json({ success: true, projectId: result });
-    } catch (error) {
-        if (error.message && error.message.includes('UNIQUE constraint failed: projects.code')) {
-            return res.status(400).json({ success: false, message: 'Código do projeto já existe' });
-        }
-        console.error('Erro ao criar projeto:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-router.get('/projects', authenticateJWT, async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = (page - 1) * limit;
-        let sql = 'SELECT * FROM projects';
-        let params = [];
-
-        // Filtros opcionais
-        if (req.query.status) {
-            sql += ' WHERE status = ?';
-            params.push(req.query.status);
-        }
-        sql += ' ORDER BY start_date DESC LIMIT ? OFFSET ?';
-        params.push(limit, offset);
-
-        const projects = await new Promise((resolve, reject) => {
-            db.all(sql, params, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-
-        // Para cada projeto, busca os arquivos associados
-        for (const project of projects) {
-            project.files = await new Promise((resolve, reject) => {
-                db.all(
-                    'SELECT * FROM project_files WHERE project_id = ?',
-                    [project.id],
-                    (err, rows) => {
-                        if (err) reject(err);
-                         else resolve(rows);
-                    }
-                );
-            });
-        };
-        res.json({ success: true, projects, page, limit });
-        } catch (error) {
-            console.error('Erro ao buscar projetos:', error);
-            res.status(500).json({ success: false, message: error.message });
-        }
-    });
-
-router.get('/projects/:id', authenticateJWT, async (req, res) => {
-    try {
-        const project = await new Promise((resolve, reject) => {
-            db.get(
-                'SELECT * FROM projects WHERE id = ?',
-                [req.params.id],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                }
-            );
-        });
-        
-        if (!project) {
-            return res.status(404).json({ success: false, message: 'Projeto não encontrado' });
-        }
-        
-        project.files = await new Promise((resolve, reject) => {
-            db.all(
-                'SELECT * FROM project_files WHERE project_id = ?',
-                [req.params.id],
-                (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                }
-            );
-        });
-        
-        res.json({ success: true, project });
-    } catch (error) {
-        console.error('Erro ao buscar projeto:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-router.get('/project-files/:filename', authenticateJWT, async (req, res) => {
-    try {
-        if (path.basename(req.params.filename) !== req.params.filename) {
-            return res.status(400).json({ success: false, message: 'Nome de arquivo inválido' });
-        }
-        const filePath = path.join(__dirname, 'uploads', 'projects', req.params.filename);
-
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ success: false, message: 'Arquivo não encontrado'});
-        }
-        
-        if (req.query.download === '1') {
-        return res.download(filePath, req.params.filename);
-        }
-        res.sendFile(filePath)
-    } catch (error) {
-        console.error('Erro ao baixar arquivo:', error)
-        res.status(500).json({ success: false, message: error.messsage });
-    }
-});
-
-router.delete('/project-files/:id', authenticateJWT, requireAdmin, async (req, res) => {
-    try {
-        // Primeiro obtém o arquivo para deletá-lo do sistema de arquivos
-        const file = await new Promise((resolve, reject) => {
-            db.get(
-                'SELECT filename, project_id FROM project_files WHERE id = ?',
-                [req.params.id],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                }
-            );
-        });
-
-        if (!file) {
-            return res.status(404).json({ success: false, message: 'Arquivo não encontrado' });
-        }
-        // Deleta o arquivo do sistema de arquivos
-        const filePath = path.join(__dirname, 'uploads', 'projects', file.filename);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
-
-        // Depois deleta o registro do banco de dados
-        await new Promise((resolve, reject) => {
-            db.run(
-                'DELETE FROM project_files WHERE id = ?',
-                [req.params.id],
-                function(err) {
-                    if (err) reject(err);
-                    else resolve();
-                }
-            );
-        });
-
-        res.json({ 
-            success: true,
-            message: 'Arquivo deletado com sucesso',
-            projectId: file.project_id
-        });
-        return
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-
-router.put('/projects/:id', authenticateJWT, projectsUpload.array('files'), validateUploadedFiles('project'), async (req, res) => {
-        try {
-        const projectData = JSON.parse(req.body.project);
-
-    const allowedStatus = ['planejamento', 'andamento', 'suspenso', 'concluido'];
-    if (!allowedStatus.includes(projectData.status)) {
-        return res.status(400).json({ success: false, message: 'Status inválido' });
-    }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(projectData.start_date)) {
-        return res.status(400).json({ success: false, message: 'Data de início inválida' });
-    }
-        
-        // Atualiza o projeto no banco de dados
-        await new Promise((resolve, reject) => {
-            db.run(
-                `UPDATE projects 
-                SET name = ?, code = ?, manager = ?, start_date = ?, end_date = ?, status = ?, description = ?, updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?`,
-                [
-                    projectData.name,
-                    projectData.code,
-                    projectData.manager,
-                    projectData.start_date,
-                    projectData.end_date,
-                    projectData.status,
-                    projectData.description,
-                    req.params.id
-                ],
-                function(err) {
-                    if (err) reject(err);
-                    else resolve();
-                }
-            );
-        });
-        
-        // Processa os novos arquivos enviados
-        if (req.files && req.files.length > 0) {
-            for (const file of req.files) {
-                const originalName = file.originalname || path.basename(file.originalname);
-                
-                await new Promise((resolve, reject) => {
-                    db.run(
-                        `INSERT INTO project_files (project_id, filename, originalname, mimetype, size) 
-                        VALUES (?, ?, ?, ?, ?)`,
-                        [
-                            req.params.id,
-                            file.filename,
-                            originalName,
-                            file.mimetype,
-                            file.size
-                        ],
-                        function(err) {
-                            if (err) reject(err);
-                            else resolve();
-                        }
-                    );
-                });
-            }
-        }
-
-        const project = await new Promise((resolve, reject) => {
-            db.get(
-                'SELECT * FROM projects WHERE id = ?',
-                [req.params.id],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                
-            });
-        });
-
-        project.files = await new Promise((resolve, reject) => {
-            db.all(
-                'SELECT * FROM project_files WHERE project_id = ?',
-                [req.params.id],
-                (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                })
-            })
-            res.json({ success: true, project });
-        } catch (error) {
-            console.error('Erro ao atualizar projeto:', error);
-            res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-router.delete('/projects/:id', authenticateJWT, requireAdmin, async (req, res) => {
-    try {
-        const project = await new Promise((resolve, reject) => {
-            db.get('SELECT id FROM projects WHERE id = ?', [req.params.id], (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
-        if (!project) {
-            return res.status(404).json({ success: false, message: 'Projeto não encontrado' });
-        }
-
-        // Primeiro obtemos os arquivos para deletá-los do sistema de arquivos
-        const files = await new Promise((resolve, reject) => {
-            db.all(
-                'SELECT filename FROM project_files WHERE project_id = ?',
-                [req.params.id],
-                (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                }
-            );
-        });
-        
-        // Deleta os arquivos do sistema de arquivos
-        for (const file of files) {
-            try {
-                const filePath = path.join(__dirname, 'uploads', 'projects', file.filename);
-                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-            } catch (err) {
-                console.error('Erro ao deletar arquivo:', err);
-            }
-        }
-        
-        // Depois deleta o projeto (os arquivos serão deletados por CASCADE)
-        await new Promise((resolve, reject) => {
-            db.run(
-                'DELETE FROM projects WHERE id = ?',
-                [req.params.id],
-                function(err) {
-                    if (err) reject(err);
-                    else resolve();
-                }
-            );
-        });
-        
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Erro ao deletar projeto:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-
-
-                                       //  ROTAS PARA IDENTIDADES  //  
-    const identitiesStorage = multer.diskStorage({
+const identitiesUploadDir = path.join(__dirname, 'uploads', 'identities');
+const identitiesUpload = multer({
+    storage: multer.diskStorage({
         destination: (req, file, cb) => {
-            const dir = path.join(__dirname, 'uploads', 'identities');
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-            }
-            cb(null, dir);
+            fs.mkdirSync(identitiesUploadDir, { recursive: true });
+            cb(null, identitiesUploadDir);
         },
-        filename: (req, file, cb) => {  
+        filename: (req, file, cb) => {
             cb(null, Date.now() + '-' + uuidv4() + path.extname(file.originalname).toLowerCase());
         }
-    });
-    const identitiesUpload = multer({
-        storage: identitiesStorage,
-        limits: { fileSize: 5 * 1024 * 1024 }, // 5MB   
-    });
-
-    app.post('/api/identities', authenticateJWT, identitiesUpload.single('foto'), validateUploadedFiles('identity'), (req, res) => {
-        console.log('Recebido:', req.body, req.file);
-        const {nome, cpf, endereco, perfil} = req.body;
-        const foto = req.file ? `/uploads/identities/${req.file.filename}` : null;
-        const createdAt = new Date().toISOString();
-        db.run(
-            `INSERT INTO identities (nome, cpf, endereco, perfil, foto, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
-            [nome, cpf, endereco, perfil, foto, createdAt],
-            function(err) {
-                if (err) return res.status(500).json({ success: false, error: err.message });
-                res.json({ success: true, id: this.lastID, foto });
-            }
-        );
-    });
-
-    app.get('/api/identities', authenticateJWT, (req, res) => {
-        db.all('SELECT * FROM identities', [], (err, rows) => {
-            if (err) return res.status(500).json({ success: false, error: err.message });
-            res.json(rows);
-        });
-    });
-
-    app.delete('/api/identities/:id', authenticateJWT, requireAdmin, (req, res) => {
-        const id = req.params.id;
-
-        db.get(`SELECT foto FROM identities WHERE id = ?`, [id], (err, row) => {
-            if (err) return res.status(500).json({ success: false, error: err.message });
-            if (!row) return res.status(404).json({ success: false, message: 'Identidade não encontrada' });
-
-            // Deletar o arquivo físico
-            if (row && row.foto) {
-                try {
-                    if (!/^\/uploads\/identities\/[^/\\]+$/.test(row.foto)) {
-                        return res.status(500).json({ success: false, message: 'Caminho da foto inválido' });
-                    }
-                    const filePath = path.join(__dirname, 'uploads', 'identities', path.basename(row.foto));
-                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-                } catch (fileError) {
-                    console.error('Erro ao excluir foto da identidade:', fileError);
-                    return res.status(500).json({ success: false, message: 'Erro ao excluir foto da identidade' });
-                }
-            }
-                // Deletar do banco de dados
-                db.run(`DELETE FROM identities WHERE id = ?`, [id], function (err) { 
-                    if (err) return res.status(500).json({ success: false, message: err.message });
-                    res.json({ success: true });
-            });
-        });
-    });
+    }),
+    limits: { fileSize: 5 * 1024 * 1024 }
+});
+const identitiesRepository = createIdentitiesRepository(db);
+const identitiesService = createIdentitiesService({
+    repository: identitiesRepository,
+    uploadsDir: identitiesUploadDir
+});
+app.use('/api', createIdentitiesRouter({
+    authenticateJWT,
+    requireAdmin,
+    upload: identitiesUpload,
+    validateUploadedFiles,
+    service: identitiesService
+}));
 
 
     // ROTA PERFIL  
@@ -1607,43 +746,6 @@ app.use((req, res, next) => {
 });
 
 // Inicialização de diretórios
-const initializeDirectories = () => {
-    try {
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-            console.log(`Pasta 'uploads' criada em: ${uploadsDir}`);
-        }
-
-        if (!fs.existsSync(contractsFilePath)) {
-            fs.writeFileSync(contractsFilePath, '[]', 'utf8');
-            console.log(`Arquivo 'contracts.json' criado em: ${contractsFilePath}`);
-        }
-    } catch (error) {
-        console.error('Erro na inicialização de diretórios:', error);
-        process.exit(1);
-    }
-};
-
-const checkedFilePermissions = () => {
-    try {
-        fs.accessSync(contractsFilePath, fs.constants.R_OK | fs.constants.W_OK);
-        console.log('Permissões do arquivo contracts.json verificadas com sucesso');
-    } catch (err) {
-        console.error('Erro de permissão no arquivo contracts.json:', err);
-        try {
-            fs.chmodSync(contractsFilePath, 0o666);
-            console.log('Permissões do arquivo contracts.json ajustadas');
-        } catch (chmodError) {
-            console.error('Falha ao ajustar permissões', chmodError);
-            process.exit(1);
-        }
-    }
-};
-
-initializeDirectories();
-checkedFilePermissions();
-
-// Rotas públicas
 app.get('/health', async (req, res) => {
     try {
         const dbStatus = db.open ? 'Conectado' : 'Desconectado';
@@ -1854,18 +956,6 @@ app.get('/download/:filename', authenticateJWT, (req, res) => {
     }
 });
 
-router.get('/contracts/check', authenticateJWT, async (req, res) => {
-    try {
-        const { number } = req.query;
-        const contracts = readContracts();
-        const exists = contracts.some(c => c.number === number);
-
-        res.json({ exists });
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao verificar contrato' });
-    }
-});
-
 function validarCPF(cpf) {
     cpf = cpf.replace(/[^\d]+/g, '');
     if (cpf.length !== 11) return false;
@@ -2030,44 +1120,7 @@ app.post('/change-password', authenticateJWT, async (req, res) => {
     }
 });
 
-// Middleware de erro + Robusto
-app.use((err, req, res, next) => {
-    console.error('\n--- ERRO DETECTADO ---');
-    console.error('Data:', new Date().toISOString());
-    console.error('Rota:', req.originalUrl);
-    console.error('Método:', req.method);
-    console.error('Erro:', err.message);
-    console.error('Stack:', err.stack);
-    console.error('----------------------\n');
-    
-    // Erros específicos do sistema de arquivos
-    if (err.code === 'ENOENT') {
-        return res.status(500).json({ 
-            success: false,
-            message: 'Arquivo de dados não encontrado',
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
-    }
-    
-    // Erros de parse JSON
-    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-        return res.status(400).json({ 
-            success: false,
-            message: 'JSON inválido no corpo da requisição'
-        });
-    }
-    
-    // Erro genérico
-    res.status(500).json({ 
-        success: false,
-        message: 'Erro interno no servidor',
-        ...(process.env.NODE_ENV === 'development' && {
-            details: err.message,
-            stack: err.stack
-        })
-    });
-});
-
+app.use(errorHandler);
 
 // Iniciar servidor
 async function startServer() {

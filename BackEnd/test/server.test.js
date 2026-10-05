@@ -43,7 +43,26 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
   for (const file of ['server.js', 'database.js', 'keycloak-config.js', 'config.js']) {
     fs.copyFileSync(path.join(backendDir, file), path.join(tempDir, file));
   }
-  fs.cpSync(path.join(backendDir, 'migrations'), path.join(tempDir, 'migrations'), { recursive: true });
+  for (const directory of ['migrations', 'routes', 'controllers', 'services', 'repositories', 'middlewares']) {
+    fs.cpSync(path.join(backendDir, directory), path.join(tempDir, directory), { recursive: true });
+  }
+  const legacyContractId = crypto.randomUUID();
+  fs.mkdirSync(path.join(tempDir, 'data'), { recursive: true });
+  fs.mkdirSync(path.join(tempDir, 'uploads', 'contracts'), { recursive: true });
+  const legacyContractsJson = JSON.stringify([{
+    id: legacyContractId,
+    type: 'outro',
+    number: 'legado-001',
+    date: '2025-05-20',
+    description: 'Registro legado importado',
+    fileName: 'legado.pdf',
+    originalName: 'legado.pdf',
+    filePath: '/uploads/contracts/legado.pdf',
+    mimeType: 'application/pdf',
+    createdAt: '2025-05-20T12:00:00.000Z'
+  }]);
+  fs.writeFileSync(path.join(tempDir, 'data', 'contracts.json'), legacyContractsJson);
+  fs.writeFileSync(path.join(tempDir, 'uploads', 'contracts', 'legado.pdf'), Buffer.from('%PDF-1.4'));
   fs.writeFileSync(path.join(tempDir, '.env'), [
     `PORT=${port}`,
     `SECRET_KEY=${crypto.randomBytes(32).toString('hex')}`,
@@ -117,16 +136,27 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
         headers.set('X-CSRF-Token', 'integration-csrf-token');
       }
     }
-    return nativeFetch(url, { ...options, headers });
+    try {
+      return await nativeFetch(url, {
+        ...options,
+        headers,
+        signal: options.signal || AbortSignal.timeout(15000)
+      });
+    } catch (error) {
+      throw new Error(`Requisição de integração sem resposta (${url}): ${error.message}`);
+    }
   };
 
   try {
     const base = `http://127.0.0.1:${port}`;
     await waitForHealth(`${base}/health`, processHandle, () => serverOutput);
+    assert.equal(fs.readFileSync(path.join(tempDir, 'data', 'contracts.json'), 'utf8'), legacyContractsJson);
     assert.equal((await postJson('/login', { username: 'legado', password: 'senha-legada' })).status, 200);
     assert.equal((await fetch(`${base}/api/user`, {
       headers: { Cookie: 'senappen_session=invalid.token.value' }
     })).status, 401, 'sessão inválida deve retornar 401, não erro de permissão 403');
+    const importedContracts = await fetch(`${base}/api/contracts`);
+    assert.equal(importedContracts.status, 401, 'a migração não deve remover a autenticação');
     const corsResponse = await fetch(`${base}/health`, {
       headers: { Origin: 'http://localhost:5500' }
     });
@@ -215,6 +245,57 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const sessionCookie = login.headers.getSetCookie().find(cookie => cookie.startsWith('senappen_session='));
     const token = sessionCookie?.match(/^senappen_session=([^;]+)/)?.[1];
     assert.ok(token, 'o login deve emitir o cookie de sessão HttpOnly');
+    const importedList = await fetch(`${base}/api/contracts`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(importedList.status, 200);
+    const importedRows = await importedList.json();
+    assert.equal(importedRows.length, 1);
+    assert.equal(importedRows[0].id, legacyContractId);
+    assert.equal(importedRows[0].number, 'legado-001');
+    const legacyDownload = await fetch(`${base}/api/contracts/${legacyContractId}/download`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(legacyDownload.status, 200);
+    assert.equal(Buffer.from(await legacyDownload.arrayBuffer()).toString(), '%PDF-1.4');
+    const countForLegacyYear = await fetch(`${base}/api/contracts/count?year=2025`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal((await countForLegacyYear.json()).count, 1);
+    const contractGroups = await fetch(`${base}/api/contracts/groupby/type`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.deepEqual(await contractGroups.json(), { outro: 1 });
+    const contractsUploadDir = path.join(tempDir, 'uploads', 'contracts');
+    const beforeRejectedUploads = fs.readdirSync(contractsUploadDir).sort();
+    for (const [fileContents, expectedCode] of [
+      ['%PDF-1.4', 'invalid_contract_date'],
+      ['conteúdo não PDF', 'invalid_file_signature']
+    ]) {
+      const invalidForm = new FormData();
+      invalidForm.set('type', 'servicos');
+      invalidForm.set('number', `invalido-${expectedCode}-${suffix}`);
+      invalidForm.set('date', expectedCode === 'invalid_contract_date' ? 'data-invalida' : '2026-01-01');
+      invalidForm.set('file', new Blob([fileContents], { type: 'application/pdf' }), `${expectedCode}.pdf`);
+      const invalidResponse = await fetch(`${base}/api/contracts`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: invalidForm
+      });
+      assert.equal(invalidResponse.status, 400);
+      assert.equal((await invalidResponse.json()).error.code, expectedCode);
+      assert.deepEqual(fs.readdirSync(contractsUploadDir).sort(), beforeRejectedUploads);
+    }
+    const invalidContractId = await fetch(`${base}/api/contracts/id-invalido`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(invalidContractId.status, 400);
+    assert.equal((await fetch(`${base}/api/contracts/count`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json())).count, 1);
+    assert.equal((await fetch(`${base}/api/contracts?year=invalido`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })).status, 400);
     const pendingAccounts = await fetch(`${base}/api/admin/users/pending`, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -269,7 +350,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     assert.deepEqual(Buffer.from(await image.arrayBuffer()), Buffer.from([1, 2, 3]));
 
     const contractForm = new FormData();
-    contractForm.set('type', 'servico');
+    contractForm.set('type', 'servicos');
     contractForm.set('number', `teste-${suffix}`);
     contractForm.set('date', '2026-01-01');
     contractForm.set('description', 'Contrato de teste');
@@ -284,13 +365,15 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     assert.equal(contracts.status, 200);
-    const [contract] = await contracts.json();
+    const listedContracts = await contracts.json();
+    assert.equal(listedContracts.length, 2);
+    const contract = listedContracts.find(item => item.number === `teste-${suffix}`);
     assert.ok(contract?.id);
     const contractFilePath = path.join(tempDir, 'uploads', 'contracts', contract.fileName);
     assert.equal(fs.existsSync(contractFilePath), true);
 
     const updateContractForm = new FormData();
-    updateContractForm.set('type', 'servico');
+    updateContractForm.set('type', 'servicos');
     updateContractForm.set('number', contract.number);
     updateContractForm.set('date', '2026-02-01');
     updateContractForm.set('description', 'Contrato atualizado sem substituir o arquivo');
@@ -323,8 +406,65 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const projectFiles = (await projectDetails.json()).project.files;
     assert.equal(projectFiles.length, 2);
     const projectUploadDir = path.join(tempDir, 'uploads', 'projects');
+    const projectList = await fetch(`${base}/api/projects?page=1&limit=10&status=planejamento`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json());
+    assert.equal(projectList.success, true);
+    assert.equal(projectList.projects.length, 1);
+    assert.equal(projectList.projects[0].files.length, 2);
+    assert.equal(projectList.page, 1);
+    assert.equal(projectList.limit, 10);
+    assert.deepEqual(await fetch(`${base}/api/projects/count?year=2026`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json()), { count: 1 });
+    assert.deepEqual(await fetch(`${base}/api/projects/groupby/status`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json()), [{ status: 'planejamento', count: 1 }]);
+    const projectFileResponse = await fetch(`${base}/api/project-files/${projectFiles[0].filename}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(projectFileResponse.status, 200);
+    assert.equal((await projectFileResponse.text()).slice(0, 8), '%PDF-1.4');
+    const downloadedProjectFile = await fetch(`${base}/api/project-files/${projectFiles[0].filename}?download=1`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(downloadedProjectFile.status, 200);
+    assert.match(downloadedProjectFile.headers.get('content-disposition') || '', /attachment/);
+
+    const projectUpdateForm = new FormData();
+    projectUpdateForm.set('project', JSON.stringify({
+      name: 'Projeto atualizado', code: `projeto-${suffix}`, manager: 'Equipe de teste',
+      start_date: '2026-01-01', end_date: null, status: 'andamento', description: 'Projeto atualizado'
+    }));
+    const projectUpdate = await fetch(`${base}/api/projects/${projectId}`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }, body: projectUpdateForm
+    });
+    const updatedProject = await projectUpdate.json();
+    assert.equal(projectUpdate.status, 200, JSON.stringify(updatedProject));
+    assert.equal(updatedProject.project.name, 'Projeto atualizado');
+    assert.equal(updatedProject.project.files.length, 2);
 
     const identityForm = new FormData();
+    const identityUploadsDir = path.join(tempDir, 'uploads', 'identities');
+    fs.mkdirSync(identityUploadsDir, { recursive: true });
+    const identityFilesBeforeRejections = fs.readdirSync(identityUploadsDir).sort();
+    const identityHeaders = { Authorization: `Bearer ${token}` };
+    for (const [photo, mimeType, fileName] of [
+      [new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), 'image/jpeg', 'tipo-incorreto.png'],
+      [new Uint8Array([1, 2, 3]), 'image/png', 'assinatura-incorreta.png']
+    ]) {
+      const invalidPhotoForm = new FormData();
+      invalidPhotoForm.set('foto', new Blob([photo], { type: mimeType }), fileName);
+      const rejectedPhoto = await fetch(`${base}/api/identities`, {
+        method: 'POST',
+        headers: identityHeaders,
+        body: invalidPhotoForm
+      });
+      assert.equal(rejectedPhoto.status, 400);
+      assert.equal((await rejectedPhoto.json()).error.code, 'invalid_file_signature');
+    }
+    assert.deepEqual(fs.readdirSync(identityUploadsDir).sort(), identityFilesBeforeRejections);
+
     identityForm.set('nome', 'Identidade de teste');
     identityForm.set('cpf', '529.982.247-25');
     identityForm.set('endereco', 'Endereço de teste');
@@ -338,6 +478,17 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     assert.ok(identity.id);
     const identityPhoto = path.join(tempDir, 'uploads', 'identities', path.basename(identity.foto));
     assert.equal(fs.existsSync(identityPhoto), true);
+    const listedIdentities = await fetch(`${base}/api/identities`, {
+      headers: identityHeaders
+    });
+    assert.equal(listedIdentities.status, 200);
+    assert.equal((await listedIdentities.json()).find(item => item.id === identity.id).foto, identity.foto);
+    assert.deepEqual(await fetch(`${base}/api/identities/count`, {
+      headers: identityHeaders
+    }).then(response => response.json()), { count: 1 });
+    assert.deepEqual(await fetch(`${base}/api/identities/groupby/perfil`, {
+      headers: identityHeaders
+    }).then(response => response.json()), [{ perfil: 'Usuário', count: 1 }]);
 
     const regularUser = await fetch(`${base}/api/user`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -368,7 +519,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     })).status, 403);
     assert.equal((await fetch(`${base}/api/contracts`, {
       headers: { Authorization: `Bearer ${token}` }
-    }).then(response => response.json())).length, 1);
+    }).then(response => response.json())).length, 2);
 
     await manageAdmin(`${first}@example.test`);
     const adminUser = await fetch(`${base}/api/user`, {
@@ -384,7 +535,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     assert.equal(fs.existsSync(contractFilePath), false);
     assert.equal((await fetch(`${base}/api/contracts`, {
       headers: { Authorization: `Bearer ${token}` }
-    }).then(response => response.json())).length, 0);
+    }).then(response => response.json())).length, 1);
 
     const deleteProjectFile = await fetch(`${base}/api/project-files/${projectFiles[0].id}`, {
       method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
@@ -407,7 +558,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     assert.equal(fs.existsSync(identityPhoto), false);
 
     const finalContractForm = new FormData();
-    finalContractForm.set('type', 'servico');
+    finalContractForm.set('type', 'servicos');
     finalContractForm.set('number', `final-${suffix}`);
     finalContractForm.set('date', '2026-01-01');
     finalContractForm.set('description', 'Contrato para limpeza em massa');

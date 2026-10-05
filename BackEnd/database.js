@@ -86,7 +86,7 @@ const runMigrations = async () => {
 
   const migrationsDir = path.join(__dirname, 'migrations');
   const migrations = fs.readdirSync(migrationsDir)
-    .filter(file => file.endsWith('.sql'))
+    .filter(file => /\.(?:sql|js)$/.test(file))
     .sort();
 
   for (const name of migrations) {
@@ -98,21 +98,29 @@ const runMigrations = async () => {
     });
     if (applied) continue;
 
-    const sql = fs.readFileSync(path.join(migrationsDir, name), 'utf8');
+    const migrationPath = path.join(migrationsDir, name);
     await new Promise((resolve, reject) => {
       db.exec('BEGIN IMMEDIATE', error => {
         if (error) return reject(error);
-        db.exec(sql, error => {
-          if (error) {
-            return db.exec('ROLLBACK', rollbackError => reject(rollbackError || error));
-          }
-          db.run('INSERT INTO schema_migrations (name) VALUES (?)', [name], error => {
-            if (error) {
-              return db.exec('ROLLBACK', rollbackError => reject(rollbackError || error));
-            }
-            db.exec('COMMIT', error => error ? reject(error) : resolve());
+        const applyMigration = name.endsWith('.sql')
+          ? new Promise((migrationResolve, migrationReject) => {
+            db.exec(fs.readFileSync(migrationPath, 'utf8'), migrationError =>
+              migrationError ? migrationReject(migrationError) : migrationResolve());
+          })
+          : Promise.resolve().then(() => require(migrationPath).up(db));
+
+        applyMigration
+          .then(() => new Promise((insertResolve, insertReject) => {
+            db.run('INSERT INTO schema_migrations (name) VALUES (?)', [name], insertError =>
+              insertError ? insertReject(insertError) : insertResolve());
+          }))
+          .then(() => new Promise((commitResolve, commitReject) => {
+            db.exec('COMMIT', commitError => commitError ? commitReject(commitError) : commitResolve());
+          }))
+          .then(resolve)
+          .catch(migrationError => {
+            db.exec('ROLLBACK', rollbackError => reject(rollbackError || migrationError));
           });
-        });
       });
     });
   }

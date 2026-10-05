@@ -1,0 +1,530 @@
+openapi: 3.1.0
+info:
+  title: Portal institucional SENAPPEN API
+  version: 1.0.0
+  description: |
+    API HTTP do portal. Endpoints privados usam o cookie HttpOnly de sessão configurado
+    pelo servidor. Em operações que alteram dados, envie também o valor do cookie CSRF
+    no cabeçalho X-CSRF-Token. A origem permitida é definida por FRONTEND_ORIGIN.
+servers:
+  - url: http://localhost:3000
+    description: Ambiente local
+tags:
+  - name: Autenticação
+  - name: Contratos
+  - name: Projetos
+  - name: Identidades
+  - name: Administração
+  - name: Indicadores
+paths:
+  /health:
+    get:
+      tags: [Autenticação]
+      summary: Verifica a disponibilidade da API
+      responses:
+        '200':
+          description: API disponível
+  /login:
+    post:
+      tags: [Autenticação]
+      summary: Inicia uma sessão
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string, format: password }
+      responses:
+        '200':
+          description: Sessão iniciada; cookies de sessão e CSRF enviados.
+          headers:
+            Set-Cookie:
+              description: Define senappen_session (HttpOnly) e senappen_csrf.
+              schema: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/projects/count:
+    get:
+      tags: [Projetos]
+      summary: Conta projetos
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Total de projetos }
+  /api/projects/groupby/status:
+    get:
+      tags: [Projetos]
+      summary: Conta projetos por situação
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Contagens por situação }
+  /api/identities/count:
+    get:
+      tags: [Identidades]
+      summary: Conta identidades
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Total de identidades }
+  /api/identities/groupby/perfil:
+    get:
+      tags: [Identidades]
+      summary: Conta identidades por perfil
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Contagens por perfil }
+  /api/project-files/{reference}:
+    parameters:
+      - name: reference
+        in: path
+        required: true
+        description: ID numérico para exclusão ou nome do arquivo para leitura.
+        schema: { type: string }
+    delete:
+      tags: [Projetos]
+      summary: Exclui um anexo de projeto (somente administrador)
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Anexo excluído }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    get:
+      tags: [Projetos]
+      summary: Obtém um arquivo associado a projeto
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Conteúdo binário do arquivo }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /project-files/{filename}:
+    get:
+      tags: [Projetos]
+      summary: Acessa um arquivo de projeto autenticado
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: filename, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Conteúdo binário do arquivo }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /update-profile:
+    put:
+      tags: [Autenticação]
+      summary: Atualiza dados do perfil autenticado
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Perfil atualizado }
+  /change-password:
+    post:
+      tags: [Autenticação]
+      summary: Altera a senha do usuário autenticado
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Senha alterada }
+  /api/renew-token:
+    post:
+      tags: [Autenticação]
+      summary: Renova o token da sessão atual
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Cookie de sessão renovado }
+  /upload:
+    post:
+      tags: [Autenticação]
+      summary: Envia um arquivo para a área de uploads
+      description: Requer sessão e cabeçalho CSRF; arquivo limitado pelo servidor.
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200': { description: Arquivo recebido }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /download/{filename}:
+    get:
+      tags: [Autenticação]
+      summary: Baixa um arquivo autenticado
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: filename, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Conteúdo binário do arquivo }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { description: Limite de tentativas excedido }
+  /register:
+    post:
+      tags: [Autenticação]
+      summary: Solicita uma conta sujeita a aprovação administrativa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, cpf, email, username, password, confirmPassword]
+              properties:
+                nome: { type: string }
+                cpf: { type: string }
+                email: { type: string, format: email }
+                username: { type: string }
+                password: { type: string, format: password }
+                confirmPassword: { type: string, format: password }
+      responses:
+        '201': { description: Solicitação criada }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /api/logout:
+    post:
+      tags: [Autenticação]
+      summary: Encerra a sessão atual
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '204': { description: Sessão encerrada e cookies removidos }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/user:
+    get:
+      tags: [Autenticação]
+      summary: Retorna o usuário autenticado
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Perfil do usuário autenticado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/contracts:
+    get:
+      tags: [Contratos]
+      summary: Lista contratos armazenados no SQLite
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: type, in: query, schema: { type: string } }
+        - { name: year, in: query, schema: { type: string, pattern: '^\d{4}$' } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Contratos ordenados pela data mais recente
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Contract' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Contratos]
+      summary: Cria um contrato com anexo
+      description: Multipart/form-data; anexo PDF, DOC, DOCX, JPG ou PNG até 10 MiB.
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ContractInput'
+                - type: object
+                  required: [file]
+                  properties:
+                    file: { type: string, format: binary }
+      responses:
+        '201':
+          description: Contrato criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Contract' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { description: Número de contrato já cadastrado }
+        '413': { description: Anexo excede o limite permitido }
+  /api/contracts/count:
+    get:
+      tags: [Contratos]
+      summary: Conta contratos, com filtro anual opcional
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: year, in: query, schema: { type: string, pattern: '^\d{4}$' } }
+      responses:
+        '200':
+          description: Total de contratos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { count: { type: integer } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /api/contracts/groupby/type:
+    get:
+      tags: [Contratos]
+      summary: Conta contratos agrupados por tipo
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Contagens por tipo }
+  /api/contracts/check:
+    get:
+      tags: [Contratos]
+      summary: Verifica se um número de contrato já existe
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: number, in: query, schema: { type: string, maxLength: 100 } }
+      responses:
+        '200':
+          description: Resultado da consulta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { exists: { type: boolean } }
+  /api/contracts/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Contratos]
+      summary: Obtém um contrato
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Dados do contrato }
+        '404': { description: Contrato não encontrado }
+    put:
+      tags: [Contratos]
+      summary: Atualiza um contrato e, opcionalmente, seu anexo
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ContractInput'
+                - type: object
+                  properties:
+                    file: { type: string, format: binary }
+      responses:
+        '200': { description: Contrato atualizado }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { description: Contrato não encontrado }
+        '409': { description: Número de contrato já cadastrado }
+    delete:
+      tags: [Contratos]
+      summary: Exclui contrato e anexo (somente administrador)
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Contrato excluído }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: Contrato não encontrado }
+  /api/contracts/{id}/download:
+    get:
+      tags: [Contratos]
+      summary: Baixa o anexo do contrato
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Conteúdo do anexo, como stream binário }
+        '404': { description: Contrato ou anexo não encontrado }
+  /api/contracts/{id}/view:
+    get:
+      tags: [Contratos]
+      summary: Visualiza o anexo do contrato, quando suportado
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Conteúdo do anexo, como stream binário }
+        '404': { description: Contrato ou anexo não encontrado }
+  /api/contracts/sync:
+    post:
+      tags: [Contratos]
+      summary: Remove metadados cujos anexos não existem (somente administrador)
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Sincronização concluída }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/contracts/clean-all:
+    delete:
+      tags: [Contratos]
+      summary: Remove contratos e anexos (somente administrador)
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Contratos removidos }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/projects:
+    get:
+      tags: [Projetos]
+      summary: Lista projetos
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Lista de projetos }
+    post:
+      tags: [Projetos]
+      summary: Cria projeto com anexos opcionais
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Projeto criado }
+  /api/projects/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Projetos]
+      summary: Obtém um projeto
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Projeto e anexos }
+        '404': { description: Projeto não encontrado }
+    put:
+      tags: [Projetos]
+      summary: Atualiza um projeto
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Projeto atualizado }
+    delete:
+      tags: [Projetos]
+      summary: Exclui projeto e anexos (somente administrador)
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Projeto excluído }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/identities:
+    get:
+      tags: [Identidades]
+      summary: Lista identidades
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Lista de identidades }
+    post:
+      tags: [Identidades]
+      summary: Cria identidade com fotografia opcional
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Identidade criada }
+  /api/identities/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    delete:
+      tags: [Identidades]
+      summary: Exclui identidade (somente administrador)
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      responses:
+        '200': { description: Identidade excluída }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/admin/users/pending:
+    get:
+      tags: [Administração]
+      summary: Lista solicitações de conta pendentes
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Contas aguardando decisão }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/admin/users/{id}/approve:
+    post:
+      tags: [Administração]
+      summary: Aprova uma conta pendente
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Conta aprovada }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { description: Conta não está pendente }
+  /api/admin/users/{id}/reject:
+    post:
+      tags: [Administração]
+      summary: Rejeita uma conta pendente
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Conta rejeitada }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { description: Conta não está pendente }
+  /api/admin/audit:
+    get:
+      tags: [Administração]
+      summary: Consulta eventos de auditoria (somente administrador)
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 500 } }
+      responses:
+        '200': { description: Eventos recentes de auditoria }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/dashboard/summary:
+    get:
+      tags: [Indicadores]
+      summary: Obtém indicadores do dashboard
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Totais, agrupamentos e registros recentes }
+  /api/analysis/summary:
+    get:
+      tags: [Indicadores]
+      summary: Obtém indicadores por período
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: Dados agregados no período informado }
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: senappen_session
+    csrfHeader:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+  schemas:
+    ContractInput:
+      type: object
+      required: [type, number, date]
+      properties:
+        type:
+          type: string
+          enum: [aditivo, servicos, fornecimento, convenio, outro]
+        number: { type: string, maxLength: 100, pattern: '^[a-zA-Z0-9_-]+$' }
+        date: { type: string, format: date }
+        description: { type: string, maxLength: 5000 }
+    Contract:
+      allOf:
+        - $ref: '#/components/schemas/ContractInput'
+        - type: object
+          required: [id, fileName, originalName, filePath, mimeType, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            fileName: { type: string }
+            originalName: { type: string }
+            filePath: { type: string }
+            mimeType: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time, nullable: true }
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, const: false }
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+        message: { type: string }
+  responses:
+    BadRequest:
+      description: Requisição inválida
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Sessão ausente, inválida ou expirada
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Permissão insuficiente ou token CSRF inválido
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

@@ -50,9 +50,11 @@
 | API | Node.js, Express, CORS e compression |
 | Autenticação | JWT, bcryptjs e limitação de tentativas de login |
 | Uploads | Multer |
-| Dados locais | SQLite para usuários, projetos, identidades, auditoria e arquivos de metadados de contratos |
+| Dados locais | SQLite para usuários, projetos, identidades, auditoria e metadados de contratos |
 
-Os anexos ficam em `BackEnd/uploads/`, os dados dos contratos em `BackEnd/data/contracts.json` e o banco local em `BackEnd/database.sqlite`. Esses caminhos são ignorados pelo Git para evitar o versionamento de arquivos enviados, dados pessoais e dados de desenvolvimento.
+Os anexos ficam em `BackEnd/uploads/` e os dados operacionais no banco `BackEnd/database.sqlite`. Na primeira inicialização após a atualização, as migrations criam a tabela de contratos e importam os registros existentes de `BackEnd/data/contracts.json` sem apagar nem alterar o arquivo de origem. As migrations aplicadas ficam registradas em `schema_migrations`. Faça backup do banco e dos anexos antes de atualizar uma instalação existente.
+
+A especificação OpenAPI da API está em [`BackEnd/openapi.yaml`](BackEnd/openapi.yaml). Contratos, projetos e identidades estão separados em rotas, controllers, services e repositories; os contratos também usam validação de payload e respostas JSON de erro estruturadas.
 
 ## Início rápido
 
@@ -153,10 +155,17 @@ npm.cmd test
 
 ```text
 BackEnd/
-  server.js                 # rotas HTTP, autenticação, regras de acesso e uploads
-  database.js               # inicialização e acesso ao SQLite
-  migrations/               # migrações transacionais de contas e auditoria
-  test/server.test.js       # teste de integração da API
+  server.js                 # composição Express e autenticação/contas
+  config.js                 # configuração validada por ambiente
+  database.js               # inicialização do SQLite e execução de migrations
+  controllers/              # adaptação HTTP por recurso
+  middlewares/              # validação e erros da API
+  migrations/               # migrations SQL e importação do JSON legado
+  openapi.yaml              # especificação da API
+  repositories/             # persistência por recurso
+  routes/                   # rotas por recurso
+  services/                 # regras de negócio por recurso
+  test/server.test.js       # testes de integração da API
 FrontEnd/
   login.*                   # acesso e criação de conta
   Sistema/                  # página inicial autenticada
