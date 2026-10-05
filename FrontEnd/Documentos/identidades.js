@@ -170,7 +170,12 @@ async function loadIdentityPhoto(img, filePath) {
 
 
     window.deletarIdentidade = async function(id) {
-        if(!confirm('Tem certeza que deseja excluir esta identidade?')) return;
+        const confirmed = await window.documentFeedback.confirm({
+            title: 'Excluir identidade?',
+            message: 'Este cadastro de identidade será removido permanentemente.',
+            confirmLabel: 'Excluir identidade'
+        });
+        if (!confirmed) return;
         try {
             const res = await fetch(`${API_URL}/${id}`, {
                 method: 'DELETE',

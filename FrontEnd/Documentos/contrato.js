@@ -196,10 +196,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Clean Button - Limpar todos os contratos
     elements.cleanAllButton?.addEventListener('click', async () => {
-        if (!confirm('Tem certeza que deseja apagar TODOS os contratos? Esta ação não pode ser desfeita.')) {
-            window.documentFeedback.show(document.getElementById('contract-message'), 'Operação cancelada.', 'info');
-            return;
-        }
+        const confirmed = await window.documentFeedback.confirm({
+            title: 'Excluir todos os contratos?',
+            message: 'Todos os contratos e arquivos associados serão removidos permanentemente.',
+            confirmLabel: 'Excluir contratos'
+        });
+        if (!confirmed) return;
 
         try {
             showLoading(true);
@@ -349,7 +351,12 @@ async function loadContracts(filters = {}) {
     
     // Botão deletar contrato individuais
     async function deleteContract(id) {
-        if (!confirm('Tem certeza que deseja excluir este contrato?')) return;
+        const confirmed = await window.documentFeedback.confirm({
+            title: 'Excluir contrato?',
+            message: 'O contrato e o arquivo associado serão removidos permanentemente.',
+            confirmLabel: 'Excluir contrato'
+        });
+        if (!confirmed) return;
 
         try {
             showLoading(true);

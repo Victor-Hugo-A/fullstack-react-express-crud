@@ -670,3 +670,46 @@
     .documents-workspace .project-modal,
     .documents-workspace .project-modal .modal-content { transition: none; }
 }
+
+.portal-confirm-dialog {
+    position: fixed;
+    inset: 0;
+    width: min(440px, calc(100% - 32px));
+    max-width: none;
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #cfdae4;
+    border-radius: 16px;
+    background: #fff;
+    color: #18344e;
+    box-shadow: 0 24px 70px rgba(8, 31, 55, .28);
+}
+.portal-confirm-dialog::backdrop { background: rgba(9, 31, 52, .58); backdrop-filter: blur(3px); }
+.portal-confirm-content { position: relative; padding: 1.7rem 1.8rem 1.45rem; }
+.portal-confirm-accent { position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #0b3b63, #287a9f 70%, #d3a333); }
+.portal-confirm-content h2 { margin: 0; color: #123b61; font-size: 1.25rem; font-weight: 750; line-height: 1.35; }
+.portal-confirm-content p { margin: .7rem 0 1.5rem; color: #586e81; font-size: .94rem; line-height: 1.6; overflow-wrap: anywhere; }
+.portal-confirm-actions { display: flex; justify-content: flex-end; gap: .65rem; }
+.portal-confirm-actions button {
+    min-height: 42px;
+    padding: .55rem 1rem;
+    border: 1px solid #cbd8e3;
+    border-radius: 9px;
+    font: inherit;
+    font-size: .88rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.portal-confirm-cancel { background: #fff; color: #29465f; }
+.portal-confirm-cancel:hover { background: #f2f6f9; }
+.portal-confirm-accept { border-color: #a92e3b !important; background: #a92e3b; color: #fff; }
+.portal-confirm-accept:hover { background: #872330; }
+.portal-confirm-actions button:focus-visible { outline: 3px solid #dfa92f; outline-offset: 3px; }
+
+@media (max-width: 480px) {
+    .portal-confirm-content { padding: 1.5rem 1.2rem 1.2rem; }
+    .portal-confirm-actions { flex-direction: column-reverse; }
+    .portal-confirm-actions button { width: 100%; }
+}

@@ -124,6 +124,9 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const base = `http://127.0.0.1:${port}`;
     await waitForHealth(`${base}/health`, processHandle, () => serverOutput);
     assert.equal((await postJson('/login', { username: 'legado', password: 'senha-legada' })).status, 200);
+    assert.equal((await fetch(`${base}/api/user`, {
+      headers: { Cookie: 'senappen_session=invalid.token.value' }
+    })).status, 401, 'sessão inválida deve retornar 401, não erro de permissão 403');
     const corsResponse = await fetch(`${base}/health`, {
       headers: { Origin: 'http://localhost:5500' }
     });

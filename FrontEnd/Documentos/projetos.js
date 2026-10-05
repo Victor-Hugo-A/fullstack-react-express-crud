@@ -282,7 +282,7 @@ function renderProjectsPage(page) {
       });
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
           sessionStorage.setItem('auth-notice', 'expired');
           sessionStorage.removeItem('portal-session');
           sessionStorage.removeItem('userData');
@@ -391,9 +391,14 @@ function renderProjectsPage(page) {
 
     // Excluir Projeto 
     document.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', async function() {
         const projectId = this.getAttribute('data-id');
-        if (confirm('Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita.')) {
+        const confirmed = await window.documentFeedback.confirm({
+          title: 'Excluir projeto?',
+          message: 'O projeto e todos os arquivos relacionados serão removidos permanentemente.',
+          confirmLabel: 'Excluir projeto'
+        });
+        if (confirmed) {
           deleteProject(projectId);
         }
       });
@@ -496,7 +501,7 @@ function renderProjectsPage(page) {
                       <button class="btn-download-file" type="button" data-file-url="${fileUrl}" data-filename="${utils.sanitize(originalname)}" title="Baixar arquivo" aria-label="Baixar ${utils.sanitize(originalname)}">
                         ${window.documentIcons.markup('download')}
                       </button>
-                      <button class="btn-delete-file" type="button" data-admin-only data-file-id="${utils.sanitize(file._id || file.id)}" data-project-id="${utils.sanitize(project.id)}" title="Excluir o arquivo" aria-label="Excluir ${utils.sanitize(originalname)}">
+                      <button class="btn-delete-file" type="button" data-admin-only data-file-id="${utils.sanitize(file._id || file.id)}" data-project-id="${utils.sanitize(project.id)}" data-filename="${utils.sanitize(originalname)}" title="Excluir o arquivo" aria-label="Excluir ${utils.sanitize(originalname)}">
                         ${window.documentIcons.markup('trash')}
                       </button>
                     </div>
@@ -575,10 +580,18 @@ function renderProjectsPage(page) {
 
     // Exclusão de arquivos
     modal.querySelectorAll('.btn-delete-file').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const fileId = e.currentTarget.dataset.fileId;
         const projectId = e.currentTarget.dataset.projectId;
-        deleteFile(fileId, projectId);
+        const filename = e.currentTarget.dataset.filename;
+        const confirmed = await window.documentFeedback.confirm({
+          title: 'Excluir arquivo?',
+          message: filename
+            ? `O arquivo “${filename}” será removido permanentemente do projeto.`
+            : 'Este arquivo será removido permanentemente do projeto.',
+          confirmLabel: 'Excluir arquivo'
+        });
+        if (confirmed) deleteFile(fileId, projectId);
       });
     });
   }
@@ -651,10 +664,6 @@ function renderProjectsPage(page) {
         console.error('IDs inválidos:', {fileId, projectId});
         ErroMessage('Não foi possível identificar o arquivo para exclusão.', 'error');
         return
-    }
-
-    if (!confirm('Tem certeza que deseja excluir este arquivo?')) {
-      return;
     }
 
     try {

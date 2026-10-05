@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         const response = await fetch('http://localhost:3000/api/user');
-        if (response.status === 401 || response.status === 403 || response.status === 404) {
+        if (response.status === 401 || response.status === 404) {
             redirectToLogin('expired');
             return;
         }

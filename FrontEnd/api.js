@@ -12,7 +12,7 @@ window.apiGet = async function apiGet(path) {
             credentials: 'include',
             signal: controller.signal
         });
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
             sessionStorage.removeItem('portal-session');
             sessionStorage.removeItem('userData');
             sessionStorage.setItem('auth-notice', 'expired');

@@ -16,7 +16,7 @@ async function request(path, method, token, body) {
     const options = { method, headers: { Authorization: `Bearer ${token}` } };
     if (body !== undefined) { options.headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
     const response = await fetch(`${API_URL}${path}`, options);
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
         if (path !== '/change-password' || response.status === 403) { logout('expired'); return null; }
     }
     const data = await response.json();

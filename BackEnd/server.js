@@ -191,7 +191,7 @@ function authenticateJWT(req, res, next) {
 
     jwt.verify(token, SECRET_KEY, (err, user) => {
         if (err) {
-            return res.status(403).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Sessão inválida ou expirada'
             });
