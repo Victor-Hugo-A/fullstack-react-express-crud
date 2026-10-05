@@ -16,6 +16,8 @@
     <link rel="icon" href="data:,"> <!-- Desativa a busca por favicon -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <script src="/FrontEnd/Documentos/documentos-nav.js" defer></script>
+    <link rel="stylesheet" href="/FrontEnd/design-tokens.css">
+    <script src="/FrontEnd/accessibility.js" defer></script>
 </head>
 
 <body class="documents-workspace contracts-page">
@@ -153,6 +155,20 @@
                     </button>
                 </div>
 
+                <div class="list-toolbar" aria-live="polite">
+                    <span id="contracts-summary" class="list-summary">Carregando contratos...</span>
+                    <div class="list-toolbar__controls">
+                        <label for="contract-sort">Ordenar por
+                            <select id="contract-sort">
+                                <option value="date-desc">Data mais recente</option>
+                                <option value="date-asc">Data mais antiga</option>
+                                <option value="number-asc">Número do contrato</option>
+                            </select>
+                        </label>
+                        <button id="clear-contract-filters" class="clear-list-filters" type="button" hidden>Limpar filtros</button>
+                    </div>
+                    <div id="contract-active-filters" class="active-filters" aria-label="Filtros aplicados"></div>
+                </div>
 
                 <div id="documents-container" class="documents-grid">
                     <!-- Contratos serão carregados aqui via JavaScript -->

@@ -17,7 +17,11 @@ document.addEventListener('DOMContentLoaded', function() {
         filterType: document.getElementById('filter-type'),
         filterYear: document.getElementById('filter-year'),
         searchContract: document.getElementById('search-contract'),
-        cleanAllButton: document.getElementById('clean-all-button')
+        cleanAllButton: document.getElementById('clean-all-button'),
+        sort: document.getElementById('contract-sort'),
+        summary: document.getElementById('contracts-summary'),
+        activeFilters: document.getElementById('contract-active-filters'),
+        clearFilters: document.getElementById('clear-contract-filters')
     };
 
     // Funções de exibição de mensagens
@@ -236,6 +240,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
 
     const CONTRACTS_PER_PAGE = 6;
+    function sortContracts(contracts) {
+        const direction = elements.sort?.value || 'date-desc';
+        return [...contracts].sort((first, second) => {
+            if (direction === 'number-asc') return String(first.number || '').localeCompare(String(second.number || ''), 'pt-BR', { numeric: true });
+            const firstDate = String(first.date || '');
+            const secondDate = String(second.date || '');
+            return direction === 'date-asc' ? firstDate.localeCompare(secondDate) : secondDate.localeCompare(firstDate);
+        });
+    }
+
+    function updateListMeta(contracts) {
+        if (!elements.summary) return;
+        const total = contracts.length;
+        elements.summary.innerHTML = `<strong>${total}</strong> contrato${total === 1 ? '' : 's'} encontrado${total === 1 ? '' : 's'}`;
+        const filters = [
+            [elements.filterType.value, `Tipo: ${elements.filterType.options[elements.filterType.selectedIndex]?.text}`],
+            [elements.filterYear.value, `Ano: ${elements.filterYear.value}`],
+            [elements.searchContract.value.trim(), `Busca: “${elements.searchContract.value.trim()}”`]
+        ].filter(([value]) => value);
+        elements.activeFilters.replaceChildren(...filters.map(([, text]) => {
+            const chip = document.createElement('span');
+            chip.className = 'filter-chip';
+            chip.textContent = text;
+            return chip;
+        }));
+        elements.clearFilters.hidden = filters.length === 0;
+    }
+
     function updateContractList(contracts, page = 1) {
         const container = elements.documentsContainer;
         const start = (page - 1) * CONTRACTS_PER_PAGE
@@ -244,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
         if (contractsToShow.length === 0) {    
-            container.innerHTML = '<div class="no-results">Nenhum contrato encontrado</div>';
+            container.innerHTML = '<div class="empty-state"><span class="empty-state__icon" aria-hidden="true">⌕</span><strong>Nenhum contrato encontrado</strong><span>Revise os filtros ou limpe a busca para consultar outros registros.</span></div>';
         } else {
             container.innerHTML = '';
             contractsToShow.forEach(contract => {
@@ -254,6 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         window.documentPagination.render(document.querySelector('.pagination'), page, Math.ceil(contracts.length / CONTRACTS_PER_PAGE));
+        updateListMeta(contracts);
     }
 
     document.querySelector('.pagination')?.addEventListener('click', event => {
@@ -283,14 +316,7 @@ async function loadContracts(filters = {}) {
         
         const contracts = await response.json();
 
-                // Ordenar por data (mais antiga primeiro)
-        contracts.sort((a, b) => {
-            if (!a.date) return -1;
-            if (!b.date) return 1;
-            return a.date.localeCompare(b.date);
-        })
-
-        allContracts = contracts;
+        allContracts = sortContracts(contracts);
         currentPage = 1;
         updateContractList(allContracts, currentPage);
         return true;
@@ -632,6 +658,17 @@ async function viewContract(id, trigger) {
         elements.searchContract.addEventListener('input', debounce(() => {
             loadFilters();
         }, 300));
+        elements.sort?.addEventListener('change', () => {
+            allContracts = sortContracts(allContracts);
+            currentPage = 1;
+            updateContractList(allContracts, currentPage);
+        });
+        elements.clearFilters?.addEventListener('click', () => {
+            elements.filterType.value = '';
+            elements.filterYear.value = '';
+            elements.searchContract.value = '';
+            loadFilters();
+        });
     }
 
     function loadFilters() {

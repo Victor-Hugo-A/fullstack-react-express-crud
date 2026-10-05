@@ -6,9 +6,33 @@ let currentPage = 1;
 const IDENTIDADES_PER_PAGE = 6;
 const activeImageUrls = new Set();
 const BACKEND_URL = 'http://localhost:3000';
+const identitiesSummary = document.getElementById('identities-summary');
+const identitySort = document.getElementById('identity-sort');
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
+
+function sortIdentities(identities) {
+    const sort = identitySort?.value || 'date-desc';
+
+    return [...identities].sort((first, second) => {
+        if (sort === 'name-asc') {
+            return String(first.nome || '').localeCompare(String(second.nome || ''), 'pt-BR');
+        }
+
+        const firstDate = String(first.created_at || '');
+        const secondDate = String(second.created_at || '');
+        return sort === 'date-asc'
+            ? firstDate.localeCompare(secondDate)
+            : secondDate.localeCompare(firstDate);
+    });
+}
+
+function updateIdentitiesMeta() {
+    const total = allIdentidades.length;
+    if (!identitiesSummary) return;
+    identitiesSummary.innerHTML = `<strong>${total}</strong> identidade${total === 1 ? '' : 's'} encontrada${total === 1 ? '' : 's'}`;
+}
 
 async function loadIdentityPhoto(img, filePath) {
     if (!/^\/uploads\/identities\/[^/]+$/.test(filePath || '')) return;
@@ -101,12 +125,13 @@ async function loadIdentityPhoto(img, filePath) {
             ErroMessage(error.message, 'error');
             return;
         }
-        allIdentidades = await response.json();
+        allIdentidades = sortIdentities(await response.json());
         currentPage = Math.min(currentPage, Math.max(1, Math.ceil(allIdentidades.length / IDENTIDADES_PER_PAGE)));
         renderIdentidadesPage(currentPage)
 
     function renderIdentidadesPage(page) {
     const tbody = document.getElementById('identities-table').querySelector('tbody');
+    updateIdentitiesMeta();
     activeImageUrls.forEach(url => URL.revokeObjectURL(url));
     activeImageUrls.clear();
     tbody.innerHTML = '';
@@ -115,7 +140,7 @@ async function loadIdentityPhoto(img, filePath) {
     const identidadesToShow = allIdentidades.slice(start, end);
 
     if (identidadesToShow.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7">Nenhuma identidade encontrada</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="empty-state__icon" aria-hidden="true">⌕</span><strong>Nenhuma identidade encontrada</strong><span>Cadastre uma identidade para que ela apareça nesta lista.</span></div></td></tr>';
     renderIdentidadesPagination();
     return;
   }
@@ -232,6 +257,13 @@ document.addEventListener('keydown', event => {
 });
 
 window.abrirModalImagem = abrirModalImagem;
+identitySort?.addEventListener('change', () => {
+    currentPage = 1;
+    carregarIdentidades().catch(error => ErroMessage(
+        window.documentFeedback.errorMessage(error, 'Não foi possível ordenar as identidades.'),
+        'error'
+    ));
+});
 carregarIdentidades().catch(error => ErroMessage(window.documentFeedback.errorMessage(error, 'Não foi possível carregar as identidades.'), 'error'));
 
 

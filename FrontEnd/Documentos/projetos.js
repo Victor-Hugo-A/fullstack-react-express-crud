@@ -53,6 +53,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const projectMessage = document.getElementById('project-message');
   const projectForm = document.getElementById('project-form');
   const loadingProjects = document.getElementById('loading-projects');
+  const projectsSummary = document.getElementById('projects-summary');
+  const projectActiveFilters = document.getElementById('project-active-filters');
+  const projectSort = document.getElementById('project-sort');
   const projectsTable = document.createElement('div');
   projectsTable.id = 'projects-table';
   projectsTable.className = 'projects-table-container';
@@ -66,6 +69,38 @@ document.addEventListener('DOMContentLoaded', function() {
   let allProjects = [];
   let displayedProjects = [];
   const token = sessionStorage.getItem('portal-session');
+
+  function sortProjects(projects) {
+    const sort = projectSort?.value || 'start-desc';
+    return [...projects].sort((first, second) => {
+      if (sort === 'name-asc') return String(first.name || '').localeCompare(String(second.name || ''), 'pt-BR');
+      const firstDate = String(first.start_date || '');
+      const secondDate = String(second.start_date || '');
+      return sort === 'start-asc' ? firstDate.localeCompare(secondDate) : secondDate.localeCompare(firstDate);
+    });
+  }
+
+  function updateProjectsMeta() {
+    const total = displayedProjects.length;
+    projectsSummary.innerHTML = `<strong>${total}</strong> projeto${total === 1 ? '' : 's'} encontrado${total === 1 ? '' : 's'}`;
+    const fields = [
+      ['filter-status', value => `Situação: ${document.querySelector(`#filter-status option[value="${value}"]`)?.textContent}`],
+      ['filter-year', value => `Ano: ${value}`],
+      ['filter-start-date', value => `Início a partir de: ${utils.formatDate(value)}`],
+      ['filter-end-date', value => `Término até: ${utils.formatDate(value)}`],
+      ['search-project', value => `Busca: “${value}”`]
+    ];
+    const chips = fields.map(([id, label]) => {
+      const value = document.getElementById(id).value.trim();
+      return value ? label(value) : null;
+    }).filter(Boolean);
+    projectActiveFilters.replaceChildren(...chips.map(text => {
+      const chip = document.createElement('span');
+      chip.className = 'filter-chip';
+      chip.textContent = text;
+      return chip;
+    }));
+  }
   
 function renderProjectsPage(page) {
   const start = (page - 1) * PROJECTS_PER_PAGE;
@@ -73,11 +108,12 @@ function renderProjectsPage(page) {
   const projectsToShow = displayedProjects.slice(start, end);
 
   projectsTable.innerHTML = '';
+  updateProjectsMeta();
 
   if (projectsToShow.length === 0) {
     projectsTable.innerHTML = `
-      <div class="no-projects" role="status">
-        <span class="no-projects-icon" aria-hidden="true">${window.documentIcons.markup('search')}</span>
+      <div class="empty-state no-projects" role="status">
+        <span class="empty-state__icon no-projects-icon" aria-hidden="true">${window.documentIcons.markup('search')}</span>
         <strong>Nenhum projeto encontrado</strong>
         <span>Altere ou limpe os filtros para consultar outros projetos.</span>
         <button class="btn-clear-empty-state" type="button">Limpar filtros</button>
@@ -177,6 +213,11 @@ function renderProjectsPage(page) {
     );
     document.querySelector('.search-btn').addEventListener('click', filterProjects);
     document.getElementById('clear-project-filters').addEventListener('click', clearProjectFilters);
+    projectSort.addEventListener('change', () => {
+      displayedProjects = sortProjects(displayedProjects);
+      currentPage = 1;
+      renderProjectsPage(currentPage);
+    });
   }
 
   async function handleProjectSubmit(e) {
@@ -296,14 +337,7 @@ function renderProjectsPage(page) {
       const data = await response.json();
       allProjects = data.projects || [];
 
-      // Ordenar por data de início mais recente primeiro
-      allProjects.sort((a, b) => {
-        if (!a.start_date) return 1;
-        if (!b.start_date) return -1;
-        return new Date(a.start_date) - new Date(b.start_date)
-      });
-
-      displayedProjects = [...allProjects];
+      displayedProjects = sortProjects(allProjects);
       currentPage = Math.min(currentPage, Math.max(1, Math.ceil(displayedProjects.length / PROJECTS_PER_PAGE)));
       renderProjectsPage(currentPage);
       return true;
@@ -358,7 +392,7 @@ function renderProjectsPage(page) {
       );
     }
 
-    displayedProjects = filtered;
+    displayedProjects = sortProjects(filtered);
     currentPage = 1;
     renderProjectsPage(currentPage);
   }

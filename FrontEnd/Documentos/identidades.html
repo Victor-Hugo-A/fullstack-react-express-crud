@@ -21,6 +21,8 @@
     <script src="/FrontEnd/Documentos/documentos-nav.js" defer></script>
     <script src="identidades.js"></script>
 
+    <link rel="stylesheet" href="/FrontEnd/design-tokens.css">
+    <script src="/FrontEnd/accessibility.js" defer></script>
 </head>
 
 <body class="documents-workspace identities-page">
@@ -106,6 +108,18 @@
     <section class="identity-list-section">
         <h2 class="section-title"><span class="section-icon" data-icon="list"></span>Identidades cadastradas</h2>
         <p class="section-lead">Consulte os registros cadastrados e suas respectivas fotografias.</p>
+        <div class="list-toolbar" aria-live="polite">
+            <span id="identities-summary" class="list-summary">Carregando identidades...</span>
+            <div class="list-toolbar__controls">
+                <label for="identity-sort">Ordenar por
+                    <select id="identity-sort">
+                        <option value="date-desc">Cadastro mais recente</option>
+                        <option value="date-asc">Cadastro mais antigo</option>
+                        <option value="name-asc">Nome</option>
+                    </select>
+                </label>
+            </div>
+        </div>
         
         <div class="table-responsive">
             <table class="table table-bordered align-middle" id="identities-table">
