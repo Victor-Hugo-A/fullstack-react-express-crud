@@ -105,6 +105,8 @@ if (loginForm) {
         } catch (error) {
             if (error.status === 401) {
                 exibirMensagemErro('Usuário ou senha inválidos.');
+            } else if (error.status === 403) {
+                exibirMensagemErro(error.message);
             } else if (error.status === 429) {
                 exibirMensagemErro('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
             } else if (error.status === 400 || error.message === 'missing_fields') {
@@ -189,7 +191,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
             nome, email, username, password, confirmPassword, cpf
         });
         
-        exibirMensagemSucesso('Conta criada com sucesso! Faça login.');
+        exibirMensagemSucesso('Solicitação enviada. Você poderá entrar após a aprovação administrativa.');
         mostrarSecao('login');
         document.getElementById('username').value = username;
         document.getElementById('registerForm').reset();

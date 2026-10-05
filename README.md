@@ -35,12 +35,12 @@
 
 ### Módulos do portal
 
-- **Acesso e contas:** criação de conta com nome, CPF, e-mail, usuário e senha; login por usuário e senha; sessão autenticada por JWT; alteração de senha e atualização de cargo e departamento no perfil. As senhas são armazenadas com hash e o login limita tentativas consecutivas.
+- **Acesso e contas:** criação de conta com nome, CPF, e-mail, usuário e senha, seguida de aprovação administrativa; login por usuário e senha; sessão autenticada por JWT; alteração de senha e atualização de cargo e departamento no perfil. As senhas são armazenadas com hash e o login limita tentativas consecutivas.
 - **Contratos:** cadastro de número, tipo, data, descrição e arquivo; consulta por tipo, ano, número ou descrição; visualização, download e edição do registro. Aceita PDF, DOC, DOCX, JPG e PNG de até 10 MB.
 - **Projetos:** cadastro de código, responsável, período, situação e descrição; anexação de múltiplos documentos; filtros por situação, ano, período, nome, código ou responsável; consulta, edição e download dos anexos.
 - **Identidades:** cadastro de nome, CPF, endereço, perfil e fotografia; listagem com visualização da foto e paginação.
 - **Indicadores:** dashboard com totais, distribuição de contratos por tipo, projetos por situação, identidades por perfil e os cinco registros mais recentes. A tela de análises permite recortar os dados por período, comparar distribuições e consultar até dez registros recentes por categoria.
-- **Permissões administrativas:** contas administradoras podem excluir contratos, projetos, anexos e identidades, além de sincronizar ou limpar os contratos. As demais contas podem cadastrar, consultar e editar os registros permitidos pela interface.
+- **Permissões administrativas:** administradores aprovam ou rejeitam solicitações na página inicial e podem excluir contratos, projetos, anexos e identidades, além de sincronizar ou limpar os contratos. Eventos de login, upload, atualização, exclusão e decisão de conta ficam registrados no SQLite; somente administradores consultam o registro.
 
 ## Tecnologias e persistência
 
@@ -50,7 +50,7 @@
 | API | Node.js, Express, CORS e compression |
 | Autenticação | JWT, bcryptjs e limitação de tentativas de login |
 | Uploads | Multer |
-| Dados locais | SQLite para usuários, projetos, identidades e arquivos de metadados de contratos |
+| Dados locais | SQLite para usuários, projetos, identidades, auditoria e arquivos de metadados de contratos |
 
 Os anexos ficam em `BackEnd/uploads/`, os dados dos contratos em `BackEnd/data/contracts.json` e o banco local em `BackEnd/database.sqlite`. Esses caminhos são ignorados pelo Git para evitar o versionamento de arquivos enviados, dados pessoais e dados de desenvolvimento.
 
@@ -96,7 +96,9 @@ npm.cmd run dev
 
 </details>
 
-No primeiro uso, crie uma conta pela própria tela de acesso; o banco SQLite e as pastas de dados necessárias são inicializados pela API.
+No primeiro uso, crie uma conta pela própria tela de acesso. Cadastros novos ficam pendentes e não podem entrar até a aprovação administrativa. As contas que já existiam antes desta versão são preservadas como aprovadas pela migração SQLite.
+
+Para habilitar o primeiro administrador, pare a API e conceda a permissão à conta cadastrada usando o script abaixo; ele também aprova a conta. Depois, inicie a API novamente. A partir daí, administradores aprovam ou rejeitam os demais pedidos na seção **Solicitações de acesso** da página inicial.
 
 Para encerrar os dois processos, use `Ctrl+C` no terminal.
 
@@ -116,7 +118,7 @@ Verifique a disponibilidade da API em [http://localhost:3000/health](http://loca
 
 ## Operação de contas
 
-O primeiro cadastro é uma conta comum. Para conceder administração a uma conta existente, pare a API e execute, a partir da raiz:
+Para conceder administração a uma conta existente, pare a API e execute, a partir da raiz:
 
 ```powershell
 node .\scripts\manage-local-admin.js
@@ -127,6 +129,8 @@ Informe o e-mail cadastrado quando solicitado. Para remover a permissão, use:
 ```powershell
 node .\scripts\manage-local-admin.js --revoke
 ```
+
+O fluxo de administração também está disponível em `GET /api/admin/users/pending`, `POST /api/admin/users/:id/approve`, `POST /api/admin/users/:id/reject` e `GET /api/admin/audit`. Todas essas rotas exigem sessão autenticada e permissão administrativa; o endpoint de auditoria aceita `limit` entre 1 e 500 (padrão 200).
 
 Para redefinir a senha de uma conta local, também com os servidores parados:
 
@@ -151,6 +155,7 @@ npm.cmd test
 BackEnd/
   server.js                 # rotas HTTP, autenticação, regras de acesso e uploads
   database.js               # inicialização e acesso ao SQLite
+  migrations/               # migrações transacionais de contas e auditoria
   test/server.test.js       # teste de integração da API
 FrontEnd/
   login.*                   # acesso e criação de conta

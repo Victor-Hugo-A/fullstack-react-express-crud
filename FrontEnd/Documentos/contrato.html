@@ -186,19 +186,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Recupera o token do localStorage (armazenado durante o login)
+        // Este marcador só indica que o login ocorreu; a sessão fica no cookie HttpOnly.
         const token = sessionStorage.getItem('portal-session');
 
         if (!token) {
             sessionStorage.setItem('auth-notice', 'required');
-            window.location.replace('/FrontEnd/login.html');
-            return;
-        }
-
-        if (token.length < 30) {
-            sessionStorage.removeItem('portal-session');
-            sessionStorage.removeItem('userData');
-            sessionStorage.setItem('auth-notice', 'expired');
             window.location.replace('/FrontEnd/login.html');
             return;
         }

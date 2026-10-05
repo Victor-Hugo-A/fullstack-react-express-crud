@@ -76,7 +76,90 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (usernameDisplay && data.success && data.user) {
             usernameDisplay.textContent = data.user.nome || data.user.username || 'Usuário';
         }
+        if (data.success && data.user?.isAdmin) {
+            await loadAccountApprovals();
+        }
     } catch (error) {
         console.warn('Não foi possível confirmar os dados do usuário.', error);
     }
 });
+
+async function loadAccountApprovals() {
+    const section = document.getElementById('admin-approvals');
+    const list = document.getElementById('admin-approvals-list');
+    const count = document.getElementById('admin-approvals-count');
+    if (!section || !list || !count) return;
+    section.hidden = false;
+
+    try {
+        const response = await fetch('http://localhost:3000/api/admin/users/pending');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const users = Array.isArray(data.users) ? data.users : [];
+        count.textContent = `${users.length} ${users.length === 1 ? 'solicitação pendente' : 'solicitações pendentes'}`;
+        list.replaceChildren();
+
+        if (!users.length) {
+            const empty = document.createElement('p');
+            empty.textContent = 'Não há solicitações de acesso aguardando análise.';
+            list.append(empty);
+            return;
+        }
+
+        users.forEach(user => {
+            const card = document.createElement('article');
+            card.className = 'approval-card';
+            const details = document.createElement('div');
+            details.className = 'approval-details';
+            const name = document.createElement('strong');
+            name.textContent = user.nome || user.username;
+            const email = document.createElement('span');
+            email.textContent = user.email;
+            const created = document.createElement('span');
+            created.textContent = `Solicitada em ${new Date(user.created_at).toLocaleDateString('pt-BR')}`;
+            details.append(name, email, created);
+
+            const actions = document.createElement('div');
+            actions.className = 'approval-actions';
+            for (const [action, label] of [['approve', 'Aprovar'], ['reject', 'Rejeitar']]) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.dataset.action = action;
+                button.textContent = label;
+                button.addEventListener('click', async () => {
+                    button.disabled = true;
+                    try {
+                        const result = await fetch(`http://localhost:3000/api/admin/users/${encodeURIComponent(user.id)}/${action}`, {
+                            method: 'POST'
+                        });
+                        const body = await result.json();
+                        if (!result.ok) throw new Error(body.message || `HTTP ${result.status}`);
+                        window.appNotice.show(
+                            document.getElementById('admin-approvals-status'),
+                            body.message,
+                            'success'
+                        );
+                        await loadAccountApprovals();
+                    } catch (error) {
+                        window.appNotice.show(
+                            document.getElementById('admin-approvals-status'),
+                            `Não foi possível atualizar a solicitação: ${error.message}`,
+                            'error'
+                        );
+                        button.disabled = false;
+                    }
+                });
+                actions.append(button);
+            }
+            card.append(details, actions);
+            list.append(card);
+        });
+    } catch (error) {
+        count.textContent = 'Não foi possível carregar as solicitações.';
+        window.appNotice.show(
+            document.getElementById('admin-approvals-status'),
+            `Erro ao carregar solicitações: ${error.message}`,
+            'error'
+        );
+    }
+}

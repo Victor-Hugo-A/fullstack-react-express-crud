@@ -56,8 +56,12 @@ async function main() {
             return;
         }
         const changed = await execute(db,
-            'UPDATE users SET is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-            [newValue, user.id]
+            `UPDATE users
+             SET is_admin = ?,
+                 account_status = CASE WHEN ? = 1 THEN 'approved' ELSE account_status END,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = ?`,
+            [newValue, newValue, user.id]
         );
         if (changed !== 1) throw new Error('Não foi possível atualizar a conta.');
         console.log(`Acesso administrativo ${revoke ? 'removido de' : 'concedido a'} ${user.username}.`);

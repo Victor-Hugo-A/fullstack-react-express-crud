@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
@@ -19,6 +20,7 @@ const initializeDatabase = async () => {
     await dbConfigure();
     await createTables();
     await ensureAdminColumn();
+    await runMigrations();
     await createIndexes();
     console.log('Banco de dados inicializado com sucesso');
   } catch (error) {
@@ -74,6 +76,48 @@ const ensureAdminColumn = () => new Promise((resolve, reject) => {
   });
 });
 
+const runMigrations = async () => {
+  await new Promise((resolve, reject) => {
+    db.run(`CREATE TABLE IF NOT EXISTS schema_migrations (
+      name TEXT PRIMARY KEY,
+      applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`, error => error ? reject(error) : resolve());
+  });
+
+  const migrationsDir = path.join(__dirname, 'migrations');
+  const migrations = fs.readdirSync(migrationsDir)
+    .filter(file => file.endsWith('.sql'))
+    .sort();
+
+  for (const name of migrations) {
+    const applied = await new Promise((resolve, reject) => {
+      db.get('SELECT name FROM schema_migrations WHERE name = ?', [name], (error, row) => {
+        if (error) return reject(error);
+        resolve(Boolean(row));
+      });
+    });
+    if (applied) continue;
+
+    const sql = fs.readFileSync(path.join(migrationsDir, name), 'utf8');
+    await new Promise((resolve, reject) => {
+      db.exec('BEGIN IMMEDIATE', error => {
+        if (error) return reject(error);
+        db.exec(sql, error => {
+          if (error) {
+            return db.exec('ROLLBACK', rollbackError => reject(rollbackError || error));
+          }
+          db.run('INSERT INTO schema_migrations (name) VALUES (?)', [name], error => {
+            if (error) {
+              return db.exec('ROLLBACK', rollbackError => reject(rollbackError || error));
+            }
+            db.exec('COMMIT', error => error ? reject(error) : resolve());
+          });
+        });
+      });
+    });
+  }
+};
+
 //Cria a tabela de identidades se não existir
 db.serialize(() => {
   db.run(`
@@ -124,6 +168,7 @@ const userRepository = {
     const user = {
       id: uuidv4(),
       ...userData,
+      account_status: 'pending',
       password: await bcrypt.hash(userData.password, 10),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -132,9 +177,9 @@ const userRepository = {
 
     return new Promise((resolve, reject) => {
       db.run(
-        `INSERT INTO users (id, nome, email, username, password, created_at, updated_at, cpf) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [user.id, user.nome, user.email, user.username, user.password, user.created_at, user.updated_at, user.cpf],
+        `INSERT INTO users (id, nome, email, username, password, created_at, updated_at, cpf, account_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [user.id, user.nome, user.email, user.username, user.password, user.created_at, user.updated_at, user.cpf, user.account_status],
         function(err) {
           if (err) return reject(err);
           resolve(user);
@@ -146,7 +191,7 @@ const userRepository = {
   async findByUsername(username) {
     return new Promise((resolve, reject) => {
       db.get(
-        'SELECT id, nome, email, username, cpf, password, cargo, departamento FROM users WHERE username = ?',
+        'SELECT id, nome, email, username, cpf, password, cargo, departamento, account_status FROM users WHERE username = ?',
         [username],
         (err, row) => {
           if (err) return reject(err);
@@ -222,6 +267,69 @@ const userRepository = {
         }
       );
     });
+  },
+  async getPending() {
+    return new Promise((resolve, reject) => {
+      db.all(
+        `SELECT id, nome, email, username, departamento, cargo, created_at
+         FROM users WHERE account_status = 'pending' ORDER BY created_at ASC`,
+        [],
+        (error, rows) => error ? reject(error) : resolve(rows)
+      );
+    });
+  },
+
+  async setPendingStatus(id, status) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        `UPDATE users SET account_status = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ? AND account_status = 'pending'`,
+        [status, id],
+        function (error) {
+          if (error) return reject(error);
+          resolve(this.changes);
+        }
+      );
+    });
+  }
+};
+
+const auditRepository = {
+  create(entry) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        `INSERT INTO audit_logs
+          (user_id, action, entity, entity_id, outcome, ip_address, request_origin, user_agent)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          entry.userId || null,
+          entry.action,
+          entry.entity,
+          entry.entityId || null,
+          entry.outcome || 'success',
+          entry.ipAddress || null,
+          entry.requestOrigin || null,
+          entry.userAgent || null
+        ],
+        function (error) {
+          if (error) return reject(error);
+          resolve(this.lastID);
+        }
+      );
+    });
+  },
+
+  list(limit = 200) {
+    return new Promise((resolve, reject) => {
+      db.all(
+        `SELECT id, user_id AS userId, action, entity, entity_id AS entityId,
+          outcome, occurred_at AS occurredAt, ip_address AS ipAddress,
+          request_origin AS requestOrigin, user_agent AS userAgent
+         FROM audit_logs ORDER BY id DESC LIMIT ?`,
+        [limit],
+        (error, rows) => error ? reject(error) : resolve(rows)
+      );
+    });
   }
 };
 
@@ -246,6 +354,7 @@ db.on('error', (err) => {
 module.exports = {
   db,
   userRepository,
+  auditRepository,
   initializeDatabase,
   closeDatabase
 };

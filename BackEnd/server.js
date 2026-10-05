@@ -11,7 +11,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const { db, userRepository, initializeDatabase, closeDatabase } = require('./database');
+const { db, userRepository, auditRepository, initializeDatabase, closeDatabase } = require('./database');
 const app = express();
 const router = express.Router();
 const contractsFilePath = path.join(__dirname, 'data', 'contracts.json');
@@ -153,6 +153,7 @@ app.use('/project-files', authenticateJWT, express.static(path.join(__dirname, '
 // Middlewares
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(auditMutationMiddleware);
 
 // Adicionar o router ao app
 app.use('/api', router);
@@ -213,11 +214,132 @@ async function requireAdmin(req, res, next) {
                 message: 'Acesso permitido apenas a administradores'
             });
         }
-        next();
+        return next();
+    } catch (error) {
+        return next(error);
+    }
+}
+
+function getAuditEntity(pathname) {
+    if (/^\/api\/admin\/users(?:\/|$)/.test(pathname) || pathname === '/update-profile' || pathname === '/change-password') {
+        return 'user';
+    }
+    if (/^\/api\/contracts(?:\/|$)/.test(pathname)) return 'contract';
+    if (/^\/api\/projects(?:\/|$)/.test(pathname) || /^\/api\/project-files(?:\/|$)/.test(pathname)) return 'project';
+    if (/^\/api\/identities(?:\/|$)/.test(pathname)) return 'identity';
+    if (pathname === '/upload') return 'file';
+    return null;
+}
+
+function auditMutationMiddleware(req, res, next) {
+    const pathname = req.path;
+    const entity = getAuditEntity(pathname);
+    const method = req.method.toUpperCase();
+    const isAccountDecision = /^\/api\/admin\/users\/[^/]+\/(?:approve|reject)$/.test(pathname);
+    let events = [];
+
+    if (isAccountDecision && method === 'POST') {
+        events = [{ action: pathname.endsWith('/approve') ? 'approve_account' : 'reject_account', entity: 'user' }];
+    } else if (entity && ['PUT', 'PATCH'].includes(method)) {
+        events = [{ action: 'update', entity }];
+    } else if (entity && method === 'DELETE') {
+        events = [{ action: 'delete', entity }];
+    } else if (entity && method === 'POST' && entity !== 'user' &&
+        pathname !== '/api/contracts/sync') {
+        events = [{ action: 'upload', entity }];
+    }
+
+    if (events.length) {
+        const originalJson = res.json.bind(res);
+        res.json = body => {
+            if (body && typeof body === 'object') {
+                req.auditEntityId = body.id || body.projectId || body.contract?.id ||
+                    body.project?.id || body.identity?.id || body.user?.id || req.auditEntityId;
+            }
+            return originalJson(body);
+        };
+
+        res.once('finish', () => {
+            if (res.statusCode < 200 || res.statusCode >= 400) return;
+            if (method === 'POST' && events.some(event => event.action === 'upload') &&
+                !req.file && !(Array.isArray(req.files) && req.files.length)) {
+                return;
+            }
+            const completedEvents = [...events];
+            if (['PUT', 'PATCH'].includes(method) && (req.file || (Array.isArray(req.files) && req.files.length))) {
+                completedEvents.push({ action: 'upload', entity });
+            }
+            const routeId = pathname.match(/^\/api\/(?:admin\/users|contracts|projects|project-files|identities)\/([^/]+)/)?.[1];
+            const userId = req.user?.userId || null;
+            for (const event of completedEvents) {
+                auditRepository.create({
+                    userId,
+                    action: event.action,
+                    entity: event.entity,
+                    entityId: req.auditEntityId || routeId || userId,
+                    ipAddress: req.ip,
+                    requestOrigin: req.get('origin') || req.get('referer'),
+                    userAgent: req.get('user-agent')
+                }).catch(error => console.error('Falha ao registrar evento de auditoria:', error));
+            }
+        });
+    }
+    next();
+}
+
+router.get('/admin/users/pending', authenticateJWT, requireAdmin, async (req, res, next) => {
+    try {
+        const users = await userRepository.getPending();
+        res.json({ success: true, users });
     } catch (error) {
         next(error);
     }
-}
+});
+
+router.post('/admin/users/:id/approve', authenticateJWT, requireAdmin, async (req, res, next) => {
+    try {
+        const changed = await userRepository.setPendingStatus(req.params.id, 'approved');
+        if (!changed) {
+            const user = await userRepository.findById(req.params.id);
+            return res.status(user ? 409 : 404).json({
+                success: false,
+                error: user ? 'account_not_pending' : 'user_not_found',
+                message: user ? 'A conta não está aguardando aprovação.' : 'Usuário não encontrado.'
+            });
+        }
+        return res.json({ success: true, message: 'Conta aprovada com sucesso.' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/admin/users/:id/reject', authenticateJWT, requireAdmin, async (req, res, next) => {
+    try {
+        const changed = await userRepository.setPendingStatus(req.params.id, 'rejected');
+        if (!changed) {
+            const user = await userRepository.findById(req.params.id);
+            return res.status(user ? 409 : 404).json({
+                success: false,
+                error: user ? 'account_not_pending' : 'user_not_found',
+                message: user ? 'A conta não está aguardando aprovação.' : 'Usuário não encontrado.'
+            });
+        }
+        return res.json({ success: true, message: 'Solicitação de conta rejeitada.' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/admin/audit', authenticateJWT, requireAdmin, async (req, res, next) => {
+    try {
+        const requestedLimit = Number.parseInt(req.query.limit, 10);
+        const limit = Number.isInteger(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 500) : 200;
+        const events = await auditRepository.list(limit);
+        return res.json({ success: true, events });
+    } catch (error) {
+        next(error);
+    }
+});
 
 // RETORNA DASHBOARD PARA OS TIPOS, STATUS E PERFIL
 router.get('/contracts/groupby/type', authenticateJWT, (req, res) => {
@@ -1544,7 +1666,20 @@ const MAX_LOGIN_FAILURES = 10;
 const loginFailures = new Map();
 const nonexistentUserHash = bcrypt.hashSync('invalid-account-placeholder', 10);
 
-function limitLoginAttempts(req, res, next) {
+async function auditLogin(req, user, outcome) {
+    await auditRepository.create({
+        userId: user?.id,
+        action: 'login',
+        entity: 'user',
+        entityId: user?.id,
+        outcome,
+        ipAddress: req.ip,
+        requestOrigin: req.get('origin') || req.get('referer'),
+        userAgent: req.get('user-agent')
+    });
+}
+
+async function limitLoginAttempts(req, res, next) {
     const key = req.ip;
     const entry = loginFailures.get(key);
     if (entry && entry.expiresAt <= Date.now()) loginFailures.delete(key);
@@ -1552,6 +1687,11 @@ function limitLoginAttempts(req, res, next) {
     const activeEntry = loginFailures.get(key);
     if (activeEntry && activeEntry.count >= MAX_LOGIN_FAILURES) {
         res.set('Retry-After', String(Math.ceil((activeEntry.expiresAt - Date.now()) / 1000)));
+        try {
+            await auditLogin(req, null, 'rate_limited');
+        } catch (error) {
+            return next(error);
+        }
         return res.status(429).json({ success: false, message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' });
     }
     next();
@@ -1591,12 +1731,27 @@ app.post('/login', limitLoginAttempts, async (req, res) => {
 
         if (!user || !isPasswordValid) {
             recordLoginFailure(req.ip);
+            await auditLogin(req, user, 'failed');
             return res.status(401).json({ 
                 success: false,
                 error: 'invalid_credentials',
                 message: 'Usuário ou senha inválidos'
             });
         }
+
+        if (user.account_status !== 'approved') {
+            await auditLogin(req, user, 'denied');
+            const isPending = user.account_status === 'pending';
+            return res.status(403).json({
+                success: false,
+                error: isPending ? 'account_pending' : 'account_rejected',
+                message: isPending
+                    ? 'Sua conta aguarda aprovação administrativa.'
+                    : 'O acesso desta conta não foi aprovado.'
+            });
+        }
+
+        await auditLogin(req, user, 'success');
 
         const token = jwt.sign(
             {   userId: user.id, username: user.username }, 
@@ -1799,7 +1954,7 @@ app.post('/register', async (req, res) => {
         
         res.status(201).json({ 
             success: true,
-            message: 'Usuário criado com sucesso', 
+            message: 'Solicitação enviada. Aguarde a aprovação administrativa antes de entrar.',
             user: {
                 id: createdUser.id,
                 username: createdUser.username,
@@ -1950,4 +2105,3 @@ process.on('SIGINT', async () => {
         process.exit(1);
     }
 });
-

@@ -39,9 +39,11 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
   const port = await freePort();
   const backendDir = path.resolve(__dirname, '..');
   const sqlite3 = require(path.join(backendDir, 'node_modules', 'sqlite3'));
+  const bcrypt = require(path.join(backendDir, 'node_modules', 'bcryptjs'));
   for (const file of ['server.js', 'database.js', 'keycloak-config.js', 'config.js']) {
     fs.copyFileSync(path.join(backendDir, file), path.join(tempDir, file));
   }
+  fs.cpSync(path.join(backendDir, 'migrations'), path.join(tempDir, 'migrations'), { recursive: true });
   fs.writeFileSync(path.join(tempDir, '.env'), [
     `PORT=${port}`,
     `SECRET_KEY=${crypto.randomBytes(32).toString('hex')}`,
@@ -64,6 +66,12 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `, error => error ? reject(error) : resolve()));
+  await new Promise((resolve, reject) => oldDatabase.run(
+    `INSERT INTO users (id, nome, email, username, password, cpf)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    ['legacy-user', 'Conta legada', 'legado@example.test', 'legado', bcrypt.hashSync('senha-legada', 10), '52998224725'],
+    error => error ? reject(error) : resolve()
+  ));
   await new Promise((resolve, reject) => oldDatabase.close(error => error ? reject(error) : resolve()));
 
   async function manageAdmin(email, revoke = false) {
@@ -115,6 +123,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
   try {
     const base = `http://127.0.0.1:${port}`;
     await waitForHealth(`${base}/health`, processHandle, () => serverOutput);
+    assert.equal((await postJson('/login', { username: 'legado', password: 'senha-legada' })).status, 200);
     const corsResponse = await fetch(`${base}/health`, {
       headers: { Origin: 'http://localhost:5500' }
     });
@@ -170,8 +179,9 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const suffix = crypto.randomBytes(4).toString('hex');
     const first = `teste-${suffix}-1`;
     const second = `teste-${suffix}-2`;
+    const rejected = `teste-${suffix}-3`;
     const password = 'senha-de-teste-forte';
-    for (const [username, cpf] of [[first, '52998224725'], [second, '11144477735']]) {
+    for (const [username, cpf] of [[first, '52998224725'], [second, '11144477735'], [rejected, '93541134780']]) {
       const response = await postJson('/register', {
         nome: username,
         cpf,
@@ -180,9 +190,14 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
         password,
         confirmPassword: password
       });
-      assert.equal(response.status, 201, await response.text());
+      const registrationBody = await response.json();
+      assert.equal(response.status, 201, JSON.stringify(registrationBody));
+      assert.match(registrationBody.message, /aguarde a aprovação/i);
     }
 
+    const pendingLogin = await postJson('/login', { username: first, password });
+    assert.equal(pendingLogin.status, 403);
+    assert.equal((await pendingLogin.json()).error, 'account_pending');
     const unknownUser = await postJson('/login', { username: `ausente-${suffix}`, password });
     const wrongPassword = await postJson('/login', { username: first, password: 'senha-incorreta' });
     assert.equal(unknownUser.status, 401);
@@ -191,11 +206,28 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     assert.equal(unknownBody.error, 'invalid_credentials');
     assert.deepEqual(await wrongPassword.json(), unknownBody);
 
+    await manageAdmin(`${first}@example.test`);
     const login = await postJson('/login', { username: first, password });
     assert.equal(login.status, 200);
     const sessionCookie = login.headers.getSetCookie().find(cookie => cookie.startsWith('senappen_session='));
     const token = sessionCookie?.match(/^senappen_session=([^;]+)/)?.[1];
     assert.ok(token, 'o login deve emitir o cookie de sessão HttpOnly');
+    const pendingAccounts = await fetch(`${base}/api/admin/users/pending`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(pendingAccounts.status, 200);
+    const pendingUsers = (await pendingAccounts.json()).users;
+    const secondPending = pendingUsers.find(user => user.username === second);
+    const rejectedPending = pendingUsers.find(user => user.username === rejected);
+    assert.ok(secondPending?.id);
+    assert.ok(rejectedPending?.id);
+    assert.equal((await postJson(`/api/admin/users/${secondPending.id}/approve`, {}, token)).status, 200);
+    assert.equal((await postJson(`/api/admin/users/${rejectedPending.id}/reject`, {}, token)).status, 200);
+    assert.equal((await postJson(`/api/admin/users/${secondPending.id}/approve`, {}, token)).status, 409);
+    const rejectedLogin = await postJson('/login', { username: rejected, password });
+    assert.equal(rejectedLogin.status, 403);
+    assert.equal((await rejectedLogin.json()).error, 'account_rejected');
+    await manageAdmin(`${first}@example.test`, true);
     for (const route of [
       '/api/contracts/count',
       '/api/projects/count',
@@ -423,6 +455,15 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const otherLogin = await postJson('/login', { username: second, password });
     assert.equal(otherLogin.status, 200);
     assert.equal((await otherLogin.json()).user.cargo, null);
+    const regularToken = otherLogin.headers.getSetCookie().find(cookie => cookie.startsWith('senappen_session='))?.match(/^senappen_session=([^;]+)/)?.[1];
+    assert.ok(regularToken);
+    assert.equal((await fetch(`${base}/api/admin/users/pending`, {
+      headers: { Authorization: `Bearer ${regularToken}` }
+    })).status, 403);
+    assert.equal((await postJson(`/api/admin/users/${rejectedPending.id}/approve`, {}, regularToken)).status, 403);
+    assert.equal((await fetch(`${base}/api/admin/audit`, {
+      headers: { Authorization: `Bearer ${regularToken}` }
+    })).status, 403);
 
     const newPassword = 'nova-senha-de-teste';
     const changePassword = await postJson('/change-password', {
@@ -441,6 +482,21 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const blockedLogin = await postJson('/login', { username: first, password: newPassword });
     assert.equal(blockedLogin.status, 429);
     assert.ok(Number(blockedLogin.headers.get('retry-after')) > 0);
+
+    await manageAdmin(`${first}@example.test`);
+    const auditResponse = await fetch(`${base}/api/admin/audit?limit=500`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(auditResponse.status, 200);
+    const auditEvents = (await auditResponse.json()).events;
+    for (const action of ['login', 'approve_account', 'reject_account', 'upload', 'update', 'delete']) {
+      assert.ok(auditEvents.some(event => event.action === action), `evento de auditoria ausente: ${action}`);
+    }
+    assert.ok(auditEvents.some(event => event.action === 'login' && event.outcome === 'failed'));
+    assert.ok(auditEvents.some(event => event.action === 'login' && event.outcome === 'rate_limited'));
+    assert.ok(auditEvents.some(event => event.userId === JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()).userId));
+    assert.ok(auditEvents.every(event => event.occurredAt && event.entity && event.ipAddress));
+    await manageAdmin(`${first}@example.test`, true);
   } finally {
     global.fetch = nativeFetch;
     if (processHandle.exitCode === null) {

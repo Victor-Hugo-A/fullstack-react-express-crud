@@ -56,6 +56,16 @@
 
     <main id="conteudo" class="main-content page-container">
         <p id="session-feedback" class="session-feedback" role="status" aria-live="polite" hidden></p>
+        <details id="admin-approvals" class="admin-approvals" hidden>
+            <summary>
+                <span class="admin-approvals-label"><span class="eyebrow">ADMINISTRAÇÃO</span><strong>Solicitações de acesso</strong></span>
+                <span id="admin-approvals-count">Carregando solicitações...</span>
+            </summary>
+            <div class="admin-approvals-content">
+                <p id="admin-approvals-status" class="session-feedback" role="status" aria-live="polite" hidden></p>
+                <div id="admin-approvals-list" class="approval-list"></div>
+            </div>
+        </details>
         <section class="welcome-card" aria-labelledby="welcome-title">
             <div class="welcome-copy">
                 <span class="eyebrow">SISTEMA DE GESTÃO</span>
