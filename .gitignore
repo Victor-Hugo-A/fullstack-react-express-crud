@@ -2,3 +2,5 @@
 # Configurações locais do WebStorm usam o caminho pessoal do Node portátil.
 .run/
 node_modules/
+test-results/
+playwright-report/

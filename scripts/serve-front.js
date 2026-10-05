@@ -4,6 +4,7 @@ const { realpath, stat } = require('node:fs/promises');
 const path = require('node:path');
 
 const frontendDirectory = path.resolve(__dirname, '..', 'FrontEnd');
+const port = Number(process.env.FRONTEND_PORT) || 5500;
 const mimeTypes = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
@@ -86,6 +87,6 @@ http.createServer(async (req, res) => {
     } catch {
         res.writeHead(404).end();
     }
-}).listen(5500, '127.0.0.1', () => {
-    console.log('Frontend disponível em http://localhost:5500/FrontEnd/login.html');
+}).listen(port, '127.0.0.1', () => {
+    console.log(`Frontend disponível em http://localhost:${port}/FrontEnd/login.html`);
 });
