@@ -471,9 +471,36 @@
 .documents-workspace .project-modal .btn-download-file { border-color: #cde6db; }
 .documents-workspace .project-modal .btn-delete-file { border-color: #eccdd0; }
 
-/* Edição mantém o usuário na lista e deixa a ação pendente evidente. */
-.documents-workspace .project-edit-modal .modal-content { width: min(100%, 920px); }
-.documents-workspace .project-edit-modal .project-modal-body { padding-bottom: 1.25rem; }
+/* A rolagem fica restrita ao formulário; cabeçalho e ações permanecem visíveis. */
+.documents-workspace .project-edit-modal .modal-content {
+    display: flex;
+    width: min(100%, 920px);
+    max-height: min(88vh, 900px);
+    flex-direction: column;
+    overflow: hidden;
+}
+.documents-workspace .project-edit-modal .project-modal-header { flex: 0 0 auto; }
+.documents-workspace .project-edit-modal .project-edit-form {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    overflow: hidden;
+}
+.documents-workspace .project-edit-modal .project-modal-body {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: #82a9c1 #edf3f7;
+    scrollbar-width: thin;
+    padding-bottom: 1.25rem;
+}
+.documents-workspace .project-edit-modal .project-modal-body::-webkit-scrollbar { width: 8px; }
+.documents-workspace .project-edit-modal .project-modal-body::-webkit-scrollbar-track { border-radius: 999px; background: #edf3f7; }
+.documents-workspace .project-edit-modal .project-modal-body::-webkit-scrollbar-thumb { border: 2px solid #edf3f7; border-radius: 999px; background: #82a9c1; }
+.documents-workspace .project-edit-modal .project-modal-body::-webkit-scrollbar-thumb:hover { background: #5f90af; }
+.documents-workspace .project-edit-modal .edit-context { flex: 0 0 auto; }
 .documents-workspace .project-edit-modal .document-form { gap: .8rem 1.1rem; }
 .documents-workspace .project-edit-modal .form-group { margin: 0; }
 .documents-workspace .project-edit-modal .edit-context {
@@ -487,9 +514,8 @@
 }
 .documents-workspace .project-edit-modal .edit-context strong { color: #124d77; }
 .documents-workspace .project-edit-actions {
-    position: sticky;
-    bottom: 0;
     display: flex;
+    flex: 0 0 auto;
     justify-content: flex-end;
     gap: .7rem;
     padding: 1rem 1.8rem;
@@ -627,6 +653,7 @@
 @media (max-width: 640px) {
     .documents-workspace .project-modal { align-items: flex-end; padding: .65rem; }
     .documents-workspace .project-modal .modal-content { max-height: 92vh; border-radius: 16px; }
+    .documents-workspace .project-edit-modal .modal-content { max-height: 92vh; }
     .documents-workspace .project-modal-header { padding: 1.2rem 3.8rem 1.1rem 1.15rem; }
     .documents-workspace .project-modal-header .modal-close-button { top: .85rem; right: .85rem; }
     .documents-workspace .project-modal-body { padding: 1.1rem 1.15rem 1.35rem; }
