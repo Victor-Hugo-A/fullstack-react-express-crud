@@ -456,7 +456,7 @@ function renderProjectsPage(page) {
             <h2 id="project-modal-title">${utils.sanitize(project.name)}</h2>
             <span class="project-modal-code">Código ${utils.sanitize(project.code)}</span>
           </div>
-          <button type="button" class="close-modal" aria-label="Fechar detalhes do projeto">&times;</button>
+          <button type="button" class="close-modal modal-close-button" aria-label="Fechar detalhes do projeto">${window.documentIcons.markup('close', 'modal-close-icon')}</button>
         </header>
         <div class="project-modal-body">
           <div class="project-modal-status"><span class="detail-label">Situação</span><span class="status-badge ${utils.getStatusClass(project.status)}">${utils.sanitize(utils.getStatusText(project.status))}</span></div>
@@ -731,7 +731,7 @@ function renderProjectsPage(page) {
             <h2 id="project-edit-title">${utils.sanitize(project.name)}</h2>
             <span class="project-modal-code">Código ${utils.sanitize(project.code)}</span>
           </div>
-          <button type="button" class="close-modal" aria-label="Cancelar e fechar edição">&times;</button>
+          <button type="button" class="close-modal modal-close-button" aria-label="Cancelar e fechar edição">${window.documentIcons.markup('close', 'modal-close-icon')}</button>
         </header>
         <form class="project-edit-form" novalidate>
           <div class="edit-context" role="status"><strong>Modo de edição ativo.</strong> Revise os campos e salve somente quando terminar.</div>

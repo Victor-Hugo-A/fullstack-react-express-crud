@@ -48,7 +48,7 @@
     display: inline-grid;
     place-items: center;
     flex: 0 0 38px;
-    width: 38px;
+    width: 40px;
     height: 38px;
     border-radius: 10px;
     background: #e8f2fa;
@@ -195,7 +195,6 @@
 
 .documents-workspace .project-modal .modal-content { max-width: 760px; padding: 1.75rem; border-radius: 16px; }
 .documents-workspace .project-modal .modal-title { color: #173d5d; font-size: clamp(1.4rem, 2.4vw, 1.8rem); }
-.documents-workspace .project-modal .close-modal { display: inline-grid; place-items: center; top: 0.75rem; right: 1rem; width: 36px; height: 36px; border: 1px solid #d7e3ec; border-radius: 8px; background: #fff; color: #526b81; font-size: 1.4rem; }
 .documents-workspace .project-modal .file-item { gap: 0.6rem; }
 .documents-workspace .project-modal .file-info { min-width: 0; flex-wrap: wrap; }
 .documents-workspace .project-modal .file-info .ui-icon { color: #366f9b; }
@@ -364,21 +363,6 @@
     font-size: .84rem;
     font-weight: 600;
 }
-.documents-workspace .project-modal .close-modal {
-    position: absolute;
-    top: 1.15rem;
-    right: 1.2rem;
-    width: 38px;
-    height: 38px;
-    border: 1px solid #d0deea;
-    border-radius: 10px;
-    background: #fff;
-    color: #3d5a73;
-    font-size: 1.4rem;
-    line-height: 1;
-    transition: background-color .15s ease, color .15s ease;
-}
-.documents-workspace .project-modal .close-modal:hover { background: #eaf3fa; color: #174c78; }
 .documents-workspace .project-modal-body { padding: 1.5rem 1.8rem 1.8rem; }
 .documents-workspace .project-modal-status {
     display: flex;
@@ -568,23 +552,31 @@
 .contract-preview-dialog h2,
 .contract-edit-dialog h2 { margin: 0; color: #123b61; font-size: clamp(1.25rem, 2.8vw, 1.65rem); font-weight: 750; }
 .contract-edit-dialog header p { margin: .45rem 0 0; color: #60768a; font-size: .86rem; }
-.contract-preview-dialog header button,
-.contract-edit-dialog header button {
+.documents-workspace .modal-close-button {
     position: absolute;
     top: 1rem;
     right: 1.15rem;
     display: grid;
     place-items: center;
+    flex: 0 0 40px;
     width: 38px;
-    height: 38px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    appearance: none;
     border: 1px solid #d4e1ea;
-    border-radius: 9px;
+    border-radius: 10px;
     background: #fff;
     color: #526b81;
-    font-size: 1.45rem;
-    line-height: 1;
+    font: inherit;
+    line-height: 0;
     cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
 }
+.documents-workspace .modal-close-button:hover { border-color: #bfd3e2; background: #eaf3fa; color: #174c78; }
+.documents-workspace .modal-close-button:focus-visible { outline: 3px solid #e7a33d; outline-offset: 2px; }
+.documents-workspace .modal-close-icon { display: block; width: 18px; height: 18px; }
+.documents-workspace .project-modal-header .modal-close-button { top: 1.15rem; right: 1.2rem; }
 .contract-preview-content { min-height: min(68vh, 680px); padding: 1rem; display: grid; place-items: center; background: #f5f8fa; }
 .contract-preview-content img { max-width: 100%; max-height: min(68vh, 680px); border-radius: 10px; box-shadow: 0 8px 24px rgba(8, 38, 67, .16); object-fit: contain; }
 .contract-preview-content iframe { width: 100%; height: min(68vh, 680px); border: 0; border-radius: 10px; background: #fff; }
@@ -614,7 +606,7 @@
     background: rgba(8, 28, 52, 0.78);
 }
 .documents-workspace .identity-image-modal img { max-width: min(90vw, 720px); max-height: 78vh; border-radius: 12px; object-fit: contain; box-shadow: 0 18px 50px rgba(0,0,0,.28); }
-.documents-workspace .identity-image-modal button { position: absolute; top: 1rem; right: 1rem; width: 42px; height: 42px; border: 0; border-radius: 9px; background: #fff; color: #173d5d; font-size: 1.6rem; cursor: pointer; }
+.documents-workspace .identity-image-modal .modal-close-button { top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); }
 
 @media (max-width: 1050px) {
     .documents-workspace .document-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -636,7 +628,7 @@
     .documents-workspace .project-modal { align-items: flex-end; padding: .65rem; }
     .documents-workspace .project-modal .modal-content { max-height: 92vh; border-radius: 16px; }
     .documents-workspace .project-modal-header { padding: 1.2rem 3.8rem 1.1rem 1.15rem; }
-    .documents-workspace .project-modal .close-modal { top: .85rem; right: .85rem; }
+    .documents-workspace .project-modal-header .modal-close-button { top: .85rem; right: .85rem; }
     .documents-workspace .project-modal-body { padding: 1.1rem 1.15rem 1.35rem; }
     .documents-workspace .project-details { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
     .documents-workspace .project-modal .detail-row { min-height: 76px; padding: .7rem; }

@@ -148,15 +148,6 @@
 }
 .identities-page #identities-table tbody tr:nth-child(even) { background: #fbfcfd; }
 .identities-page .identity-image-modal { z-index: 1100; }
-.identities-page .identity-image-modal button {
-    display: grid;
-    place-items: center;
-    top: max(1rem, env(safe-area-inset-top));
-    right: max(1rem, env(safe-area-inset-right));
-    border: 1px solid #d7e3ec;
-    font-size: 1.45rem;
-    cursor: pointer;
-}
 .identities-page .identity-image-modal button:focus-visible,
 .identities-page #identities-table button:focus-visible {
     outline: 3px solid #e7a33d;
