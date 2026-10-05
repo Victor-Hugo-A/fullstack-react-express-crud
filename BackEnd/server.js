@@ -638,7 +638,7 @@ const projectsUpload = multer({
             cb(null, Date.now() + '-' + uuidv4() + path.extname(file.originalname).toLowerCase());
         }
     }),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+    limits: { fileSize: 10 * 1024 * 1024, files: 5 } // 10MB por arquivo, até 5 anexos
 });
 
 const projectsRepository = createProjectsRepository(db);
@@ -890,7 +890,7 @@ app.post('/api/logout', authenticateJWT, (req, res) => {
     res.status(204).end();
 });
 
-app.post('/upload', authenticateJWT, upload.single('file'), (req, res) => {
+app.post('/upload', authenticateJWT, upload.single('file'), validateUploadedFiles('contract'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ 

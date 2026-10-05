@@ -2,185 +2,144 @@
 
 # Portal institucional SENAPPEN
 
-**Gestão de documentos, projetos e identidades em uma área de trabalho autenticada.**
+**Um espaço único para organizar contratos, projetos, identidades e informações de gestão.**
 
-<img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js 20 ou superior">
-<img src="https://img.shields.io/badge/Express-4.21-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express 4.21">
-<img src="https://img.shields.io/badge/SQLite-dados%20locais-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite para dados locais">
-<img src="https://img.shields.io/badge/interface-HTML%20%7C%20CSS%20%7C%20JavaScript-1f6fb2?style=for-the-badge" alt="HTML, CSS e JavaScript">
-
-<br><br>
-
-<img src="docs/images/tela-login.png" alt="Tela de acesso ao Portal institucional SENAPPEN" width="900">
+<img src="docs/images/tela-login.png" alt="Tela de acesso do Portal institucional SENAPPEN" width="900">
 
 </div>
 
-> O portal concentra contratos, projetos e identidades da Secretaria Nacional de Políticas Penais (SENAPPEN), disponibilizando os registros e seus indicadores em um só ambiente.
-
 <p align="center">
-  <a href="#visão-geral">Visão geral</a> ·
-  <a href="#início-rápido">Início rápido</a> ·
-  <a href="#operação-de-contas">Contas</a> ·
-  <a href="#testes">Testes</a> ·
-  <a href="#estrutura-do-repositório">Estrutura</a>
+  <a href="#o-que-o-portal-oferece">Recursos</a> ·
+  <a href="#primeiros-passos">Primeiros passos</a> ·
+  <a href="#contas-e-permissões">Contas</a> ·
+  <a href="#verificações">Verificações</a>
 </p>
 
 ---
 
-## Visão geral
+## O que o portal oferece
 
-| Acesso seguro | Registros centralizados | Indicadores acionáveis |
-| :---: | :---: | :---: |
-| Conta própria, JWT, senhas com hash e limitação de tentativas. | Contratos, projetos, anexos e identidades em módulos específicos. | Dashboard consolidado e análises filtradas por período. |
+O Portal SENAPPEN reúne as informações usadas pela equipe em uma área protegida. Depois de entrar, cada pessoa pode consultar os registros autorizados, acompanhar os indicadores e manter seus dados atualizados.
 
-### Módulos do portal
-
-- **Acesso e contas:** criação de conta com nome, CPF, e-mail, usuário e senha, seguida de aprovação administrativa; login por usuário e senha; sessão autenticada por JWT; alteração de senha e atualização de cargo e departamento no perfil. As senhas são armazenadas com hash e o login limita tentativas consecutivas.
-- **Contratos:** cadastro de número, tipo, data, descrição e arquivo; consulta por tipo, ano, número ou descrição; visualização, download e edição do registro. Aceita PDF, DOC, DOCX, JPG e PNG de até 10 MB.
-- **Projetos:** cadastro de código, responsável, período, situação e descrição; anexação de múltiplos documentos; filtros por situação, ano, período, nome, código ou responsável; consulta, edição e download dos anexos.
-- **Identidades:** cadastro de nome, CPF, endereço, perfil e fotografia; listagem com visualização da foto e paginação.
-- **Indicadores:** dashboard com totais, distribuição de contratos por tipo, projetos por situação, identidades por perfil e os cinco registros mais recentes. A tela de análises permite recortar os dados por período, comparar distribuições e consultar até dez registros recentes por categoria.
-- **Permissões administrativas:** administradores aprovam ou rejeitam solicitações na página inicial e podem excluir contratos, projetos, anexos e identidades, além de sincronizar ou limpar os contratos. Eventos de login, upload, atualização, exclusão e decisão de conta ficam registrados no SQLite; somente administradores consultam o registro.
-
-## Tecnologias e persistência
-
-| Camada | Implementação |
+| Área | O que é possível fazer |
 | --- | --- |
-| Interface | HTML, CSS e JavaScript, com Bootstrap, Chart.js, PDF.js e fontes carregados por CDN |
-| API | Node.js, Express, CORS e compression |
-| Autenticação | JWT, bcryptjs e limitação de tentativas de login |
-| Uploads | Multer |
-| Dados locais | SQLite para usuários, projetos, identidades, auditoria e metadados de contratos |
+| **Contratos** | Cadastrar, consultar, filtrar, ordenar, editar, visualizar e baixar contratos e documentos relacionados. |
+| **Projetos** | Registrar projetos, responsáveis, prazos, situação e até cinco anexos por envio. |
+| **Identidades** | Manter dados de identificação, endereço, perfil e fotografia. |
+| **Dashboard e análises** | Acompanhar totais, distribuições e registros recentes; comparar informações por período. |
+| **Perfil** | Atualizar departamento, cargo, CPF e senha. |
 
-Os anexos ficam em `BackEnd/uploads/` e os dados operacionais no banco `BackEnd/database.sqlite`. Na primeira inicialização após a atualização, as migrations criam a tabela de contratos e importam os registros existentes de `BackEnd/data/contracts.json` sem apagar nem alterar o arquivo de origem. As migrations aplicadas ficam registradas em `schema_migrations`. Faça backup do banco e dos anexos antes de atualizar uma instalação existente.
+As listas de contratos, projetos e identidades mostram seis registros por página. Elas oferecem ordenação, filtros e mensagens claras quando não há resultados.
 
-A especificação OpenAPI da API está em [`BackEnd/openapi.yaml`](BackEnd/openapi.yaml). Contratos, projetos e identidades estão separados em rotas, controllers, services e repositories; os contratos também usam validação de payload e respostas JSON de erro estruturadas.
+## Acesso e administração
 
-## Início rápido
+Uma pessoa pode solicitar acesso pela própria tela inicial. A solicitação fica aguardando até que um administrador a aprove ou rejeite.
 
-### Pré-requisitos
+Administradores também podem:
 
-- Node.js 20 ou superior e npm;
-- portas `3000` (API) e `5500` (interface) disponíveis;
-- acesso à internet durante o uso da interface, pois Bootstrap, Chart.js, PDF.js, jQuery e fontes são carregados por CDN.
+- aprovar ou rejeitar solicitações de acesso;
+- excluir registros e anexos quando necessário;
+- sincronizar e limpar contratos;
+- consultar o histórico de entradas, envios, alterações e exclusões.
 
-Na raiz do repositório, conclua estes três passos:
+O portal registra essas ações para facilitar o acompanhamento da operação.
 
-| 1. Instalar a API | 2. Criar os segredos locais | 3. Iniciar o portal |
-| --- | --- | --- |
-| `npm.cmd ci` em `BackEnd` | Copie `.env.example` para `.env` | `npm.cmd run dev` na raiz |
+## Primeiros passos
 
-Instale as dependências da API e crie a configuração local:
+### Antes de iniciar
+
+Tenha o Node.js 20 ou superior instalado e deixe livres as portas `3000` e `5500`.
+
+### 1. Prepare a configuração local
+
+Abra um terminal na raiz do projeto e instale as dependências:
 
 ```powershell
+npm.cmd ci
 cd BackEnd
 npm.cmd ci
 Copy-Item .env.example .env
 cd ..
 ```
 
-Abra `BackEnd/.env` e substitua os valores de `SECRET_KEY` e `SESSION_SECRET` por strings longas, aleatórias e diferentes. Mantenha esse arquivo fora do versionamento.
+Abra `BackEnd/.env` e substitua `SECRET_KEY` e `SESSION_SECRET` por valores longos, aleatórios e diferentes. Esse arquivo contém informações privadas e não deve ser enviado ao repositório.
 
-Em seguida, inicie a API e o servidor da interface juntos:
+### 2. Inicie o portal
 
 ```powershell
 npm.cmd run dev
 ```
 
-<details>
-<summary><strong>Endereços disponibilizados pelo ambiente local</strong></summary>
+| Endereço | Uso |
+| --- | --- |
+| [http://localhost:5500](http://localhost:5500) | Tela de acesso do portal. |
+| [http://localhost:3000/health](http://localhost:3000/health) | Confirma se o serviço está disponível. |
 
-| Serviço | Endereço | Finalidade |
-| --- | --- | --- |
-| Interface | [http://localhost:5500](http://localhost:5500) | Redireciona para a tela de acesso do portal. |
-| API | [http://localhost:3000](http://localhost:3000) | Endpoints consumidos pela interface autenticada. |
-| Saúde da API | [http://localhost:3000/health](http://localhost:3000/health) | Confirma que o backend está disponível. |
+Para encerrar, use `Ctrl+C` no terminal.
 
-</details>
+### 3. Crie a primeira conta administrativa
 
-No primeiro uso, crie uma conta pela própria tela de acesso. Cadastros novos ficam pendentes e não podem entrar até a aprovação administrativa. As contas que já existiam antes desta versão são preservadas como aprovadas pela migração SQLite.
-
-Para habilitar o primeiro administrador, pare a API e conceda a permissão à conta cadastrada usando o script abaixo; ele também aprova a conta. Depois, inicie a API novamente. A partir daí, administradores aprovam ou rejeitam os demais pedidos na seção **Solicitações de acesso** da página inicial.
-
-Para encerrar os dois processos, use `Ctrl+C` no terminal.
-
-### Executar os serviços separadamente
-
-Útil quando a API e a interface precisam ser acompanhadas em terminais distintos:
-
-```powershell
-# Terminal 1 — raiz do projeto
-npm.cmd run back
-
-# Terminal 2 — raiz do projeto
-npm.cmd run front
-```
-
-Verifique a disponibilidade da API em [http://localhost:3000/health](http://localhost:3000/health).
-
-## Operação de contas
-
-Para conceder administração a uma conta existente, pare a API e execute, a partir da raiz:
+Cadastre uma conta pela tela de acesso. Com a API parada, execute:
 
 ```powershell
 node .\scripts\manage-local-admin.js
 ```
 
-Informe o e-mail cadastrado quando solicitado. Para remover a permissão, use:
+Informe o e-mail da conta. O comando aprova a conta e concede a administração. Depois disso, inicie o portal novamente.
+
+Para remover essa permissão, use:
 
 ```powershell
 node .\scripts\manage-local-admin.js --revoke
 ```
 
-O fluxo de administração também está disponível em `GET /api/admin/users/pending`, `POST /api/admin/users/:id/approve`, `POST /api/admin/users/:id/reject` e `GET /api/admin/audit`. Todas essas rotas exigem sessão autenticada e permissão administrativa; o endpoint de auditoria aceita `limit` entre 1 e 500 (padrão 200).
+## Cuidados com os dados
 
-Para redefinir a senha de uma conta local, também com os servidores parados:
+Os dados do portal ficam no banco local em `BackEnd/database.sqlite` e os documentos enviados ficam em `BackEnd/uploads/`.
+
+Faça uma cópia desses dois locais antes de atualizar o sistema ou mover a instalação. Os contratos antigos encontrados em `BackEnd/data/contracts.json` são trazidos para o banco na primeira atualização, sem alterar o arquivo original.
+
+## Segurança no uso diário
+
+- A sessão fica protegida no navegador e termina ao sair do portal.
+- Documentos e fotografias só são entregues para pessoas autenticadas.
+- O sistema verifica formato, tipo e conteúdo dos arquivos antes de aceitá-los.
+- Novas contas só entram após aprovação administrativa.
+- O acesso tem limite de tentativas para reduzir tentativas de senha indevidas.
+
+Ao publicar o portal em uma rede acessível, utilize HTTPS, configure o endereço público correto e mantenha cópias periódicas do banco e dos anexos.
+
+## Verificações
+
+O projeto possui verificações para garantir que as telas, os acessos, os anexos e as permissões continuem funcionando após uma alteração.
 
 ```powershell
-node .\scripts\reset-local-password.js
-```
-
-O script solicita o e-mail, mostra uma senha temporária uma única vez e exige a troca posterior em **Perfil**.
-
-## Testes
-
-O teste de integração cria um banco temporário e cobre autenticação, controle de permissões, perfil, contratos, projetos, identidades, anexos e limpeza administrativa. Execute-o após instalar as dependências do backend:
-
-```powershell
-cd BackEnd
+# Verifica o sistema completo
 npm.cmd test
+
+# Executa somente as telas principais
+npm.cmd test:e2e
+
+# Verifica dependências com problemas altos ou críticos
+npm.cmd run test:security
 ```
 
-## Estrutura do repositório
+Na primeira execução das verificações de tela, instale o navegador necessário:
+
+```powershell
+npx.cmd playwright install chromium
+```
+
+Cada envio de alteração e solicitação de revisão no GitHub executa essas verificações automaticamente em [ci.yml](.github/workflows/ci.yml).
+
+## Organização do projeto
 
 ```text
-BackEnd/
-  server.js                 # composição Express e autenticação/contas
-  config.js                 # configuração validada por ambiente
-  database.js               # inicialização do SQLite e execução de migrations
-  controllers/              # adaptação HTTP por recurso
-  middlewares/              # validação e erros da API
-  migrations/               # migrations SQL e importação do JSON legado
-  openapi.yaml              # especificação da API
-  repositories/             # persistência por recurso
-  routes/                   # rotas por recurso
-  services/                 # regras de negócio por recurso
-  test/server.test.js       # testes de integração da API
-FrontEnd/
-  login.*                   # acesso e criação de conta
-  Sistema/                  # página inicial autenticada
-  Documentos/               # contratos, projetos, identidades e gráficos
-  Dashboard/                # indicadores consolidados
-  Análises/                 # análises filtradas por período
-  Perfil/                   # dados funcionais e troca de senha
-scripts/
-  dev.js                    # inicia API e interface
-  manage-local-admin.js     # concede ou remove administração local
-  reset-local-password.js   # gera senha temporária local
-docs/images/
-  tela-login.png            # captura usada nesta documentação
+FrontEnd/       telas e recursos visuais do portal
+BackEnd/        regras do sistema, dados, arquivos enviados e histórico
+tests/e2e/      verificações das principais jornadas na interface
+scripts/        comandos de inicialização e manutenção local
+docs/images/    imagens usadas nesta documentação
 ```
 
-## Segurança e publicação
-
-O projeto foi preparado para desenvolvimento local. Antes de publicá-lo em uma rede acessível, configure segredos fortes fora do repositório, HTTPS, origem CORS compatível com o domínio publicado, armazenamento adequado para uploads e uma estratégia de backup para o banco SQLite. As rotas experimentais `/seguro` e `/logout` dependem de uma instância Keycloak local na porta `8080`; elas não fazem parte do fluxo principal de login do portal.
+Para quem precisa consultar a integração entre a interface e o serviço, a referência completa está em [BackEnd/openapi.yaml](BackEnd/openapi.yaml).

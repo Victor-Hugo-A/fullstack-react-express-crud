@@ -286,6 +286,16 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       assert.equal((await invalidResponse.json()).error.code, expectedCode);
       assert.deepEqual(fs.readdirSync(contractsUploadDir).sort(), beforeRejectedUploads);
     }
+    const legacyUploadForm = new FormData();
+    legacyUploadForm.set('file', new Blob(['conteúdo não PDF'], { type: 'application/pdf' }), 'arquivo-invalido.pdf');
+    const legacyUpload = await fetch(`${base}/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: legacyUploadForm
+    });
+    assert.equal(legacyUpload.status, 400);
+    assert.equal((await legacyUpload.json()).error.code, 'invalid_file_signature');
+    assert.deepEqual(fs.readdirSync(contractsUploadDir).sort(), beforeRejectedUploads);
     const invalidContractId = await fetch(`${base}/api/contracts/id-invalido`, {
       headers: { Authorization: `Bearer ${token}` }
     });
