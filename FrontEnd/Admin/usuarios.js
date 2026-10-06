@@ -6,7 +6,7 @@ function redirectToLogin() {
     sessionStorage.removeItem('portal-session');
     sessionStorage.removeItem('userData');
     sessionStorage.setItem('auth-notice', 'required');
-    window.location.assign('/FrontEnd/login.html');
+    window.location.assign('/login.html');
 }
 
 function showStatus(message, kind = 'success') {
@@ -24,6 +24,10 @@ async function request(url, options = {}) {
 function renderUsers() {
     const list = document.getElementById('users-list');
     document.getElementById('users-count').textContent = `${users.length} conta${users.length === 1 ? '' : 's'} cadastrada${users.length === 1 ? '' : 's'}.`;
+    document.getElementById('admin-total').textContent = users.length;
+    for (const role of ['viewer', 'editor', 'admin']) {
+        document.getElementById(`${role}-count`).textContent = users.filter(user => user.role === role).length;
+    }
     list.replaceChildren();
     users.forEach(user => {
         const row = document.createElement('tr');
@@ -104,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const session = await request('http://localhost:3000/api/user');
         if (!session.user?.isAdmin) {
-            window.location.replace('/FrontEnd/Sistema/sistema.html');
+            window.location.replace('/Sistema/sistema.html');
             return;
         }
         document.getElementById('username-display').textContent = session.user.nome || session.user.username;

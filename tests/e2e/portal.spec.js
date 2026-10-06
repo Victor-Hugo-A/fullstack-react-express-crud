@@ -97,17 +97,19 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('login autentica e encaminha para o portal', async ({ page }) => {
-    await page.goto('/FrontEnd/login.html');
+    await page.goto('/login.html');
     await page.locator('#username').fill('gestor');
     await page.locator('#password').fill('senha-segura');
     await page.locator('#loginForm button[type="submit"]').click();
 
-    await expect(page).toHaveURL(/\/FrontEnd\/Sistema\/sistema\.html$/);
+    await expect(page).toHaveURL(/\/Sistema\/sistema\.html$/);
     await expect(page.getByText('Gestor de Testes').first()).toBeVisible();
+    await expect(page.locator('#admin-users-link')).toBeVisible();
+    await expect(page.locator('#admin-users-link')).toHaveAttribute('href', '/Admin/usuarios.html');
 });
 
 test('administrador cria e altera permissões de uma conta', async ({ page }) => {
-    await authenticatedPage(page, '/FrontEnd/Admin/usuarios.html');
+    await authenticatedPage(page, '/Admin/usuarios.html');
     await expect(page.locator('#create-user-form')).toBeVisible();
 
     await page.locator('#create-user-form [name="nome"]').fill('Nova Pessoa');
@@ -127,7 +129,7 @@ test('administrador cria e altera permissões de uma conta', async ({ page }) =>
 });
 
 test('contratos pagina seis resultados e permite ordenar', async ({ page }) => {
-    await authenticatedPage(page, '/FrontEnd/Documentos/contrato.html');
+    await authenticatedPage(page, '/Documentos/contrato.html');
     await expect(page.locator('#documents-container .document-card')).toHaveCount(6);
     await expect(page.locator('#contracts-summary')).toContainText('7 contratos encontrados');
 
@@ -140,7 +142,7 @@ test('contratos pagina seis resultados e permite ordenar', async ({ page }) => {
 });
 
 test('projetos pagina seis resultados', async ({ page }) => {
-    await authenticatedPage(page, '/FrontEnd/Documentos/projetos.html');
+    await authenticatedPage(page, '/Documentos/projetos.html');
     await expect(page.locator('#projects-table tbody tr')).toHaveCount(6);
     await expect(page.locator('#projects-summary')).toContainText('7 projetos encontrados');
 
@@ -150,7 +152,7 @@ test('projetos pagina seis resultados', async ({ page }) => {
 });
 
 test('identidades ordena os registros pelo nome', async ({ page }) => {
-    await authenticatedPage(page, '/FrontEnd/Documentos/identidades.html');
+    await authenticatedPage(page, '/Documentos/identidades.html');
     await expect(page.locator('#identities-table tbody tr')).toHaveCount(3);
 
     await page.locator('#identity-sort').selectOption('name-asc');

@@ -1,4 +1,10 @@
-.users-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(240px, .8fr); gap: 22px; }
+.admin-hero { position: relative; overflow: hidden; align-items: center; border: 0; color: #fff; background: radial-gradient(circle at 92% 15%, rgba(246, 191, 78, .32), transparent 27%), linear-gradient(122deg, #071e38, #0e4778); box-shadow: 0 18px 42px rgba(9, 38, 68, .18); }
+.admin-hero::after { content: ''; position: absolute; right: -78px; bottom: -116px; width: 290px; height: 290px; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; box-shadow: 0 0 0 32px rgba(255,255,255,.04), 0 0 0 64px rgba(255,255,255,.035); }
+.admin-hero h1, .admin-hero p { color: #fff; }.admin-hero p { color: #d4e5f2; }.admin-hero .eyebrow { color: #f6c76d; }
+.admin-hero__summary { position: relative; z-index: 1; min-width: 176px; display: grid; gap: 1px; padding: 16px 0 16px 22px; border-left: 1px solid rgba(255,255,255,.22); }.admin-hero__summary strong { font-size: 2.25rem; line-height: 1; }.admin-hero__summary span { color: #d4e5f2; font-size: .82rem; }.admin-hero__summary .module-link { width: fit-content; margin-top: 12px; border-color: rgba(255,255,255,.45); color: #fff; }.admin-hero__summary .module-link:hover { background: rgba(255,255,255,.13); }
+.access-overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: -8px 18px 30px; position: relative; z-index: 2; }.access-overview article { min-height: 105px; padding: 18px 20px; display: grid; align-content: center; gap: 3px; border: 1px solid #dce6ee; border-radius: 12px; background: #fff; box-shadow: 0 8px 20px rgba(12,45,79,.08); }.access-overview span { color: #52657b; font-size: .78rem; font-weight: 750; }.access-overview strong { color: #0b2545; font-size: 1.85rem; line-height: 1; }.access-overview small { color: #52657b; }
+.users-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, .8fr); gap: 22px; }
+.create-account-card { border-top: 4px solid #1b6ba2; }.card-heading { display: flex; align-items: flex-start; gap: 12px; }.card-heading__icon { width: 35px; height: 35px; display: grid; flex: none; place-items: center; border-radius: 9px; background: #e6f3fb; color: #0b5a93; font-size: 1.45rem; font-weight: 600; }.card-heading .module-card__description { margin-bottom: 22px; }
 .users-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .users-form label { display: grid; gap: 6px; color: #173d58; font-size: .84rem; font-weight: 700; }
 .users-form input, .users-form select { width: 100%; min-height: 42px; padding: 8px 10px; border: 1px solid #b8ccdc; border-radius: 8px; background: #fff; color: #172b44; font: inherit; }
@@ -6,16 +12,17 @@
 .users-form .form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
 .users-form button { min-height: 42px; padding: 8px 15px; border: 1px solid #176c5c; border-radius: 8px; background: #176c5c; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
 .users-form button.secondary { border-color: #b8ccdc; background: #fff; color: #173d58; }
-.role-guide { align-self: start; }
+.role-guide { align-self: start; border-top: 4px solid #c99b3d; }
 .role-guide dl { margin: 0; display: grid; gap: 5px; }
-.role-guide dt { margin-top: 10px; color: #0b2545; font-weight: 800; }
+.role-guide dt { margin-top: 14px; color: #0b2545; font-weight: 800; }.role-dot { width: 9px; height: 9px; display: inline-block; margin-right: 7px; border-radius: 50%; background: #145da0; }.role-dot.editor { background: #176c5c; }.role-dot.admin { background: #a36b09; }
 .role-guide dd { margin: 0; color: #52657b; font-size: .88rem; }
+.users-list-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }.users-list-heading .eyebrow { display: block; }.users-list-heading h2 { margin: 4px 0 0; }.users-list-heading p { margin: 0; padding: 6px 10px; border-radius: 999px; background: #eaf3fa; color: #145da0; font-size: .82rem; font-weight: 750; }.users-table-card { padding: 8px; }.users-table-card .module-table th { background: #f0f6fa; }.users-table-card .module-table tbody tr { transition: background .15s; }.users-table-card .module-table tbody tr:hover { background: #eef7fb; }
 .user-role { display: inline-flex; padding: 4px 8px; border-radius: 999px; background: #eaf3fa; color: #145da0; font-size: .78rem; font-weight: 750; }
 .user-role--editor { background: #eaf8f0; color: #176c5c; }.user-role--admin { background: #fff4df; color: #815400; }
-.edit-user { min-height: 34px; padding: 5px 9px; border: 1px solid #b8ccdc; border-radius: 7px; background: #fff; color: #173d58; font-weight: 700; cursor: pointer; }
+.edit-user { min-height: 34px; padding: 5px 10px; border: 1px solid #9fc4da; border-radius: 7px; background: #fff; color: #0b5a93; font-weight: 750; cursor: pointer; }.edit-user:hover { background: #eaf4fa; }
 dialog#edit-user-dialog { width: min(590px, calc(100% - 32px)); padding: 0; border: 0; border-radius: 14px; box-shadow: 0 20px 50px rgba(8, 28, 52, .28); }
 dialog#edit-user-dialog::backdrop { background: rgba(8, 28, 52, .55); }
 #edit-user-form { padding: 24px; } #edit-user-form header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; } #edit-user-form h2 { margin: 4px 0 0; color: #0b2545; } #edit-user-description { grid-column: 1 / -1; margin: -4px 0 2px; color: #52657b; }
 .dialog-close { width: 38px; min-height: 38px !important; padding: 0 !important; border-color: #b8ccdc !important; background: #fff !important; color: #173d58 !important; font-size: 1.45rem !important; line-height: 1; }
 .permission-notice { margin: 0 0 20px; padding: 12px 16px; border: 1px solid #efd7a1; border-radius: 9px; background: #fff8e9; color: #6a4a0c; font-weight: 650; }
-@media (max-width: 760px) { .users-layout { grid-template-columns: 1fr; }.users-form { grid-template-columns: 1fr; }.module-table { min-width: 720px; } }
+@media (max-width: 760px) { .admin-hero { align-items: flex-start; }.admin-hero__summary { width: 100%; padding: 14px 0 0; border-top: 1px solid rgba(255,255,255,.22); border-left: 0; }.access-overview { grid-template-columns: 1fr; margin: -8px 0 26px; }.access-overview article { min-height: 82px; }.users-layout { grid-template-columns: 1fr; }.users-form { grid-template-columns: 1fr; }.users-list-heading { align-items: flex-start; flex-direction: column; }.module-table { min-width: 720px; } }

@@ -40,6 +40,9 @@ img { max-width: 100%; }
 .user-menu { display: flex; align-items: center; gap: 18px; }
 .user-info { color: var(--muted); font-size: 0.9rem; }
 .user-info strong { color: var(--navy); }
+.admin-header-link { min-height: 42px; padding: 8px 13px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid #c99b3d; border-radius: 9px; background: #fff8e9; color: #684600; text-decoration: none; font-size: .84rem; font-weight: 800; transition: background .15s, transform .15s; }
+.admin-header-link:hover { background: #ffefc7; transform: translateY(-1px); }
+.admin-header-link[hidden] { display: none; }
 .logout-btn {
     min-height: 42px;
     padding: 8px 16px;
@@ -166,6 +169,8 @@ a:focus-visible, button:focus-visible { outline: 3px solid #f1a53b; outline-offs
     .brand-copy strong { font-size: 0.7rem; }
     .brand-copy small { font-size: 0.61rem; }
     .user-menu { gap: 8px; }
+    .admin-header-link { min-height: 36px; padding: 6px 8px; font-size: 0; }
+    .admin-header-link span { font-size: 1rem; }
     .user-info { max-width: 86px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.76rem; }
     .logout-btn { min-height: 36px; padding: 6px 9px; font-size: 0.8rem; }
     .nav-links { min-height: 46px; overflow-x: auto; gap: 0; }

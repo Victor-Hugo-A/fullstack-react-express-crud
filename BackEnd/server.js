@@ -62,7 +62,7 @@ app.use('/uploads', authenticateJWT, express.static(path.join(__dirname, 'upload
 // CONFIG KEYCLOAK
 const keycloakRuntimeConfig = {
   keycloak: {
-    logoutRedirect: `${config.frontendOrigin}/FrontEnd/login.html`,
+    logoutRedirect: `${config.frontendOrigin}/login.html`,
     frontendUrl: config.frontendOrigin,
     keycloakUrl: process.env.KEYCLOAK_URL || 'http://localhost:8080',
     realm: process.env.KEYCLOAK_REALM || 'meu-realm',
@@ -99,7 +99,7 @@ app.get('/seguro', keycloak.protect(), (req, res) => {
       maxAge: 3600000 // 1 hora
     });
     
-    res.redirect(`${keycloakRuntimeConfig.keycloak.frontendUrl}/FrontEnd/Sistema/sistema.html`);
+    res.redirect(`${keycloakRuntimeConfig.keycloak.frontendUrl}/Sistema/sistema.html`);
   } catch (error) {
     console.error('Erro no redirecionamento:', error);
     res.status(400).json({ error: error.message });
@@ -112,7 +112,7 @@ app.get('/logout', keycloak.protect(), (req, res) => {
     // Parâmetros para a URL de login do Keycloak
     const loginParams = new URLSearchParams({
       client_id: keycloakRuntimeConfig.keycloak.clientId,
-      redirect_uri: `${keycloakRuntimeConfig.keycloak.frontendUrl}/FrontEnd/Sistema/sistema.html`,
+      redirect_uri: `${keycloakRuntimeConfig.keycloak.frontendUrl}/Sistema/sistema.html`,
       response_type: 'code',
       scope: 'openid',
       state: crypto.randomUUID(), // Gera um state único

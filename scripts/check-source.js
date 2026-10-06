@@ -19,7 +19,10 @@ for (const file of javascriptFiles) {
 }
 
 const htmlFiles = filesIn(path.join(root, 'FrontEnd'), file => file.endsWith('.html'));
-const missingTokens = htmlFiles.filter(file => !fs.readFileSync(file, 'utf8').includes('/FrontEnd/design-tokens.css'));
+const missingTokens = htmlFiles.filter(file => {
+    const source = fs.readFileSync(file, 'utf8');
+    return !source.includes('/design-tokens.css') && !source.includes('/FrontEnd/design-tokens.css');
+});
 if (missingTokens.length) {
     throw new Error(`Páginas sem os tokens visuais: ${missingTokens.join(', ')}`);
 }

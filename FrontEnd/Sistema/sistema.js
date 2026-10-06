@@ -1,4 +1,4 @@
-const LOGIN_URL = '/FrontEnd/login.html';
+const LOGIN_URL = '/login.html';
 
 function redirectToLogin(reason) {
     sessionStorage.removeItem('portal-session');

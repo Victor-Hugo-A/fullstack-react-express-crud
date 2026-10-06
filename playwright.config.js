@@ -14,7 +14,7 @@ module.exports = defineConfig({
     projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
     webServer: {
         command: 'node scripts/serve-front.js',
-        url: 'http://127.0.0.1:5501/FrontEnd/login.html',
+        url: 'http://127.0.0.1:5501/login.html',
         reuseExistingServer: !process.env.CI,
         env: { ...process.env, FRONTEND_PORT: '5501' }
     }

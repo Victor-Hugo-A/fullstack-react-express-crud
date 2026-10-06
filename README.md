@@ -11,7 +11,7 @@
 <p align="center">
   <a href="#o-que-o-portal-oferece">Recursos</a> ·
   <a href="#primeiros-passos">Primeiros passos</a> ·
-  <a href="#contas-e-permissões">Contas</a> ·
+  <a href="#acesso-e-administração">Contas</a> ·
   <a href="#verificações">Verificações</a>
 </p>
 
@@ -23,9 +23,9 @@ O Portal SENAPPEN reúne as informações usadas pela equipe em uma área proteg
 
 | Área | O que é possível fazer |
 | --- | --- |
-| **Contratos** | Cadastrar, consultar, filtrar, ordenar, editar, visualizar e baixar contratos e documentos relacionados. |
-| **Projetos** | Registrar projetos, responsáveis, prazos, situação e até cinco anexos por envio. |
-| **Identidades** | Manter dados de identificação, endereço, perfil e fotografia. |
+| **Contratos** | Consultar, filtrar, ordenar, visualizar e baixar contratos e documentos relacionados. Editores e administradores também cadastram e alteram. |
+| **Projetos** | Consultar projetos, responsáveis, prazos, situação e anexos. Editores e administradores também registram e alteram. |
+| **Identidades** | Consultar dados de identificação e fotografias. Editores e administradores também registram identidades. |
 | **Dashboard e análises** | Acompanhar totais, distribuições e registros recentes; comparar informações por período. |
 | **Perfil** | Atualizar departamento, cargo, CPF e senha. |
 
@@ -33,11 +33,17 @@ As listas de contratos, projetos e identidades mostram seis registros por págin
 
 ## Acesso e administração
 
-Uma pessoa pode solicitar acesso pela própria tela inicial. A solicitação fica aguardando até que um administrador a aprove ou rejeite.
+O portal não possui cadastro público. Somente administradores criam e administram contas pela área **Administração**, disponível na página inicial para quem possui esse perfil. A conta criada já fica liberada para entrar no portal.
+
+| Perfil | Acesso |
+| --- | --- |
+| **Visualizador** | Consulta registros, documentos, dashboard e análises. |
+| **Editor** | Também cadastra e edita contratos, projetos e identidades. |
+| **Administrador** | Também exclui registros, administra contas e consulta a auditoria. |
 
 Administradores também podem:
 
-- aprovar ou rejeitar solicitações de acesso;
+- criar contas, listar usuários e alterar seus perfis de acesso;
 - excluir registros e anexos quando necessário;
 - sincronizar e limpar contratos;
 - consultar o histórico de entradas, envios, alterações e exclusões.
@@ -79,13 +85,19 @@ Para encerrar, use `Ctrl+C` no terminal.
 
 ### 3. Crie a primeira conta administrativa
 
-Cadastre uma conta pela tela de acesso. Com a API parada, execute:
+Depois de iniciar a API uma vez, pare-a e execute:
+
+```powershell
+node .\scripts\manage-local-admin.js --create
+```
+
+Informe os dados solicitados. O comando cria o primeiro administrador e mostra uma senha inicial uma única vez. Guarde-a, entre no portal e altere a senha no perfil.
+
+Para conceder administração a uma conta que já existe, use:
 
 ```powershell
 node .\scripts\manage-local-admin.js
 ```
-
-Informe o e-mail da conta. O comando aprova a conta e concede a administração. Depois disso, inicie o portal novamente.
 
 Para remover essa permissão, use:
 
@@ -104,7 +116,8 @@ Faça uma cópia desses dois locais antes de atualizar o sistema ou mover a inst
 - A sessão fica protegida no navegador e termina ao sair do portal.
 - Documentos e fotografias só são entregues para pessoas autenticadas.
 - O sistema verifica formato, tipo e conteúdo dos arquivos antes de aceitá-los.
-- Novas contas só entram após aprovação administrativa.
+- Somente administradores podem criar contas e alterar permissões.
+- O servidor bloqueia inclusões e alterações feitas por perfis Visualizador.
 - O acesso tem limite de tentativas para reduzir tentativas de senha indevidas.
 
 Ao publicar o portal em uma rede acessível, utilize HTTPS, configure o endereço público correto e mantenha cópias periódicas do banco e dos anexos.

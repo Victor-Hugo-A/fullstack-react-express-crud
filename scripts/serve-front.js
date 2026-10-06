@@ -49,16 +49,17 @@ http.createServer(async (req, res) => {
     }
 
     if (pathname === '/') {
-        res.writeHead(302, { Location: '/FrontEnd/login.html' }).end();
+        res.writeHead(302, { Location: '/login.html' }).end();
         return;
     }
 
-    if (!pathname.startsWith('/FrontEnd/')) {
-        res.writeHead(404).end();
+    // Mantém endereços antigos funcionando sem expor a estrutura interna de pastas.
+    if (pathname.startsWith('/FrontEnd/')) {
+        res.writeHead(308, { Location: pathname.slice('/FrontEnd'.length) }).end();
         return;
     }
 
-    const relativePath = pathname.slice('/FrontEnd/'.length);
+    const relativePath = pathname.slice(1);
     if (relativePath.split(/[\\/]/).some(part => !part || part.startsWith('.'))) {
         res.writeHead(404).end();
         return;
@@ -88,5 +89,5 @@ http.createServer(async (req, res) => {
         res.writeHead(404).end();
     }
 }).listen(port, '127.0.0.1', () => {
-    console.log(`Frontend disponível em http://localhost:${port}/FrontEnd/login.html`);
+    console.log(`Frontend disponível em http://localhost:${port}/login.html`);
 });
