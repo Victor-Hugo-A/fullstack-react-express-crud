@@ -448,6 +448,7 @@ paths:
               required: [nome, role]
               properties:
                 nome: { type: string }
+                cpf: { type: string, description: CPF único da conta }
                 departamento: { type: string }
                 cargo: { type: string }
                 role: { type: string, enum: [viewer, editor, admin] }

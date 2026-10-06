@@ -61,7 +61,7 @@ async function mockApi(page) {
             return;
         }
         if (url.pathname === '/api/admin/users' && request.method() === 'GET') {
-            await route.fulfill({ status: 200, headers, body: JSON.stringify({ success: true, users: [{ id: 'new-user', nome: 'Nova Pessoa', username: 'nova.pessoa', email: 'nova.pessoa@example.test', departamento: 'Gestão', cargo: 'Analista', role: 'viewer' }] }) });
+            await route.fulfill({ status: 200, headers, body: JSON.stringify({ success: true, users: [{ id: 'new-user', nome: 'Nova Pessoa', username: 'nova.pessoa', email: 'nova.pessoa@example.test', cpf: '52998224725', departamento: 'Gestão', cargo: 'Analista', role: 'viewer' }] }) });
             return;
         }
         if (url.pathname === '/api/admin/users/new-user' && request.method() === 'PUT') {

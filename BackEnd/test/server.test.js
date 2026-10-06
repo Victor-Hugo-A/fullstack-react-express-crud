@@ -230,7 +230,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     })).status, 401);
 
     const createdAccounts = {};
-    for (const [username, cpf, role] of [[first, '52998224725', 'editor'], [second, '11144477735', 'viewer']]) {
+    for (const [username, cpf, role] of [[first, '93541134780', 'editor'], [second, '11144477735', 'viewer']]) {
       const response = await postJson('/api/admin/users', {
         nome: username,
         cpf,
@@ -247,6 +247,13 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       assert.equal(Object.hasOwn(registrationBody.user, 'password'), false);
       createdAccounts[username] = registrationBody.user;
     }
+
+    const repeatedCpf = await postJson('/api/admin/users', {
+      nome: 'CPF repetido', cpf: '935.411.347-80', email: `duplicado-${suffix}@example.test`,
+      username: `duplicado-${suffix}`, password, confirmPassword: password
+    }, bootstrapToken);
+    assert.equal(repeatedCpf.status, 409);
+    assert.equal((await repeatedCpf.json()).error, 'cpf_in_use');
 
     const usersBeforeUpdate = await fetch(`${base}/api/admin/users`, { headers: { Authorization: `Bearer ${bootstrapToken}` } });
     assert.equal(usersBeforeUpdate.status, 200);
@@ -527,7 +534,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     });
     const regularUserBody = await regularUser.json();
     assert.equal(regularUserBody.user.isAdmin, false);
-    assert.equal(regularUserBody.user.cpf, '52998224725');
+    assert.equal(regularUserBody.user.cpf, '93541134780');
     assert.equal(regularUserBody.user.departamento, null);
     assert.equal(regularUserBody.user.cargo, null);
     const individualDeletes = [
@@ -630,7 +637,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
         username: second,
         departamento: 'Teste',
         cargo: 'Analista',
-        cpf: '52998224725'
+        cpf: '93541134780'
       })
     });
     const updateBody = await update.json();

@@ -261,7 +261,7 @@ const userRepository = {
   async getAll() {
     return new Promise((resolve, reject) => {
       db.all(
-        `SELECT id, nome, email, username, departamento, cargo, role, account_status,
+        `SELECT id, nome, email, username, cpf, departamento, cargo, role, account_status,
                 is_admin, created_at, updated_at
          FROM users ORDER BY nome COLLATE NOCASE, username COLLATE NOCASE`,
         [],
@@ -311,14 +311,27 @@ const userRepository = {
     });
   },
 
-  async updateAdminDetails(id, { nome, departamento, cargo, role }) {
+  async findByCpf(cpf, excludeId = null) {
+    const normalizedCpf = String(cpf || '').replace(/\D/g, '');
+    return new Promise((resolve, reject) => {
+      db.get(
+        `SELECT id, nome, email, username, cpf FROM users
+         WHERE replace(replace(replace(cpf, '.', ''), '-', ''), ' ', '') = ?
+           AND (? IS NULL OR id <> ?)`,
+        [normalizedCpf, excludeId, excludeId],
+        (error, row) => error ? reject(error) : resolve(row)
+      );
+    });
+  },
+
+  async updateAdminDetails(id, { nome, cpf, departamento, cargo, role }) {
     return new Promise((resolve, reject) => {
       db.run(
         `UPDATE users
-         SET nome = ?, departamento = ?, cargo = ?, role = ?,
+         SET nome = ?, cpf = ?, departamento = ?, cargo = ?, role = ?,
              is_admin = ?, updated_at = CURRENT_TIMESTAMP
          WHERE id = ?`,
-        [nome, departamento || null, cargo || null, role, role === 'admin' ? 1 : 0, id],
+        [nome, cpf, departamento || null, cargo || null, role, role === 'admin' ? 1 : 0, id],
         function (error) {
           if (error) return reject(error);
           resolve(this.changes);

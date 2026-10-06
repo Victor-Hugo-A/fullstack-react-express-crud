@@ -358,6 +358,7 @@ router.post('/admin/users', authenticateJWT, requireAdmin, async (req, res, next
         if (!validarCPF(String(cpf))) {
             return res.status(400).json({ success: false, error: 'invalid_cpf', message: 'CPF inválido.' });
         }
+        const normalizedCpf = String(cpf).replace(/\D/g, '');
 
         const normalizedUsername = String(username).trim().toLowerCase();
         const normalizedEmail = String(email).trim().toLowerCase();
@@ -376,10 +377,13 @@ router.post('/admin/users', authenticateJWT, requireAdmin, async (req, res, next
         if (await userRepository.findByEmail(normalizedEmail)) {
             return res.status(409).json({ success: false, error: 'email_in_use', message: 'E-mail já está em uso.' });
         }
+        if (await userRepository.findByCpf(normalizedCpf)) {
+            return res.status(409).json({ success: false, error: 'cpf_in_use', message: 'CPF já está vinculado a outra conta.' });
+        }
 
         const user = await userRepository.create({
             nome: String(nome).trim(),
-            cpf: String(cpf).replace(/\D/g, ''),
+            cpf: normalizedCpf,
             email: normalizedEmail,
             username: normalizedUsername,
             password,
@@ -410,7 +414,7 @@ router.post('/admin/users', authenticateJWT, requireAdmin, async (req, res, next
 
 router.put('/admin/users/:id', authenticateJWT, requireAdmin, async (req, res, next) => {
     try {
-        const { nome, departamento, cargo, role } = req.body || {};
+        const { nome, cpf, departamento, cargo, role } = req.body || {};
         const target = await userRepository.findById(req.params.id);
         if (!target) {
             return res.status(404).json({ success: false, error: 'user_not_found', message: 'Usuário não encontrado.' });
@@ -421,6 +425,13 @@ router.put('/admin/users/:id', authenticateJWT, requireAdmin, async (req, res, n
         if (!Object.hasOwn(ROLE_PERMISSIONS, role)) {
             return res.status(400).json({ success: false, error: 'invalid_role', message: 'Perfil de acesso inválido.' });
         }
+        const normalizedCpf = String(cpf ?? target.cpf).replace(/\D/g, '');
+        if (!validarCPF(normalizedCpf)) {
+            return res.status(400).json({ success: false, error: 'invalid_cpf', message: 'CPF inválido.' });
+        }
+        if (await userRepository.findByCpf(normalizedCpf, target.id)) {
+            return res.status(409).json({ success: false, error: 'cpf_in_use', message: 'CPF já está vinculado a outra conta.' });
+        }
         if (target.id === req.user.userId && role !== 'admin') {
             return res.status(400).json({ success: false, error: 'self_role_change', message: 'Use outro administrador para alterar seu próprio perfil.' });
         }
@@ -429,6 +440,7 @@ router.put('/admin/users/:id', authenticateJWT, requireAdmin, async (req, res, n
         }
         await userRepository.updateAdminDetails(target.id, {
             nome: String(nome).trim(),
+            cpf: normalizedCpf,
             departamento: String(departamento || '').trim(),
             cargo: String(cargo || '').trim(),
             role
@@ -438,7 +450,7 @@ router.put('/admin/users/:id', authenticateJWT, requireAdmin, async (req, res, n
             success: true,
             message: 'Dados e permissões atualizados.',
             user: {
-                id: user.id, nome: user.nome, email: user.email, username: user.username,
+                id: user.id, nome: user.nome, email: user.email, username: user.username, cpf: user.cpf,
                 departamento: user.departamento, cargo: user.cargo, role: user.role,
                 accountStatus: user.account_status, isAdmin: user.role === 'admin'
             }
@@ -840,7 +852,15 @@ app.use('/api', createIdentitiesRouter({
     try {
         const { departamento, cargo, cpf } = req.body;
         const username = req.user.username;
-        await userRepository.updateProfile(username, departamento, cargo, cpf);
+        const currentUser = await userRepository.findByUsername(username);
+        const normalizedCpf = String(cpf || '').replace(/\D/g, '');
+        if (!validarCPF(normalizedCpf)) {
+            return res.status(400).json({ success: false, error: 'invalid_cpf', message: 'CPF inválido.' });
+        }
+        if (await userRepository.findByCpf(normalizedCpf, currentUser?.id)) {
+            return res.status(409).json({ success: false, error: 'cpf_in_use', message: 'CPF já está vinculado a outra conta.' });
+        }
+        await userRepository.updateProfile(username, departamento, cargo, normalizedCpf);
         const user = await userRepository.findByUsername(username);
         res.json({
             success: true,

@@ -54,6 +54,7 @@ function openEditDialog(user) {
     const form = document.getElementById('edit-user-form');
     form.elements.id.value = user.id;
     form.elements.nome.value = user.nome || '';
+    form.elements.cpf.value = user.cpf || '';
     form.elements.departamento.value = user.departamento || '';
     form.elements.cargo.value = user.cargo || '';
     form.elements.role.value = user.role || 'viewer';
