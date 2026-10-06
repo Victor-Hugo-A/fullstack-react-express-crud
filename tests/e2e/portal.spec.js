@@ -192,6 +192,16 @@ test('normativos e manuais exibem orientações de uso', async ({ page }) => {
     await expect(page.getByText('Guias por área')).toBeVisible();
 });
 
+test('manual oculta a administração para conta sem permissão', async ({ page }) => {
+    await page.route('http://localhost:3000/api/user', route => route.fulfill({
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: true, user: { nome: 'Conta de consulta', isAdmin: false } })
+    }));
+    await authenticatedPage(page, '/Manuais/manuais.html');
+    await expect(page.locator('#admin-manual-card')).toBeHidden();
+});
+
 test('endereço antigo de análises com acento é redirecionado', async ({ page }) => {
     await authenticatedPage(page, '/An%E1lises/analises.html');
     await expect(page).toHaveURL(/\/Analises\/analises\.html$/);

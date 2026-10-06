@@ -6,6 +6,7 @@
 .information-hero__summary strong { font-size:1.05rem; }.information-hero__summary span { color:#e4f0fa; font-size:.92rem; line-height:1.45; }
 .information-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
 .information-card { display:flex; min-height:190px; flex-direction:column; align-items:flex-start; gap:12px; padding:22px; border:1px solid #dce7f0; border-radius:15px; background:#fff; box-shadow:0 8px 22px rgba(13,53,88,.06); }
+.information-card[hidden] { display:none !important; }
 .information-card__icon { display:grid; width:42px; height:42px; place-items:center; border-radius:12px; background:#e6f0f8; color:#0b4b7e; font-size:1.15rem; font-weight:800; }
 .information-card h3 { margin:0; color:#102f4d; font-size:1.02rem; }.information-card p { margin:0; color:#52657b; line-height:1.55; }
 .information-card a { margin-top:auto; color:#0c5d9d; font-size:.9rem; font-weight:750; text-decoration:none; }.information-card a:hover { text-decoration:underline; }
