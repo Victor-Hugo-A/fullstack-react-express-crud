@@ -12,6 +12,28 @@ function showFeedback(message, type) {
     window.appNotice.show(document.getElementById('mensagem-login'), message, type);
 }
 
+function normalizarCpf(value) {
+    return String(value || '').replace(/\D/g, '');
+}
+
+function formatarCpf(value) {
+    return normalizarCpf(value).slice(0, 11)
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function validarCpf(value) {
+    const cpf = normalizarCpf(value);
+    if (!/^\d{11}$/.test(cpf) || /^(\d)\1+$/.test(cpf)) return false;
+    const digito = (length) => {
+        const total = cpf.slice(0, length - 1).split('').reduce((sum, digit, index) => sum + Number(digit) * (length - index), 0);
+        const result = (total * 10) % 11;
+        return result === 10 ? 0 : result;
+    };
+    return digito(10) === Number(cpf[9]) && digito(11) === Number(cpf[10]);
+}
+
 async function request(path, method, token, body) {
     const options = { method, headers: { Authorization: `Bearer ${token}` } };
     if (body !== undefined) { options.headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
@@ -34,7 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function setFieldValues(user) {
         usuario = user;
-        ['nome', 'email', 'cpf', 'departamento', 'cargo'].forEach(field => { document.getElementById(field).value = user[field] || ''; });
+        ['nome', 'email', 'departamento', 'cargo'].forEach(field => { document.getElementById(field).value = user[field] || ''; });
+        document.getElementById('cpf').value = formatarCpf(user.cpf);
         const name = user.nome || user.username || 'Usuário';
         document.getElementById('username-display').textContent = name;
         document.getElementById('profile-overview-title').textContent = name;
@@ -76,15 +99,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         button.setAttribute('aria-label', `${visible ? 'Mostrar' : 'Ocultar'} ${input.labels[0].textContent.toLowerCase()}`);
     }));
     document.getElementById('senha').addEventListener('input', updatePasswordStrength);
-    ['departamento', 'cargo'].forEach(id => document.getElementById(id).addEventListener('input', () => { saveStatus.textContent = 'Alterações não salvas'; }));
+    ['cpf', 'departamento', 'cargo'].forEach(id => document.getElementById(id).addEventListener('input', event => {
+        if (id === 'cpf') event.target.value = formatarCpf(event.target.value);
+        saveStatus.textContent = 'Alterações não salvas';
+    }));
 
     form.addEventListener('submit', async event => {
         event.preventDefault();
         const currentPassword = document.getElementById('senha-atual').value;
         const newPassword = document.getElementById('senha').value;
         const confirmNewPassword = document.getElementById('confirmar-senha').value;
+        const cpfInput = document.getElementById('cpf');
+        const cpf = normalizarCpf(cpfInput.value);
         const changePassword = Boolean(currentPassword || newPassword || confirmNewPassword);
         const submitButton = form.querySelector('button[type="submit"]');
+        if (!validarCpf(cpf)) {
+            saveStatus.textContent = 'CPF inválido';
+            showFeedback('Informe um CPF válido para salvar o perfil.', 'error');
+            cpfInput.focus();
+            return;
+        }
         if (changePassword) {
             if (!currentPassword || !newPassword || !confirmNewPassword) return showFeedback('Preencha os três campos de senha para alterá-la.', 'error');
             if (newPassword === currentPassword) return showFeedback('A nova senha deve ser diferente da atual.', 'error');
@@ -93,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitButton.disabled = true; saveStatus.textContent = 'Salvando...'; let passwordUpdated = false;
         try {
             if (changePassword) { const passwordResult = await request('/change-password', 'POST', token, { currentPassword, newPassword, confirmNewPassword }); if (!passwordResult) return; passwordUpdated = true; }
-            const result = await request('/update-profile', 'PUT', token, { departamento: document.getElementById('departamento').value.trim(), cargo: document.getElementById('cargo').value.trim(), cpf: usuario?.cpf || document.getElementById('cpf').value });
+            const result = await request('/update-profile', 'PUT', token, { departamento: document.getElementById('departamento').value.trim(), cargo: document.getElementById('cargo').value.trim(), cpf });
             if (!result) return;
             setFieldValues(result.user); sessionStorage.setItem('userData', JSON.stringify(result.user)); form.querySelectorAll('input[type="password"]').forEach(input => { input.value = ''; }); updatePasswordStrength(); saveStatus.textContent = 'Alterações salvas agora';
             showFeedback(changePassword ? 'Perfil e senha atualizados com sucesso.' : 'Perfil atualizado com sucesso.', 'success');

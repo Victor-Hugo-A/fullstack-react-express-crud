@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-const user = { nome: 'Gestor de Testes', username: 'gestor', role: 'admin', isAdmin: true };
+const user = { nome: 'Gestor de Testes', username: 'gestor', cpf: '52998224725', role: 'admin', isAdmin: true };
 
 const contracts = Array.from({ length: 7 }, (_, index) => ({
     id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
@@ -126,6 +126,17 @@ test('administrador cria e altera permissões de uma conta', async ({ page }) =>
     await page.locator('#edit-user-form button[type="submit"]').click();
 
     await expect(page.locator('#users-status')).toContainText('Dados e permissões atualizados.');
+});
+
+test('perfil bloqueia CPF inválido antes de salvar', async ({ page }) => {
+    await authenticatedPage(page, '/Perfil/perfil.html');
+    const cpf = page.locator('#cpf');
+    await expect(cpf).toBeEnabled();
+    await cpf.fill('33333333333');
+    await page.locator('#perfil-form button[type="submit"]').click();
+
+    await expect(page.locator('#profile-save-status')).toHaveText('CPF inválido');
+    await expect(page.locator('#mensagem-login')).toContainText('Informe um CPF válido');
 });
 
 test('contratos pagina seis resultados e permite ordenar', async ({ page }) => {

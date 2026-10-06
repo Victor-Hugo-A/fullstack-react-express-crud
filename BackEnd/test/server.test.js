@@ -645,6 +645,24 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     assert.equal(updateBody.user.username, first);
     assert.equal(Object.hasOwn(updateBody.user, 'password'), false);
 
+    const invalidCpfUpdate = await fetch(`${base}/update-profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ departamento: 'Teste', cargo: 'Analista', cpf: '33333333333333' })
+    });
+    assert.equal(invalidCpfUpdate.status, 400);
+    assert.equal((await invalidCpfUpdate.json()).error, 'invalid_cpf');
+
+    const duplicateCpfUpdate = await fetch(`${base}/update-profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ departamento: 'Teste', cargo: 'Analista', cpf: '11144477735' })
+    });
+    assert.equal(duplicateCpfUpdate.status, 409);
+    assert.equal((await duplicateCpfUpdate.json()).error, 'cpf_in_use');
+    const profileAfterRejectedUpdates = await fetch(`${base}/api/user`, { headers: { Authorization: `Bearer ${token}` } });
+    assert.equal((await profileAfterRejectedUpdates.json()).user.cpf, '93541134780');
+
     const otherLogin = await postJson('/login', { username: second, password });
     assert.equal(otherLogin.status, 200);
     assert.equal((await otherLogin.json()).user.cargo, null);
