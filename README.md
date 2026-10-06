@@ -1,64 +1,62 @@
 <div align="center">
 
-# Portal institucional SENAPPEN
+# Portal Institucional SENAPPEN
 
-**Um espaço único para organizar contratos, projetos, identidades e informações de gestão.**
+### Gestão segura e organizada de contratos, projetos e identidades
 
-<img src="docs/images/tela-login.png" alt="Tela de acesso do Portal institucional SENAPPEN" width="900">
+<p>
+  <img src="https://img.shields.io/badge/Acesso-controlado-0B3B6E?style=for-the-badge" alt="Acesso controlado">
+  <img src="https://img.shields.io/badge/Perfis-Visualizador%20%7C%20Editor%20%7C%20Administrador-C99A2E?style=for-the-badge" alt="Perfis de acesso">
+  <img src="https://img.shields.io/badge/Registros-organizados-1A5A96?style=for-the-badge" alt="Registros organizados">
+</p>
+
+<img src="docs/images/tela-login.png" alt="Nova tela de login do Portal Institucional SENAPPEN" width="900">
+
+*Tela de entrada do portal.*
+
+[Recursos](#recursos-do-portal) · [Acesso](#acesso-e-permissões) · [Como iniciar](#como-iniciar) · [Verificações](#verificações)
 
 </div>
 
-<p align="center">
-  <a href="#o-que-o-portal-oferece">Recursos</a> ·
-  <a href="#primeiros-passos">Primeiros passos</a> ·
-  <a href="#acesso-e-administração">Contas</a> ·
-  <a href="#verificações">Verificações</a>
-</p>
-
 ---
 
-## O que o portal oferece
+## Sobre o portal
 
-O Portal SENAPPEN reúne as informações usadas pela equipe em uma área protegida. Depois de entrar, cada pessoa pode consultar os registros autorizados, acompanhar os indicadores e manter seus dados atualizados.
+O Portal Institucional SENAPPEN reúne, em uma área de acesso controlado, as informações usadas no acompanhamento das atividades da instituição. Ele facilita a consulta e a manutenção de contratos, projetos, identidades, documentos e indicadores de gestão.
+
+Após entrar, cada pessoa vê as opções compatíveis com sua permissão. A navegação foi organizada para manter as informações acessíveis, com telas adaptadas para celular e computador, pesquisa, filtros, ordenação e avisos claros durante cada ação.
+
+## Recursos do portal
 
 | Área | O que é possível fazer |
 | --- | --- |
-| **Contratos** | Consultar, filtrar, ordenar, visualizar e baixar contratos e documentos relacionados. Editores e administradores também cadastram e alteram. |
-| **Projetos** | Consultar projetos, responsáveis, prazos, situação e anexos. Editores e administradores também registram e alteram. |
-| **Identidades** | Consultar dados de identificação e fotografias. Editores e administradores também registram identidades. |
-| **Dashboard e análises** | Acompanhar totais, distribuições e registros recentes; comparar informações por período. |
-| **Perfil** | Atualizar departamento, cargo, CPF e senha. |
+| **Início** | Acessar os módulos disponíveis e visualizar o resumo das informações do portal. |
+| **Contratos** | Consultar, pesquisar, ordenar, visualizar e baixar contratos e documentos relacionados. Pessoas com permissão também podem cadastrar, alterar e excluir registros. |
+| **Projetos** | Acompanhar responsáveis, prazos, situação, descrição e anexos de cada projeto. |
+| **Identidades** | Consultar dados de identificação e fotografias, com registro e manutenção conforme a permissão da conta. |
+| **Dashboard e análises** | Acompanhar totais, distribuições, registros recentes e comparações por período. |
+| **Perfil** | Atualizar CPF, departamento, cargo e senha. O CPF precisa ser válido e exclusivo para cada conta. |
+| **Administração** | Criar contas, consultar usuários, ajustar dados e alterar permissões de acesso. Disponível somente para administradores. |
 
-As listas de contratos, projetos e identidades mostram seis registros por página. Elas oferecem ordenação, filtros e mensagens claras quando não há resultados.
+As listas de contratos, projetos e identidades exibem **seis registros por página**, informam a quantidade de resultados e apresentam uma orientação quando não há dados para mostrar.
 
-## Acesso e administração
+## Acesso e permissões
 
-O portal não possui cadastro público. Somente administradores criam e administram contas pela área **Administração**, disponível na página inicial para quem possui esse perfil. A conta criada já fica liberada para entrar no portal.
+Não há cadastro público na tela de entrada. Uma conta é criada por um administrador na área **Administração**, acessada pelo botão no canto superior direito do portal.
 
-| Perfil | Acesso |
+| Perfil | Permissões |
 | --- | --- |
-| **Visualizador** | Consulta registros, documentos, dashboard e análises. |
-| **Editor** | Também cadastra e edita contratos, projetos e identidades. |
-| **Administrador** | Também exclui registros, administra contas e consulta a auditoria. |
+| **Visualizador** | Consulta registros, documentos, indicadores, análises e seu próprio perfil. |
+| **Editor** | Possui as permissões de visualização e também pode cadastrar e editar contratos, projetos e identidades. |
+| **Administrador** | Possui todas as permissões, incluindo exclusões, gestão de usuários, permissões e consulta ao histórico de ações. |
 
-Administradores também podem:
+As principais ações — entradas no portal, envios de arquivos, alterações e exclusões — ficam registradas para acompanhamento administrativo.
 
-- criar contas, listar usuários e alterar seus perfis de acesso;
-- excluir registros e anexos quando necessário;
-- sincronizar e limpar contratos;
-- consultar o histórico de entradas, envios, alterações e exclusões.
+## Como iniciar
 
-O portal registra essas ações para facilitar o acompanhamento da operação.
+### 1. Preparar o projeto
 
-## Primeiros passos
-
-### Antes de iniciar
-
-Tenha o Node.js 20 ou superior instalado e deixe livres as portas `3000` e `5500`.
-
-### 1. Prepare a configuração local
-
-Abra um terminal na raiz do projeto e instale as dependências:
+Instale o Node.js 20 ou superior. Na pasta principal do projeto, execute:
 
 ```powershell
 npm.cmd ci
@@ -68,69 +66,65 @@ Copy-Item .env.example .env
 cd ..
 ```
 
-Abra `BackEnd/.env` e substitua `SECRET_KEY` e `SESSION_SECRET` por valores longos, aleatórios e diferentes. Esse arquivo contém informações privadas e não deve ser enviado ao repositório.
+Abra o arquivo `BackEnd/.env` e preencha `SECRET_KEY` e `SESSION_SECRET` com valores longos, aleatórios e diferentes. Não envie esse arquivo para o repositório.
 
-### 2. Inicie o portal
+### 2. Iniciar o portal
 
 ```powershell
 npm.cmd run dev
 ```
 
-| Endereço | Uso |
+| Endereço | Finalidade |
 | --- | --- |
-| [http://localhost:5500](http://localhost:5500) | Tela de acesso do portal. |
-| [http://localhost:3000/health](http://localhost:3000/health) | Confirma se o serviço está disponível. |
+| [http://localhost:5500](http://localhost:5500) | Tela de login e navegação do portal. |
+| [http://localhost:3000/health](http://localhost:3000/health) | Verificação de disponibilidade do serviço. |
 
-Para encerrar, use `Ctrl+C` no terminal.
+Para encerrar a execução, use `Ctrl+C` no terminal.
 
-### 3. Crie a primeira conta administrativa
+### 3. Criar o primeiro administrador
 
-Depois de iniciar a API uma vez, pare-a e execute:
+Após iniciar o serviço pelo menos uma vez, encerre-o e execute:
 
 ```powershell
 node .\scripts\manage-local-admin.js --create
 ```
 
-Informe os dados solicitados. O comando cria o primeiro administrador e mostra uma senha inicial uma única vez. Guarde-a, entre no portal e altere a senha no perfil.
+Informe os dados solicitados. O comando cria a primeira conta administrativa e apresenta uma senha inicial uma única vez. Entre no portal e altere a senha no perfil.
 
-Para conceder administração a uma conta que já existe, use:
+Para conceder ou remover a permissão administrativa de uma conta existente:
 
 ```powershell
+# Conceder administração
 node .\scripts\manage-local-admin.js
-```
 
-Para remover essa permissão, use:
-
-```powershell
+# Remover administração
 node .\scripts\manage-local-admin.js --revoke
 ```
 
-## Cuidados com os dados
+Depois disso, os próximos usuários devem ser criados pela área **Administração** do próprio portal.
 
-Os dados do portal ficam no banco local em `BackEnd/database.sqlite` e os documentos enviados ficam em `BackEnd/uploads/`.
+## Proteção das informações
 
-Faça uma cópia desses dois locais antes de atualizar o sistema ou mover a instalação. Os contratos antigos encontrados em `BackEnd/data/contracts.json` são trazidos para o banco na primeira atualização, sem alterar o arquivo original.
+- A sessão é encerrada ao sair do portal e fica protegida durante a navegação.
+- Documentos e fotografias só são disponibilizados para pessoas autenticadas e autorizadas.
+- Arquivos enviados passam por verificações antes de serem aceitos.
+- O sistema impede CPF inválido ou já utilizado por outra conta.
+- Pessoas sem permissão não conseguem criar, alterar ou excluir registros.
+- O acesso possui proteção contra tentativas repetidas de senha.
 
-## Segurança no uso diário
+Os dados ficam em `BackEnd/database.sqlite` e os arquivos enviados em `BackEnd/uploads/`. Faça uma cópia desses dois locais antes de atualizar ou mover a instalação.
 
-- A sessão fica protegida no navegador e termina ao sair do portal.
-- Documentos e fotografias só são entregues para pessoas autenticadas.
-- O sistema verifica formato, tipo e conteúdo dos arquivos antes de aceitá-los.
-- Somente administradores podem criar contas e alterar permissões.
-- O servidor bloqueia inclusões e alterações feitas por perfis Visualizador.
-- O acesso tem limite de tentativas para reduzir tentativas de senha indevidas.
-
-Ao publicar o portal em uma rede acessível, utilize HTTPS, configure o endereço público correto e mantenha cópias periódicas do banco e dos anexos.
+Os contratos antigos existentes em `BackEnd/data/contracts.json` são transferidos para o banco na primeira atualização, sem modificar o arquivo original.
 
 ## Verificações
 
-O projeto possui verificações para garantir que as telas, os acessos, os anexos e as permissões continuem funcionando após uma alteração.
+O projeto possui verificações para as regras de acesso, registros, arquivos, paginação e jornadas principais da interface.
 
 ```powershell
-# Verifica o sistema completo
+# Executa todas as verificações
 npm.cmd test
 
-# Executa somente as telas principais
+# Executa somente as verificações das telas
 npm.cmd test:e2e
 
 # Verifica dependências com problemas altos ou críticos
@@ -143,16 +137,16 @@ Na primeira execução das verificações de tela, instale o navegador necessár
 npx.cmd playwright install chromium
 ```
 
-Cada envio de alteração e solicitação de revisão no GitHub executa essas verificações automaticamente em [ci.yml](.github/workflows/ci.yml).
+As verificações também são executadas automaticamente a cada envio de alterações e solicitação de revisão no GitHub, conforme [ci.yml](.github/workflows/ci.yml).
 
 ## Organização do projeto
 
 ```text
-FrontEnd/       telas e recursos visuais do portal
+FrontEnd/       telas, estilos e recursos visuais do portal
 BackEnd/        regras do sistema, dados, arquivos enviados e histórico
 tests/e2e/      verificações das principais jornadas na interface
 scripts/        comandos de inicialização e manutenção local
 docs/images/    imagens usadas nesta documentação
 ```
 
-Para quem precisa consultar a integração entre a interface e o serviço, a referência completa está em [BackEnd/openapi.yaml](BackEnd/openapi.yaml).
+Para consultar a comunicação entre as telas e o serviço, veja [BackEnd/openapi.yaml](BackEnd/openapi.yaml).
