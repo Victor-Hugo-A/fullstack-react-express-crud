@@ -70,7 +70,7 @@ http.createServer(async (req, res) => {
     // por navegadores e servidores. A pasta física mantém o nome institucional atual.
     const canonicalPath = publicPath.replace(/^\/Análises\//, '/Analises/');
     if (pathname !== canonicalPath) {
-        res.writeHead(308, { Location: canonicalPath }).end();
+        res.writeHead(308, { Location: encodeURI(canonicalPath) }).end();
         return;
     }
 
