@@ -42,7 +42,16 @@ http.createServer(async (req, res) => {
 
     let pathname;
     try {
-        pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+        const rawPathname = new URL(req.url, 'http://localhost').pathname;
+        try {
+            pathname = decodeURIComponent(rawPathname);
+        } catch {
+            // Alguns links antigos codificam "á" como %E1 em vez de UTF-8.
+            // Converte esses bytes para que possam ser encaminhados à rota pública.
+            pathname = rawPathname.replace(/%([\dA-F]{2})/gi, (_, value) =>
+                String.fromCharCode(Number.parseInt(value, 16))
+            );
+        }
     } catch {
         res.writeHead(400).end();
         return;
@@ -54,12 +63,18 @@ http.createServer(async (req, res) => {
     }
 
     // Mantém endereços antigos funcionando sem expor a estrutura interna de pastas.
-    if (pathname.startsWith('/FrontEnd/')) {
-        res.writeHead(308, { Location: pathname.slice('/FrontEnd'.length) }).end();
+    const publicPath = pathname.startsWith('/FrontEnd/')
+        ? pathname.slice('/FrontEnd'.length)
+        : pathname;
+    // O caminho público evita acentos, que podem ser codificados de formas diferentes
+    // por navegadores e servidores. A pasta física mantém o nome institucional atual.
+    const canonicalPath = publicPath.replace(/^\/Análises\//, '/Analises/');
+    if (pathname !== canonicalPath) {
+        res.writeHead(308, { Location: canonicalPath }).end();
         return;
     }
 
-    const relativePath = pathname.slice(1);
+    const relativePath = canonicalPath.slice(1).replace(/^Analises\//, 'Análises/');
     if (relativePath.split(/[\\/]/).some(part => !part || part.startsWith('.'))) {
         res.writeHead(404).end();
         return;

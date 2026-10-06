@@ -50,7 +50,7 @@
         const documentsToggle = document.getElementById('documentosToggle');
         const submenu = document.getElementById('submenuDocumentos');
         if (!sidebar || !toggle) return;
-        sidebar.querySelectorAll('.other-label, a[href="/FrontEnd/Dashboard/dashboard.html"], a[href="/FrontEnd/Análises/analises.html"], a[href="/FrontEnd/Perfil/perfil.html"]').forEach(link => link.remove());
+        sidebar.querySelectorAll('.other-label, a[href="/FrontEnd/Dashboard/dashboard.html"], a[href="/Analises/analises.html"], a[href="/FrontEnd/Perfil/perfil.html"]').forEach(link => link.remove());
         document.querySelectorAll('[data-icon]').forEach(holder => {
             holder.replaceChildren(icon(holder.dataset.icon, 'ui-icon'));
         });

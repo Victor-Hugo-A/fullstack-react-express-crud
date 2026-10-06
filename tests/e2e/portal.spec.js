@@ -159,3 +159,14 @@ test('identidades ordena os registros pelo nome', async ({ page }) => {
     await expect(page.locator('#identities-table tbody tr').first()).toContainText('Ana Beatriz');
     await expect(page.locator('#identities-summary')).toContainText('3 identidades encontradas');
 });
+
+test('análises abre pelo endereço público sem acento', async ({ page }) => {
+    await authenticatedPage(page, '/Analises/analises.html');
+    await expect(page.getByRole('heading', { name: 'Análises dos registros' })).toBeVisible();
+});
+
+test('endereço antigo de análises com acento é redirecionado', async ({ page }) => {
+    await authenticatedPage(page, '/An%E1lises/analises.html');
+    await expect(page).toHaveURL(/\/Analises\/analises\.html$/);
+    await expect(page.getByRole('heading', { name: 'Análises dos registros' })).toBeVisible();
+});
