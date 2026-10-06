@@ -176,7 +176,7 @@ const userRepository = {
     const user = {
       id: uuidv4(),
       ...userData,
-      account_status: 'pending',
+      account_status: userData.account_status || 'approved',
       password: await bcrypt.hash(userData.password, 10),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -185,9 +185,15 @@ const userRepository = {
 
     return new Promise((resolve, reject) => {
       db.run(
-        `INSERT INTO users (id, nome, email, username, password, created_at, updated_at, cpf, account_status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [user.id, user.nome, user.email, user.username, user.password, user.created_at, user.updated_at, user.cpf, user.account_status],
+        `INSERT INTO users
+          (id, nome, email, username, password, created_at, updated_at, cpf, departamento, cargo, role, is_admin, account_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          user.id, user.nome, user.email, user.username, user.password,
+          user.created_at, user.updated_at, user.cpf,
+          user.departamento || null, user.cargo || null, user.role || 'viewer',
+          user.role === 'admin' ? 1 : 0, user.account_status
+        ],
         function(err) {
           if (err) return reject(err);
           resolve(user);
@@ -199,7 +205,9 @@ const userRepository = {
   async findByUsername(username) {
     return new Promise((resolve, reject) => {
       db.get(
-        'SELECT id, nome, email, username, cpf, password, cargo, departamento, account_status FROM users WHERE username = ?',
+        `SELECT id, nome, email, username, cpf, password, cargo, departamento,
+                account_status, role, is_admin
+         FROM users WHERE username = ?`,
         [username],
         (err, row) => {
           if (err) return reject(err);
@@ -253,7 +261,9 @@ const userRepository = {
   async getAll() {
     return new Promise((resolve, reject) => {
       db.all(
-        'SELECT id, nome, email, username, created_at FROM users',
+        `SELECT id, nome, email, username, departamento, cargo, role, account_status,
+                is_admin, created_at, updated_at
+         FROM users ORDER BY nome COLLATE NOCASE, username COLLATE NOCASE`,
         [],
         (err, rows) => {
           if (err) return reject(err);
@@ -297,6 +307,30 @@ const userRepository = {
           if (error) return reject(error);
           resolve(this.changes);
         }
+      );
+    });
+  },
+
+  async updateAdminDetails(id, { nome, departamento, cargo, role }) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        `UPDATE users
+         SET nome = ?, departamento = ?, cargo = ?, role = ?,
+             is_admin = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [nome, departamento || null, cargo || null, role, role === 'admin' ? 1 : 0, id],
+        function (error) {
+          if (error) return reject(error);
+          resolve(this.changes);
+        }
+      );
+    });
+  },
+
+  async countAdministrators() {
+    return new Promise((resolve, reject) => {
+      db.get("SELECT COUNT(*) AS count FROM users WHERE role = 'admin'", [], (error, row) =>
+        error ? reject(error) : resolve(Number(row?.count || 0))
       );
     });
   }

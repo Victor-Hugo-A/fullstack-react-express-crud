@@ -1,0 +1,21 @@
+.users-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(240px, .8fr); gap: 22px; }
+.users-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.users-form label { display: grid; gap: 6px; color: #173d58; font-size: .84rem; font-weight: 700; }
+.users-form input, .users-form select { width: 100%; min-height: 42px; padding: 8px 10px; border: 1px solid #b8ccdc; border-radius: 8px; background: #fff; color: #172b44; font: inherit; }
+.users-form input:focus-visible, .users-form select:focus-visible { border-color: #145da0; box-shadow: var(--focus-ring); outline: none; }
+.users-form .form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+.users-form button { min-height: 42px; padding: 8px 15px; border: 1px solid #176c5c; border-radius: 8px; background: #176c5c; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.users-form button.secondary { border-color: #b8ccdc; background: #fff; color: #173d58; }
+.role-guide { align-self: start; }
+.role-guide dl { margin: 0; display: grid; gap: 5px; }
+.role-guide dt { margin-top: 10px; color: #0b2545; font-weight: 800; }
+.role-guide dd { margin: 0; color: #52657b; font-size: .88rem; }
+.user-role { display: inline-flex; padding: 4px 8px; border-radius: 999px; background: #eaf3fa; color: #145da0; font-size: .78rem; font-weight: 750; }
+.user-role--editor { background: #eaf8f0; color: #176c5c; }.user-role--admin { background: #fff4df; color: #815400; }
+.edit-user { min-height: 34px; padding: 5px 9px; border: 1px solid #b8ccdc; border-radius: 7px; background: #fff; color: #173d58; font-weight: 700; cursor: pointer; }
+dialog#edit-user-dialog { width: min(590px, calc(100% - 32px)); padding: 0; border: 0; border-radius: 14px; box-shadow: 0 20px 50px rgba(8, 28, 52, .28); }
+dialog#edit-user-dialog::backdrop { background: rgba(8, 28, 52, .55); }
+#edit-user-form { padding: 24px; } #edit-user-form header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; } #edit-user-form h2 { margin: 4px 0 0; color: #0b2545; } #edit-user-description { grid-column: 1 / -1; margin: -4px 0 2px; color: #52657b; }
+.dialog-close { width: 38px; min-height: 38px !important; padding: 0 !important; border-color: #b8ccdc !important; background: #fff !important; color: #173d58 !important; font-size: 1.45rem !important; line-height: 1; }
+.permission-notice { margin: 0 0 20px; padding: 12px 16px; border: 1px solid #efd7a1; border-radius: 9px; background: #fff8e9; color: #6a4a0c; font-weight: 650; }
+@media (max-width: 760px) { .users-layout { grid-template-columns: 1fr; }.users-form { grid-template-columns: 1fr; }.module-table { min-width: 720px; } }

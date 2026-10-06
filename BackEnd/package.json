@@ -12,7 +12,8 @@
   "license": "ISC",
   "description": "",
   "overrides": {
-    "basic-ftp": "^6.2.2"
+    "basic-ftp": "^6.2.2",
+    "proxy-addr": "^2.0.8"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

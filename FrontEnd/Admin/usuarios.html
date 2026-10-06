@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários e permissões | SENAPPEN</title>
+    <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
+    <link rel="stylesheet" href="/FrontEnd/internal.css">
+    <link rel="stylesheet" href="/FrontEnd/Admin/usuarios.css">
+    <link rel="stylesheet" href="/FrontEnd/notice.css">
+    <link rel="stylesheet" href="/FrontEnd/design-tokens.css">
+    <link rel="icon" href="data:,">
+    <script src="/FrontEnd/accessibility.js" defer></script>
+    <script src="/FrontEnd/notice.js" defer></script>
+    <script src="/FrontEnd/Admin/usuarios.js" defer></script>
+</head>
+<body class="internal-page" id="usuarios">
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <div class="top-bar"><div class="page-container"><span>Ministério da Justiça e Segurança Pública · SENAPPEN</span><time id="current-date"></time></div></div>
+    <header class="main-header"><div class="page-container header-content">
+        <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><span class="brand-mark"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></span><span class="brand-copy"><strong>Ministério da Justiça e Segurança Pública</strong><small>Secretaria Nacional de Políticas Penais</small></span></a>
+        <div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div>
+    </div></header>
+    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links"><a href="/FrontEnd/Sistema/sistema.html">Início</a><a href="/FrontEnd/Admin/usuarios.html" aria-current="page">Administração</a><a href="/FrontEnd/Perfil/perfil.html">Perfil</a></div></nav>
+    <main id="conteudo" class="main-content">
+        <p id="users-status" class="session-feedback" role="status" aria-live="polite" hidden></p>
+        <section class="module-heading"><div><span class="eyebrow">ADMINISTRAÇÃO</span><h1>Usuários e permissões</h1><p>Crie contas, consulte quem possui acesso e ajuste o perfil de cada pessoa quando necessário.</p></div><a class="module-link" href="/FrontEnd/Sistema/sistema.html">Voltar ao início <span aria-hidden="true">↗</span></a></section>
+        <section class="module-section users-layout" aria-label="Gerenciamento de contas">
+            <article class="module-card"><h2>Criar conta</h2><p class="module-card__description">Novas contas começam como Visualizador. Escolha Editor ou Administrador somente quando a função exigir.</p>
+                <form id="create-user-form" class="users-form">
+                    <label>Nome completo<input name="nome" autocomplete="name" required></label>
+                    <label>CPF<input name="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required></label>
+                    <label>E-mail<input name="email" type="email" autocomplete="email" required></label>
+                    <label>Usuário<input name="username" autocomplete="username" minlength="3" required></label>
+                    <label>Departamento<input name="departamento" autocomplete="organization-title"></label>
+                    <label>Cargo<input name="cargo" autocomplete="organization-title"></label>
+                    <label>Perfil de acesso<select name="role"><option value="viewer">Visualizador — apenas consulta</option><option value="editor">Editor — cadastra e edita</option><option value="admin">Administrador — acesso completo</option></select></label>
+                    <label>Senha inicial<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+                    <label>Confirmar senha<input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></label>
+                    <div class="form-actions"><button type="submit">Criar conta</button></div>
+                </form>
+            </article>
+            <article class="module-card role-guide"><h2>Perfis de acesso</h2><dl><dt>Visualizador</dt><dd>Consulta listas, documentos, indicadores e análises.</dd><dt>Editor</dt><dd>Também cadastra e edita contratos, projetos e identidades.</dd><dt>Administrador</dt><dd>Também exclui registros, administra usuários e consulta auditoria.</dd></dl></article>
+        </section>
+        <section class="module-section"><div class="module-section__heading"><h2>Contas criadas</h2><p id="users-count">Carregando usuários...</p></div><div class="module-card module-table-wrap"><table class="module-table"><thead><tr><th>Nome</th><th>Usuário</th><th>Contato</th><th>Departamento</th><th>Perfil</th><th>Ação</th></tr></thead><tbody id="users-list"></tbody></table></div></section>
+    </main>
+    <dialog id="edit-user-dialog" aria-labelledby="edit-user-title"><form id="edit-user-form" method="dialog" class="users-form"><header><div><span class="eyebrow">ALTERAR ACESSO</span><h2 id="edit-user-title">Editar usuário</h2></div><button type="button" class="dialog-close" aria-label="Fechar">×</button></header><input name="id" type="hidden"><p id="edit-user-description"></p><label>Nome completo<input name="nome" required></label><label>Departamento<input name="departamento"></label><label>Cargo<input name="cargo"></label><label>Perfil de acesso<select name="role"><option value="viewer">Visualizador — apenas consulta</option><option value="editor">Editor — cadastra e edita</option><option value="admin">Administrador — acesso completo</option></select></label><div class="form-actions"><button type="button" class="secondary dialog-cancel">Cancelar</button><button type="submit">Salvar alterações</button></div></form></dialog>
+    <footer class="footer"><div class="page-container footer-bottom">Ministério da Justiça e Segurança Pública · SENAPPEN</div></footer>
+</body>
+</html>

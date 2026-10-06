@@ -157,27 +157,6 @@ paths:
         '200': { description: Conteúdo binário do arquivo }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '429': { description: Limite de tentativas excedido }
-  /register:
-    post:
-      tags: [Autenticação]
-      summary: Solicita uma conta sujeita a aprovação administrativa
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [nome, cpf, email, username, password, confirmPassword]
-              properties:
-                nome: { type: string }
-                cpf: { type: string }
-                email: { type: string, format: email }
-                username: { type: string }
-                password: { type: string, format: password }
-                confirmPassword: { type: string, format: password }
-      responses:
-        '201': { description: Solicitação criada }
-        '400': { $ref: '#/components/responses/BadRequest' }
   /api/logout:
     post:
       tags: [Autenticação]
@@ -419,6 +398,63 @@ paths:
       responses:
         '200': { description: Contas aguardando decisão }
         '403': { $ref: '#/components/responses/Forbidden' }
+  /api/admin/users:
+    get:
+      tags: [Administração]
+      summary: Lista as contas e seus perfis de acesso
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Contas cadastradas }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Administração]
+      summary: Cria e libera uma conta (somente administrador)
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, cpf, email, username, password, confirmPassword]
+              properties:
+                nome: { type: string }
+                cpf: { type: string }
+                email: { type: string, format: email }
+                username: { type: string }
+                password: { type: string, format: password }
+                confirmPassword: { type: string, format: password }
+                departamento: { type: string }
+                cargo: { type: string }
+                role: { type: string, enum: [viewer, editor, admin], default: viewer }
+      responses:
+        '201': { description: Conta criada e liberada }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { description: Usuário ou e-mail já cadastrado }
+  /api/admin/users/{id}:
+    put:
+      tags: [Administração]
+      summary: Altera dados funcionais e perfil de acesso de uma conta
+      security: [{ sessionCookie: [], csrfHeader: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, role]
+              properties:
+                nome: { type: string }
+                departamento: { type: string }
+                cargo: { type: string }
+                role: { type: string, enum: [viewer, editor, admin] }
+      responses:
+        '200': { description: Conta atualizada }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: Usuário não encontrado }
   /api/admin/users/{id}/approve:
     post:
       tags: [Administração]

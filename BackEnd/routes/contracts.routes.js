@@ -2,7 +2,7 @@ const express = require('express');
 const { createContractsController } = require('../controllers/contracts.controller');
 const { validate } = require('../middlewares/validate');
 
-function createContractsRouter({ authenticateJWT, requireAdmin, upload, validateUploadedFiles, service }) {
+function createContractsRouter({ authenticateJWT, requireAdmin, requirePermission, upload, validateUploadedFiles, service }) {
   const router = express.Router();
   const controller = createContractsController(service);
   const contractId = req => {
@@ -27,8 +27,8 @@ function createContractsRouter({ authenticateJWT, requireAdmin, upload, validate
   router.post('/contracts/sync', authenticateJWT, requireAdmin, controller.sync);
   router.delete('/contracts/clean-all', authenticateJWT, requireAdmin, controller.cleanAll);
   router.get('/contracts', authenticateJWT, validate(validYear), controller.list);
-  router.post('/contracts', authenticateJWT, upload.single('file'), validateUploadedFiles('contract'), controller.create);
-  router.put('/contracts/:id', authenticateJWT, validate(contractId), upload.single('file'), validateUploadedFiles('contract'), controller.update);
+  router.post('/contracts', authenticateJWT, requirePermission('contracts:write'), upload.single('file'), validateUploadedFiles('contract'), controller.create);
+  router.put('/contracts/:id', authenticateJWT, requirePermission('contracts:write'), validate(contractId), upload.single('file'), validateUploadedFiles('contract'), controller.update);
   router.get('/contracts/:id/download', authenticateJWT, validate(contractId), controller.download);
   router.get('/contracts/:id/view', authenticateJWT, validate(contractId), controller.view);
   router.get('/contracts/:id', authenticateJWT, validate(contractId), controller.get);

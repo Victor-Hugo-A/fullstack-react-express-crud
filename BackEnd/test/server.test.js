@@ -212,25 +212,57 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     const suffix = crypto.randomBytes(4).toString('hex');
     const first = `teste-${suffix}-1`;
     const second = `teste-${suffix}-2`;
-    const rejected = `teste-${suffix}-3`;
     const password = 'senha-de-teste-forte';
-    for (const [username, cpf] of [[first, '52998224725'], [second, '11144477735'], [rejected, '93541134780']]) {
-      const response = await postJson('/register', {
+    assert.equal((await postJson('/register', {
+      nome: 'Cadastro público bloqueado', cpf: '52998224725', email: 'bloqueado@example.test',
+      username: 'bloqueado', password, confirmPassword: password
+    })).status, 404);
+
+    await manageAdmin('legado@example.test');
+    const bootstrapLogin = await postJson('/login', { username: 'legado', password: 'senha-legada' });
+    assert.equal(bootstrapLogin.status, 200);
+    const bootstrapToken = bootstrapLogin.headers.getSetCookie()
+      .find(cookie => cookie.startsWith('senappen_session='))?.match(/^senappen_session=([^;]+)/)?.[1];
+    assert.ok(bootstrapToken);
+    assert.equal((await postJson('/api/admin/users', {
+      nome: 'Sem permissão', cpf: '52998224725', email: 'sem-permissao@example.test',
+      username: 'sem-permissao', password, confirmPassword: password
+    })).status, 401);
+
+    const createdAccounts = {};
+    for (const [username, cpf, role] of [[first, '52998224725', 'editor'], [second, '11144477735', 'viewer']]) {
+      const response = await postJson('/api/admin/users', {
         nome: username,
         cpf,
         email: `${username}@example.test`,
         username,
         password,
-        confirmPassword: password
-      });
+        confirmPassword: password,
+        role
+      }, bootstrapToken);
       const registrationBody = await response.json();
       assert.equal(response.status, 201, JSON.stringify(registrationBody));
-      assert.match(registrationBody.message, /aguarde a aprovação/i);
+      assert.equal(registrationBody.user.accountStatus, 'approved');
+      assert.equal(registrationBody.user.role, role);
+      assert.equal(Object.hasOwn(registrationBody.user, 'password'), false);
+      createdAccounts[username] = registrationBody.user;
     }
 
-    const pendingLogin = await postJson('/login', { username: first, password });
-    assert.equal(pendingLogin.status, 403);
-    assert.equal((await pendingLogin.json()).error, 'account_pending');
+    const usersBeforeUpdate = await fetch(`${base}/api/admin/users`, { headers: { Authorization: `Bearer ${bootstrapToken}` } });
+    assert.equal(usersBeforeUpdate.status, 200);
+    assert.ok((await usersBeforeUpdate.json()).users.some(user => user.id === createdAccounts[second].id && user.role === 'viewer'));
+
+    const viewerLogin = await postJson('/login', { username: second, password });
+    const viewerToken = viewerLogin.headers.getSetCookie().find(cookie => cookie.startsWith('senappen_session='))?.match(/^senappen_session=([^;]+)/)?.[1];
+    assert.equal((await fetch(`${base}/api/contracts`, { method: 'POST', headers: { Authorization: `Bearer ${viewerToken}` } })).status, 403);
+    const editorPromotion = await fetch(`${base}/api/admin/users/${createdAccounts[second].id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${bootstrapToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: second, departamento: '', cargo: '', role: 'editor' })
+    });
+    assert.equal(editorPromotion.status, 200, await editorPromotion.text());
+    assert.equal((await fetch(`${base}/api/contracts`, { method: 'POST', headers: { Authorization: `Bearer ${viewerToken}` } })).status, 400);
+
     const unknownUser = await postJson('/login', { username: `ausente-${suffix}`, password });
     const wrongPassword = await postJson('/login', { username: first, password: 'senha-incorreta' });
     assert.equal(unknownUser.status, 401);
@@ -310,18 +342,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     assert.equal(pendingAccounts.status, 200);
-    const pendingUsers = (await pendingAccounts.json()).users;
-    const secondPending = pendingUsers.find(user => user.username === second);
-    const rejectedPending = pendingUsers.find(user => user.username === rejected);
-    assert.ok(secondPending?.id);
-    assert.ok(rejectedPending?.id);
-    assert.equal((await postJson(`/api/admin/users/${secondPending.id}/approve`, {}, token)).status, 200);
-    assert.equal((await postJson(`/api/admin/users/${rejectedPending.id}/reject`, {}, token)).status, 200);
-    assert.equal((await postJson(`/api/admin/users/${secondPending.id}/approve`, {}, token)).status, 409);
-    const rejectedLogin = await postJson('/login', { username: rejected, password });
-    assert.equal(rejectedLogin.status, 403);
-    assert.equal((await rejectedLogin.json()).error, 'account_rejected');
-    await manageAdmin(`${first}@example.test`, true);
+    assert.deepEqual((await pendingAccounts.json()).users, []);
     for (const route of [
       '/api/contracts/count',
       '/api/projects/count',
@@ -500,6 +521,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
       headers: identityHeaders
     }).then(response => response.json()), [{ perfil: 'Usuário', count: 1 }]);
 
+    await manageAdmin(`${first}@example.test`, true);
     const regularUser = await fetch(`${base}/api/user`, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -624,7 +646,10 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     assert.equal((await fetch(`${base}/api/admin/users/pending`, {
       headers: { Authorization: `Bearer ${regularToken}` }
     })).status, 403);
-    assert.equal((await postJson(`/api/admin/users/${rejectedPending.id}/approve`, {}, regularToken)).status, 403);
+    assert.equal((await postJson('/api/admin/users', {
+      nome: 'Conta indevida', cpf: '93541134780', email: 'indevida@example.test',
+      username: 'indevida', password, confirmPassword: password
+    }, regularToken)).status, 403);
     assert.equal((await fetch(`${base}/api/admin/audit`, {
       headers: { Authorization: `Bearer ${regularToken}` }
     })).status, 403);
@@ -653,7 +678,7 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     });
     assert.equal(auditResponse.status, 200);
     const auditEvents = (await auditResponse.json()).events;
-    for (const action of ['login', 'approve_account', 'reject_account', 'upload', 'update', 'delete']) {
+    for (const action of ['login', 'create_account', 'upload', 'update', 'delete']) {
       assert.ok(auditEvents.some(event => event.action === action), `evento de auditoria ausente: ${action}`);
     }
     assert.ok(auditEvents.some(event => event.action === 'login' && event.outcome === 'failed'));

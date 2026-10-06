@@ -377,3 +377,7 @@
     border-bottom-color: rgba(42, 83, 113, .11);
 }
 :is(.projects-page) .projects-table tbody tr:nth-child(even) { background: #fbfcfd; }
+body[data-role="viewer"] .btn-edit,
+body[data-role="viewer"] .btn-delete,
+body[data-role="viewer"] .btn-delete-file,
+body[data-role="viewer"] [data-admin-only] { display: none !important; }

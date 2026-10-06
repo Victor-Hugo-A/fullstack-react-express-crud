@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -28,7 +28,6 @@
         <main id="login-container" class="auth-content">
             <img src="/FrontEnd/img/senappenLogo.png" alt="SENAPPEN — Secretaria Nacional de Políticas Penais" class="auth-logo" width="400" height="283" decoding="async">
             <div id="mensagem-login" class="form-message" aria-live="polite" hidden></div>
-
             <section id="login" class="auth-section" aria-labelledby="login-title">
                 <h1 id="login-title">Acesse sua conta</h1>
                 <p class="section-description">Informe seu usuário e senha para continuar.</p>
@@ -43,42 +42,7 @@
                     </div>
                     <button class="submit-button" type="submit">Entrar no portal <span aria-hidden="true">→</span></button>
                 </form>
-                <p class="switch-auth">Ainda não tem conta? <a href="#criar-conta" id="toggle-register">Criar conta</a></p>
-            </section>
-
-            <section id="criar-conta" class="auth-section" aria-labelledby="register-title" hidden>
-                <span class="eyebrow">PRIMEIRO ACESSO</span>
-                <h2 id="register-title">Criar conta</h2>
-                <p class="section-description">Preencha seus dados para acessar o portal.</p>
-                <form id="registerForm">
-                    <div class="form-field">
-                        <label for="nome">Nome completo</label>
-                        <input type="text" id="nome" name="nome" autocomplete="name" required placeholder="Seu nome completo">
-                    </div>
-                    <div class="form-field">
-                        <label for="cpf">CPF</label>
-                        <input type="text" id="cpf" name="cpf" inputmode="numeric" required placeholder="Somente números ou com pontuação" maxlength="14" pattern="\d{3}\.?\d{3}\.?\d{3}-?\d{2}" aria-describedby="cpf-help">
-                        <small id="cpf-help">Exemplo: 123.456.789-09</small>
-                    </div>
-                    <div class="form-field">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" name="email" autocomplete="email" required placeholder="seu.email@exemplo.com">
-                    </div>
-                    <div class="form-field">
-                        <label for="new-username">Usuário</label>
-                        <input type="text" id="new-username" name="new-username" autocomplete="username" required placeholder="Escolha um nome de usuário">
-                    </div>
-                    <div class="form-field">
-                        <label for="new-password">Senha</label>
-                        <input type="password" id="new-password" name="new-password" autocomplete="new-password" minlength="8" required placeholder="No mínimo 8 caracteres">
-                    </div>
-                    <div class="form-field">
-                        <label for="confirm-password">Confirmar senha</label>
-                        <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password" minlength="8" required placeholder="Repita sua senha">
-                    </div>
-                    <button class="submit-button" type="submit">Criar conta <span aria-hidden="true">→</span></button>
-                </form>
-                <p class="switch-auth">Já tem uma conta? <a href="#login" id="toggle-login">Fazer login</a></p>
+                <p class="switch-auth">Precisa de acesso? Solicite a criação da conta ao administrador do portal.</p>
             </section>
         </main>
     </div>

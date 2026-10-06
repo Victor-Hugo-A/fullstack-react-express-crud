@@ -110,26 +110,6 @@ img { max-width: 100%; }
 .welcome-seal { width: clamp(112px, 16vw, 178px); height: auto; object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.12)); }
 
 .tools-section { padding-top: 50px; scroll-margin-top: 24px; }
-.admin-approvals { margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.admin-approvals[hidden] { display: none; }
-.admin-approvals > summary { min-height: 58px; padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--navy); cursor: pointer; list-style: none; }
-.admin-approvals > summary::-webkit-details-marker { display: none; }
-.admin-approvals > summary::after { content: "+"; color: var(--blue); font-size: 1.3rem; font-weight: 700; }
-.admin-approvals[open] > summary::after { content: "−"; }
-.admin-approvals-label { display: flex; align-items: baseline; gap: 12px; }
-.admin-approvals-label strong { font-size: .96rem; }
-.admin-approvals #admin-approvals-count { color: var(--muted); font-size: .84rem; }
-.admin-approvals-content { padding: 0 18px 18px; }
-.approval-list { display: grid; gap: 12px; }
-.approval-card { padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--line); border-radius: 10px; }
-.approval-details { min-width: 0; }
-.approval-details strong, .approval-details span { display: block; overflow-wrap: anywhere; }
-.approval-details span { color: var(--muted); font-size: .88rem; }
-.approval-actions { display: flex; flex: 0 0 auto; gap: 8px; }
-.approval-actions button { min-height: 40px; padding: 7px 12px; border: 1px solid #b8ccdc; border-radius: 8px; background: #fff; color: var(--navy); font-weight: 700; cursor: pointer; }
-.approval-actions button[data-action="approve"] { border-color: #176c5c; background: #176c5c; color: #fff; }
-.approval-actions button[data-action="reject"] { border-color: #a52b37; color: #8f1e29; }
-.approval-actions button:disabled { cursor: wait; opacity: .65; }
 .section-heading { margin-bottom: 22px; display: flex; align-items: end; justify-content: space-between; gap: 20px; }
 .section-heading h2 { margin: 5px 0 0; color: var(--navy); font-size: clamp(1.65rem, 3vw, 2.15rem); letter-spacing: -0.035em; }
 .section-heading p { margin: 0 0 4px; color: var(--muted); font-size: 0.9rem; }
@@ -201,12 +181,6 @@ a:focus-visible, button:focus-visible { outline: 3px solid #f1a53b; outline-offs
     .tools-section { padding-top: 34px; }
     .section-heading { display: block; }
     .section-heading p { margin-top: 5px; }
-    .admin-approvals > summary { padding-inline: 12px; }
-    .admin-approvals-label { align-items: flex-start; flex-direction: column; gap: 0; }
-    .admin-approvals-content { padding-inline: 12px; }
-    .approval-card { align-items: flex-start; flex-direction: column; gap: 12px; }
-    .approval-actions { width: 100%; }
-    .approval-actions button { flex: 1; }
     .quick-access { grid-template-columns: 1fr; gap: 12px; }
     .portal-card { min-height: 0; padding: 18px; }
     .card-icon { width: 52px; height: 52px; margin-bottom: 12px; }

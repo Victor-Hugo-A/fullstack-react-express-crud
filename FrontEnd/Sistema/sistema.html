@@ -58,16 +58,6 @@
 
     <main id="conteudo" class="main-content page-container">
         <p id="session-feedback" class="session-feedback" role="status" aria-live="polite" hidden></p>
-        <details id="admin-approvals" class="admin-approvals" hidden>
-            <summary>
-                <span class="admin-approvals-label"><span class="eyebrow">ADMINISTRAÇÃO</span><strong>Solicitações de acesso</strong></span>
-                <span id="admin-approvals-count">Carregando solicitações...</span>
-            </summary>
-            <div class="admin-approvals-content">
-                <p id="admin-approvals-status" class="session-feedback" role="status" aria-live="polite" hidden></p>
-                <div id="admin-approvals-list" class="approval-list"></div>
-            </div>
-        </details>
         <section class="welcome-card" aria-labelledby="welcome-title">
             <div class="welcome-copy">
                 <span class="eyebrow">SISTEMA DE GESTÃO</span>
@@ -118,6 +108,14 @@
                     <span class="card-title">Perfil</span>
                     <span class="card-text">Consulte e atualize seus dados cadastrais.</span>
                     <span class="card-action">Acessar módulo <span aria-hidden="true">↗</span></span>
+                </a>
+                <a id="admin-users-link" class="portal-card" href="/FrontEnd/Admin/usuarios.html" hidden>
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M15 20a3.5 3.5 0 0 1 5.5-2.9"/></svg>
+                    </span>
+                    <span class="card-title">Administração</span>
+                    <span class="card-text">Crie contas e ajuste as permissões da equipe.</span>
+                    <span class="card-action">Gerenciar usuários <span aria-hidden="true">↗</span></span>
                 </a>
             </div>
         </section>

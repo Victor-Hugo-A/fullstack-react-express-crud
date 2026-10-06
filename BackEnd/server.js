@@ -208,7 +208,7 @@ function authenticateJWT(req, res, next) {
 async function requireAdmin(req, res, next) {
     try {
         const user = await userRepository.findById(req.user.userId);
-        if (!user || user.is_admin !== 1) {
+        if (!user || user.role !== 'admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Acesso permitido apenas a administradores'
@@ -218,6 +218,35 @@ async function requireAdmin(req, res, next) {
     } catch (error) {
         return next(error);
     }
+}
+
+const ROLE_PERMISSIONS = Object.freeze({
+    viewer: new Set(),
+    editor: new Set(['contracts:write', 'projects:write', 'identities:write']),
+    admin: new Set(['*'])
+});
+
+function permissionsForRole(role) {
+    return ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.viewer;
+}
+
+function requirePermission(permission) {
+    return async (req, res, next) => {
+        try {
+            const user = await userRepository.findById(req.user.userId);
+            const permissions = permissionsForRole(user?.role);
+            if (!user || (!permissions.has('*') && !permissions.has(permission))) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Seu perfil não possui permissão para realizar esta ação.'
+                });
+            }
+            req.accessRole = user.role;
+            return next();
+        } catch (error) {
+            return next(error);
+        }
+    };
 }
 
 function getAuditEntity(pathname) {
@@ -238,7 +267,9 @@ function auditMutationMiddleware(req, res, next) {
     const isAccountDecision = /^\/api\/admin\/users\/[^/]+\/(?:approve|reject)$/.test(pathname);
     let events = [];
 
-    if (isAccountDecision && method === 'POST') {
+    if (pathname === '/api/admin/users' && method === 'POST') {
+        events = [{ action: 'create_account', entity: 'user' }];
+    } else if (isAccountDecision && method === 'POST') {
         events = [{ action: pathname.endsWith('/approve') ? 'approve_account' : 'reject_account', entity: 'user' }];
     } else if (entity && ['PUT', 'PATCH'].includes(method)) {
         events = [{ action: 'update', entity }];
@@ -293,6 +324,127 @@ router.get('/admin/users/pending', authenticateJWT, requireAdmin, async (req, re
         res.json({ success: true, users });
     } catch (error) {
         next(error);
+    }
+});
+
+router.get('/admin/users', authenticateJWT, requireAdmin, async (req, res, next) => {
+    try {
+        const users = await userRepository.getAll();
+        return res.json({ success: true, users });
+    } catch (error) {
+        return next(error);
+    }
+});
+
+router.post('/admin/users', authenticateJWT, requireAdmin, async (req, res, next) => {
+    try {
+        const { nome, cpf, email, username, password, confirmPassword, departamento, cargo, role = 'viewer' } = req.body || {};
+        const missingFields = ['nome', 'cpf', 'email', 'username', 'password', 'confirmPassword']
+            .filter(field => !String(req.body?.[field] || '').trim());
+        if (missingFields.length) {
+            return res.status(400).json({
+                success: false,
+                error: 'missing_fields',
+                message: 'Preencha os campos obrigatórios para criar a conta.',
+                missingFields
+            });
+        }
+        if (String(password).length < 8) {
+            return res.status(400).json({ success: false, error: 'weak_password', message: 'A senha deve ter ao menos 8 caracteres.' });
+        }
+        if (password !== confirmPassword) {
+            return res.status(400).json({ success: false, error: 'password_mismatch', message: 'As senhas não coincidem.' });
+        }
+        if (!validarCPF(String(cpf))) {
+            return res.status(400).json({ success: false, error: 'invalid_cpf', message: 'CPF inválido.' });
+        }
+
+        const normalizedUsername = String(username).trim().toLowerCase();
+        const normalizedEmail = String(email).trim().toLowerCase();
+        if (normalizedUsername.length < 3 || normalizedUsername.length > 100 || !/^[a-z0-9._-]+$/i.test(normalizedUsername)) {
+            return res.status(400).json({ success: false, error: 'invalid_username', message: 'Informe um usuário entre 3 e 100 caracteres, usando letras, números, ponto, hífen ou sublinhado.' });
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+            return res.status(400).json({ success: false, error: 'invalid_email', message: 'Informe um e-mail válido.' });
+        }
+        if (!Object.hasOwn(ROLE_PERMISSIONS, role)) {
+            return res.status(400).json({ success: false, error: 'invalid_role', message: 'Perfil de acesso inválido.' });
+        }
+        if (await userRepository.findByUsername(normalizedUsername)) {
+            return res.status(409).json({ success: false, error: 'username_in_use', message: 'Nome de usuário já está em uso.' });
+        }
+        if (await userRepository.findByEmail(normalizedEmail)) {
+            return res.status(409).json({ success: false, error: 'email_in_use', message: 'E-mail já está em uso.' });
+        }
+
+        const user = await userRepository.create({
+            nome: String(nome).trim(),
+            cpf: String(cpf).replace(/\D/g, ''),
+            email: normalizedEmail,
+            username: normalizedUsername,
+            password,
+            departamento: String(departamento || '').trim(),
+            cargo: String(cargo || '').trim(),
+            role,
+            account_status: 'approved'
+        });
+        return res.status(201).json({
+            success: true,
+            message: 'Conta criada e liberada para acesso.',
+            user: {
+                id: user.id,
+                nome: user.nome,
+                email: user.email,
+                username: user.username,
+                cpf: user.cpf,
+                departamento: user.departamento,
+                cargo: user.cargo,
+                role: user.role,
+                accountStatus: user.account_status
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.put('/admin/users/:id', authenticateJWT, requireAdmin, async (req, res, next) => {
+    try {
+        const { nome, departamento, cargo, role } = req.body || {};
+        const target = await userRepository.findById(req.params.id);
+        if (!target) {
+            return res.status(404).json({ success: false, error: 'user_not_found', message: 'Usuário não encontrado.' });
+        }
+        if (!String(nome || '').trim()) {
+            return res.status(400).json({ success: false, error: 'missing_name', message: 'Informe o nome da pessoa.' });
+        }
+        if (!Object.hasOwn(ROLE_PERMISSIONS, role)) {
+            return res.status(400).json({ success: false, error: 'invalid_role', message: 'Perfil de acesso inválido.' });
+        }
+        if (target.id === req.user.userId && role !== 'admin') {
+            return res.status(400).json({ success: false, error: 'self_role_change', message: 'Use outro administrador para alterar seu próprio perfil.' });
+        }
+        if (target.role === 'admin' && role !== 'admin' && await userRepository.countAdministrators() <= 1) {
+            return res.status(409).json({ success: false, error: 'last_administrator', message: 'Mantenha ao menos um administrador ativo no portal.' });
+        }
+        await userRepository.updateAdminDetails(target.id, {
+            nome: String(nome).trim(),
+            departamento: String(departamento || '').trim(),
+            cargo: String(cargo || '').trim(),
+            role
+        });
+        const user = await userRepository.findById(target.id);
+        return res.json({
+            success: true,
+            message: 'Dados e permissões atualizados.',
+            user: {
+                id: user.id, nome: user.nome, email: user.email, username: user.username,
+                departamento: user.departamento, cargo: user.cargo, role: user.role,
+                accountStatus: user.account_status, isAdmin: user.role === 'admin'
+            }
+        });
+    } catch (error) {
+        return next(error);
     }
 });
 
@@ -471,7 +623,9 @@ app.get('/api/user', authenticateJWT, async (req, res) => {
                 cpf: user.cpf,
                 departamento: user.departamento,
                 cargo: user.cargo,
-                isAdmin: user.is_admin === 1
+                role: user.role,
+                permissions: [...permissionsForRole(user.role)],
+                isAdmin: user.role === 'admin'
             }
         });
     } catch (error) {
@@ -593,6 +747,7 @@ function validateUploadedFiles(policyName) {
 app.use('/api', createContractsRouter({
     authenticateJWT,
     requireAdmin,
+    requirePermission,
     upload,
     validateUploadedFiles,
     service: contractsService
@@ -646,6 +801,7 @@ const projectsService = createProjectsService({ repository: projectsRepository, 
 app.use('/api', createProjectsRouter({
     authenticateJWT,
     requireAdmin,
+    requirePermission,
     upload: projectsUpload,
     validateUploadedFiles,
     service: projectsService
@@ -672,6 +828,7 @@ const identitiesService = createIdentitiesService({
 app.use('/api', createIdentitiesRouter({
     authenticateJWT,
     requireAdmin,
+    requirePermission,
     upload: identitiesUpload,
     validateUploadedFiles,
     service: identitiesService
@@ -695,7 +852,9 @@ app.use('/api', createIdentitiesRouter({
                 email: user.email,
                 cpf: user.cpf,
                 departamento: user.departamento,
-                cargo: user.cargo
+                cargo: user.cargo,
+                role: user.role,
+                isAdmin: user.role === 'admin'
             }
         });
     } catch (error) {
@@ -872,7 +1031,9 @@ app.post('/login', limitLoginAttempts, async (req, res) => {
                 nome: user.nome,
                 cpf: user.cpf,
                 departamento: user.departamento,
-                cargo: user.cargo
+                cargo: user.cargo,
+                role: user.role,
+                isAdmin: user.role === 'admin'
             }
         });
     } catch (error) {
@@ -890,7 +1051,7 @@ app.post('/api/logout', authenticateJWT, (req, res) => {
     res.status(204).end();
 });
 
-app.post('/upload', authenticateJWT, upload.single('file'), validateUploadedFiles('contract'), (req, res) => {
+app.post('/upload', authenticateJWT, requirePermission('contracts:write'), upload.single('file'), validateUploadedFiles('contract'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ 
@@ -972,96 +1133,6 @@ function validarCPF(cpf) {
     if (resto !== parseInt(cpf.substring(10, 11))) return false;
     return true;
 }
-
-// Rotas de autenticação
-app.post('/register', async (req, res) => {
-    try {
-        const { nome, cpf, email, username, password, confirmPassword } = req.body;
-
-        const missingFields = [];
-        if (!nome) missingFields.push('nome');
-        if (!email) missingFields.push('email');
-        if (!username) missingFields.push('username');
-        if (!password) missingFields.push('password');
-        if (!confirmPassword) missingFields.push('confirmPassword');
-        if(!cpf) missingFields.push('cpf')
-            
-            if (missingFields.length > 0) {
-                return res.status(400).json({ 
-                    success: false,
-                    message: 'Campos obrigatórios faltando',
-                    missingFields 
-                });
-            }
-            
-            if (password !== confirmPassword) {
-                return res.status(400).json({ 
-                    success: false,
-                    message: 'As senhas não coincidem' 
-                });
-            }
-    
-            if (!validarCPF(cpf)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'CPF inválido. Digite um CPF real, apenas números ou com pontos.'
-            });
-        }
-
-            if (password.length < 8) {
-                return res.status(400).json({ 
-                    success: false,
-                    message: 'Senha deve ter pelo menos 8 caracteres'
-                });
-            }
-
-        // Verifica se usuário ou email já existem
-        const existingUser = await userRepository.findByUsername(username);
-        if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                message: 'Nome de usuário já está em uso'
-            });
-        }
-
-        const existingEmail = await userRepository.findByEmail(email);
-        if (existingEmail) {
-            return res.status(400).json({
-                success: false,
-                message: 'E-mail já está em uso'
-            });
-        }
-
-        const newUser = {
-            nome: nome.trim(),
-            cpf: cpf.trim(),
-            email: email.trim().toLowerCase(),
-            username: username.trim().toLowerCase(),
-            password: password
-        };
-
-        const createdUser = await userRepository.create(newUser);
-        
-        res.status(201).json({ 
-            success: true,
-            message: 'Solicitação enviada. Aguarde a aprovação administrativa antes de entrar.',
-            user: {
-                id: createdUser.id,
-                username: createdUser.username,
-                email: createdUser.email,
-                nome: createdUser.nome,
-                cpf: createdUser.cpf
-            }
-        });
-    } catch (error) {
-        console.error('Erro no registro:', error);
-        res.status(500).json({ 
-            success: false,
-            message: 'Erro ao processar registro',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-    }
-});
 
 app.post('/change-password', authenticateJWT, async (req, res) => {
     try {

@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-const user = { nome: 'Gestor de Testes', username: 'gestor', isAdmin: true };
+const user = { nome: 'Gestor de Testes', username: 'gestor', role: 'admin', isAdmin: true };
 
 const contracts = Array.from({ length: 7 }, (_, index) => ({
     id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
@@ -52,6 +52,22 @@ async function mockApi(page) {
             await route.fulfill({ status: 200, headers, body: JSON.stringify({ success: true, user }) });
             return;
         }
+        if (url.pathname === '/api/admin/users' && request.method() === 'POST') {
+            await route.fulfill({
+                status: 201,
+                headers,
+                body: JSON.stringify({ success: true, message: 'Conta criada e liberada para acesso.', user: { id: 'new-user' } })
+            });
+            return;
+        }
+        if (url.pathname === '/api/admin/users' && request.method() === 'GET') {
+            await route.fulfill({ status: 200, headers, body: JSON.stringify({ success: true, users: [{ id: 'new-user', nome: 'Nova Pessoa', username: 'nova.pessoa', email: 'nova.pessoa@example.test', departamento: 'Gestão', cargo: 'Analista', role: 'viewer' }] }) });
+            return;
+        }
+        if (url.pathname === '/api/admin/users/new-user' && request.method() === 'PUT') {
+            await route.fulfill({ status: 200, headers, body: JSON.stringify({ success: true, message: 'Dados e permissões atualizados.' }) });
+            return;
+        }
         if (url.pathname === '/api/contracts') {
             await route.fulfill({ status: 200, headers, body: JSON.stringify(contracts) });
             return;
@@ -88,6 +104,26 @@ test('login autentica e encaminha para o portal', async ({ page }) => {
 
     await expect(page).toHaveURL(/\/FrontEnd\/Sistema\/sistema\.html$/);
     await expect(page.getByText('Gestor de Testes').first()).toBeVisible();
+});
+
+test('administrador cria e altera permissões de uma conta', async ({ page }) => {
+    await authenticatedPage(page, '/FrontEnd/Admin/usuarios.html');
+    await expect(page.locator('#create-user-form')).toBeVisible();
+
+    await page.locator('#create-user-form [name="nome"]').fill('Nova Pessoa');
+    await page.locator('#create-user-form [name="cpf"]').fill('52998224725');
+    await page.locator('#create-user-form [name="email"]').fill('nova.pessoa@example.test');
+    await page.locator('#create-user-form [name="username"]').fill('nova.pessoa');
+    await page.locator('#create-user-form [name="password"]').fill('senha-inicial');
+    await page.locator('#create-user-form [name="confirmPassword"]').fill('senha-inicial');
+    await page.locator('#create-user-form button[type="submit"]').click();
+
+    await expect(page.locator('#users-status')).toContainText('Conta criada e liberada para acesso.');
+    await page.locator('#users-list .edit-user').click();
+    await page.locator('#edit-user-form [name="role"]').selectOption('editor');
+    await page.locator('#edit-user-form button[type="submit"]').click();
+
+    await expect(page.locator('#users-status')).toContainText('Dados e permissões atualizados.');
 });
 
 test('contratos pagina seis resultados e permite ordenar', async ({ page }) => {
