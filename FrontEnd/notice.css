@@ -16,12 +16,19 @@
     font: 600 0.9rem/1.45 system-ui, -apple-system, "Segoe UI", sans-serif !important;
     text-align: left !important;
     transform: none !important;
+    overflow: hidden !important;
 }
 .app-notice[hidden] { display: none !important; }
 .app-notice.success { background: #e9f7ef !important; border-color: #a8d6b8 !important; color: #145b37 !important; }
 .app-notice.error { background: #fff0f0 !important; border-color: #e5b5bb !important; color: #8a2430 !important; }
 .app-notice.warning { background: #fff7e8 !important; border-color: #eacb91 !important; color: #70470c !important; }
 .app-notice.info { background: #ebf4fb !important; border-color: #b7d1e6 !important; color: #174a77 !important; }
+.app-notice.logout { background: #fff1f2 !important; border-color: #efb8bf !important; color: #8f2532 !important; }
+.app-notice__message { display: block; padding-bottom: 4px; }
+.app-notice__timer { position: absolute; right: 0; bottom: 0; left: 0; height: 4px; transform: scaleX(1); transform-origin: left; animation: app-notice-countdown 4s linear forwards; }
+.app-notice.success .app-notice__timer { background: #4b9a6c; }.app-notice.error .app-notice__timer { background: #c95b67; }.app-notice.warning .app-notice__timer { background: #c88b25; }.app-notice.info .app-notice__timer { background: #3979ac; }.app-notice.logout .app-notice__timer { background: #c94858; }
+@keyframes app-notice-countdown { to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .app-notice__timer { animation: none; } }
 
 @media (max-width: 600px) {
     .app-notice { top: 12px !important; right: 16px !important; }

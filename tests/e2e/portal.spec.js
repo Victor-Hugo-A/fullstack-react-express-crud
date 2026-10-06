@@ -112,6 +112,15 @@ test('login autentica e encaminha para o portal', async ({ page }) => {
     await expect(page.locator('#admin-users-link')).toHaveAttribute('href', '/Admin/usuarios.html');
 });
 
+test('logout exibe aviso vermelho com indicador de duração', async ({ page }) => {
+    await page.addInitScript(() => sessionStorage.setItem('auth-notice', 'logout'));
+    await page.goto('/login.html');
+
+    await expect(page.locator('#mensagem-login')).toHaveClass(/logout/);
+    await expect(page.locator('#mensagem-login')).toContainText('Você saiu da sua conta com segurança.');
+    await expect(page.locator('#mensagem-login .app-notice__timer')).toBeVisible();
+});
+
 test('administrador cria e altera permissões de uma conta', async ({ page }) => {
     await authenticatedPage(page, '/Admin/usuarios.html');
     await expect(page.locator('#create-user-form')).toBeVisible();

@@ -6,7 +6,7 @@ function showMessage(message, type) {
 
 const authNotice = sessionStorage.getItem('auth-notice');
 sessionStorage.removeItem('auth-notice');
-if (authNotice === 'logout') showMessage('Você saiu da sua conta com segurança.', 'success');
+if (authNotice === 'logout') showMessage('Você saiu da sua conta com segurança.', 'logout');
 if (authNotice === 'expired') showMessage('Sua sessão terminou. Faça login novamente.', 'error');
 if (authNotice === 'required') showMessage('Faça login para continuar.', 'error');
 

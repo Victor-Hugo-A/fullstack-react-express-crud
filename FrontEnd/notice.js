@@ -1,6 +1,7 @@
 (() => {
     const timers = new WeakMap();
-    const types = ['success', 'error', 'warning', 'info'];
+    const types = ['success', 'error', 'warning', 'info', 'logout'];
+    const displayDuration = 4000;
 
     function hide(element) {
         if (!element) return;
@@ -15,13 +16,19 @@
         if (!message) return hide(element);
         clearTimeout(timers.get(element));
         const kind = types.includes(type) ? type : 'info';
-        element.textContent = message;
+        const text = document.createElement('span');
+        text.className = 'app-notice__message';
+        text.textContent = message;
+        const timer = document.createElement('span');
+        timer.className = 'app-notice__timer';
+        timer.setAttribute('aria-hidden', 'true');
+        element.replaceChildren(text, timer);
         element.classList.add('app-notice');
         types.forEach(value => element.classList.toggle(value, value === kind));
         element.setAttribute('role', kind === 'error' || kind === 'warning' ? 'alert' : 'status');
         element.hidden = false;
         element.style.display = 'block';
-        timers.set(element, setTimeout(() => hide(element), 4000));
+        timers.set(element, setTimeout(() => hide(element), displayDuration));
     }
 
     function readCookie(name) {
