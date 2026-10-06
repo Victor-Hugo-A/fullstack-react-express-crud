@@ -277,7 +277,7 @@ function auditMutationMiddleware(req, res, next) {
         events = [{ action: 'delete', entity }];
     } else if (entity && method === 'POST' && entity !== 'user' &&
         pathname !== '/api/contracts/sync') {
-        events = [{ action: 'upload', entity }];
+        events = [{ action: entity === 'project' ? 'create' : 'upload', entity }];
     }
 
     if (events.length) {
@@ -286,6 +286,7 @@ function auditMutationMiddleware(req, res, next) {
             if (body && typeof body === 'object') {
                 req.auditEntityId = body.id || body.projectId || body.contract?.id ||
                     body.project?.id || body.identity?.id || body.user?.id || req.auditEntityId;
+                req.auditEntityLabel = body.projectName || body.project?.name || req.auditEntityLabel;
             }
             return originalJson(body);
         };
@@ -308,6 +309,7 @@ function auditMutationMiddleware(req, res, next) {
                     action: event.action,
                     entity: event.entity,
                     entityId: req.auditEntityId || routeId || userId,
+                    entityLabel: req.auditEntityLabel,
                     ipAddress: req.ip,
                     requestOrigin: req.get('origin') || req.get('referer'),
                     userAgent: req.get('user-agent')
@@ -589,7 +591,9 @@ router.get('/analysis/summary', authenticateJWT, async (req, res) => {
         }, {})).map(([tipo, count]) => ({ tipo, count }));
         const projectsFilter = dateCondition('start_date');
         const identitiesFilter = dateCondition('created_at');
-        const [projectGroups, identityGroups, projectCount, identityCount, completedProjects, overdueProjects, recentProjects, recentIdentities] = await Promise.all([
+        const currentUser = await userRepository.findById(req.user.userId);
+        const canViewProjectHistory = currentUser?.role === 'admin';
+        const [projectGroups, identityGroups, projectCount, identityCount, completedProjects, overdueProjects, recentProjects, recentIdentities, projectHistory] = await Promise.all([
             queryAll(`SELECT status, COUNT(*) AS count FROM projects${projectsFilter.where} GROUP BY status`, projectsFilter.params),
             queryAll(`SELECT perfil, COUNT(*) AS count FROM identities${identitiesFilter.where} GROUP BY perfil`, identitiesFilter.params),
             queryAll(`SELECT COUNT(*) AS count FROM projects${projectsFilter.where}`, projectsFilter.params),
@@ -597,7 +601,15 @@ router.get('/analysis/summary', authenticateJWT, async (req, res) => {
             queryAll(`SELECT COUNT(*) AS count FROM projects${projectsFilter.where}${projectsFilter.where ? ' AND' : ' WHERE'} status = 'concluido'`, projectsFilter.params),
             queryAll(`SELECT COUNT(*) AS count FROM projects${projectsFilter.where}${projectsFilter.where ? ' AND' : ' WHERE'} status != 'concluido' AND end_date IS NOT NULL AND end_date < DATE('now')`, projectsFilter.params),
             queryAll(`SELECT name, code, manager, status, start_date FROM projects${projectsFilter.where} ORDER BY start_date DESC LIMIT 10`, projectsFilter.params),
-            queryAll(`SELECT nome, cpf, perfil, created_at FROM identities${identitiesFilter.where} ORDER BY created_at DESC LIMIT 10`, identitiesFilter.params)
+            queryAll(`SELECT nome, cpf, perfil, created_at FROM identities${identitiesFilter.where} ORDER BY created_at DESC LIMIT 10`, identitiesFilter.params),
+            canViewProjectHistory ? new Promise((resolve, reject) => db.all(
+                `SELECT audit_logs.action, audit_logs.entity_id AS projectId, audit_logs.entity_label AS projectName,
+                  audit_logs.occurred_at AS occurredAt, COALESCE(users.nome, users.username, 'Conta removida') AS actorName
+                 FROM audit_logs LEFT JOIN users ON users.id = audit_logs.user_id
+                 WHERE audit_logs.entity = 'project' AND audit_logs.action IN ('create', 'update')
+                 ORDER BY audit_logs.id DESC LIMIT 12`,
+                (error, rows) => error ? reject(error) : resolve(rows)
+            )) : Promise.resolve([])
         ]);
         const recentContracts = [...contracts].sort((first, second) => String(second.date || '').localeCompare(String(first.date || ''))).slice(0, 10);
         const totals = {
@@ -612,6 +624,7 @@ router.get('/analysis/summary', authenticateJWT, async (req, res) => {
             totals,
             groups: { contracts: contractsByType, projects: projectGroups, identities: identityGroups },
             recent: { contracts: recentContracts, projects: recentProjects, identities: recentIdentities },
+            projectHistory: { available: canViewProjectHistory, events: projectHistory },
             updatedAt: new Date().toISOString()
         });
     } catch (error) {

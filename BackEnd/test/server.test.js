@@ -708,8 +708,16 @@ test('autenticação, permissões e perfil em banco isolado', async () => {
     }
     assert.ok(auditEvents.some(event => event.action === 'login' && event.outcome === 'failed'));
     assert.ok(auditEvents.some(event => event.action === 'login' && event.outcome === 'rate_limited'));
+    assert.ok(auditEvents.some(event => event.entity === 'project' && event.action === 'create' && event.entityLabel === 'Projeto de teste'));
+    assert.ok(auditEvents.some(event => event.entity === 'project' && event.action === 'update' && event.entityLabel === 'Projeto atualizado'));
+    assert.ok(auditEvents.some(event => event.entity === 'project' && event.actorName === first));
     assert.ok(auditEvents.some(event => event.userId === JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()).userId));
     assert.ok(auditEvents.every(event => event.occurredAt && event.entity && event.ipAddress));
+    const projectHistory = await fetch(`${base}/api/analysis/summary`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(response => response.json());
+    assert.equal(projectHistory.projectHistory.available, true);
+    assert.ok(projectHistory.projectHistory.events.some(event => event.projectName === 'Projeto atualizado' && event.actorName === first));
     await manageAdmin(`${first}@example.test`, true);
   } finally {
     global.fetch = nativeFetch;

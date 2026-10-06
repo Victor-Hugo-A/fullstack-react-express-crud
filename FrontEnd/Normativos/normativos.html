@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,7 @@
     <title>Normativos | SENAPPEN</title>
     <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
     <link rel="stylesheet" href="/FrontEnd/internal.css">
+    <link rel="stylesheet" href="/FrontEnd/Normativos/normativos.css">
     <link rel="icon" href="data:,">
     <script src="/FrontEnd/api.js" defer></script>
     <script src="/FrontEnd/internal.js" defer></script>
@@ -15,28 +16,19 @@
 <body class="internal-page">
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
     <div class="top-bar"><div class="page-container"><span>Ministério da Justiça e Segurança Pública · SENAPPEN</span><time id="current-date"></time></div></div>
-    <header class="main-header">
-        <div class="page-container header-content">
-            <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></a>
-            <div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div>
-        </div>
-    </header>
-    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links">
-        <a href="/FrontEnd/Sistema/sistema.html">Início</a>
-        <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
-        <a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a>
-        <a href="/Analises/analises.html">Análises</a>
-        <a href="/FrontEnd/Perfil/perfil.html">Perfil</a>
-    </div></nav>
+    <header class="main-header"><div class="page-container header-content"><a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><span class="brand-mark"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></span><span class="brand-copy"><strong>Normativos</strong><small>Secretaria Nacional de Políticas Penais</small></span></a><div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div></div></header>
+    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links"><a href="/FrontEnd/Sistema/sistema.html">Início</a><a href="/FrontEnd/Documentos/documentos.html">Documentos</a><a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a><a href="/Analises/analises.html">Análises</a><a href="/FrontEnd/Perfil/perfil.html">Perfil</a></div></nav>
     <main id="conteudo" class="main-content page-container">
-        <div class="module-heading">
-            <div><span class="eyebrow">NORMATIVOS</span><h1>Consulta de normativos</h1><p>Consulte os documentos normativos disponibilizados para apoio às atividades da unidade.</p></div>
-            <a class="module-link" href="/FrontEnd/Sistema/sistema.html">Voltar ao início <span aria-hidden="true">↗</span></a>
-        </div>
-        <section class="module-section" aria-labelledby="available-title">
-            <div class="module-section__heading"><h2 id="available-title">Documentos disponíveis</h2></div>
-            <div class="module-card"><p class="module-card__description">Não há normativos publicados neste sistema no momento.</p></div>
-        </section>
+        <section class="information-hero" aria-labelledby="page-title"><div><span class="eyebrow">ORIENTAÇÕES INSTITUCIONAIS</span><h1 id="page-title">Normativos e boas práticas</h1><p>Consulte as orientações que organizam o uso do portal, a atualização dos registros e o cuidado com informações institucionais.</p></div><div class="information-hero__summary"><strong>Uso responsável</strong><span>Registre informações completas, mantenha os dados atualizados e utilize somente sua própria conta.</span></div></section>
+        <section class="module-section" aria-labelledby="guidance-title"><div class="module-section__heading"><h2 id="guidance-title">Orientações para o trabalho no portal</h2><p>Referências práticas para o uso diário das áreas disponíveis.</p></div><div class="information-grid">
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">⌁</span><h3>Controle de acesso</h3><p>Use apenas sua conta e solicite ao administrador qualquer ajuste de permissão necessário para a sua atividade.</p><a href="/FrontEnd/Perfil/perfil.html">Conferir meu perfil <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">▤</span><h3>Registros atualizados</h3><p>Preencha contratos, projetos e identidades com informações claras. Revise os dados antes de salvar uma alteração.</p><a href="/FrontEnd/Documentos/documentos.html">Acessar documentos <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">◉</span><h3>Documentos e fotos</h3><p>Envie somente arquivos relacionados ao registro e evite incluir dados que não sejam necessários para a finalidade do portal.</p><a href="/FrontEnd/Documentos/projetos.html">Consultar projetos <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">✓</span><h3>Rastreabilidade</h3><p>Criações, alterações e exclusões ficam registradas para acompanhamento. Administradores podem consultar o histórico de projetos em Análises.</p><a href="/Analises/analises.html">Ver análises <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">!</span><h3>Dados pessoais</h3><p>Confira o CPF antes de salvar o perfil. Cada CPF pertence a uma única conta e deve ser mantido correto.</p><a href="/FrontEnd/Perfil/perfil.html">Atualizar dados <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">?</span><h3>Precisa de ajuda?</h3><p>Quando uma área não estiver disponível, confirme com o administrador se sua conta possui a permissão necessária.</p><a href="/FrontEnd/Sistema/sistema.html#contatos">Ver contatos <span aria-hidden="true">→</span></a></article>
+        </div></section>
+        <p class="information-note">Estas orientações apoiam o uso do portal. Para procedimentos internos específicos, siga também as orientações oficiais da sua unidade.</p>
     </main>
     <footer class="footer"><div class="page-container footer-bottom">Ministério da Justiça e Segurança Pública · SENAPPEN</div></footer>
 </body>

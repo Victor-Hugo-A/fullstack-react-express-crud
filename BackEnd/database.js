@@ -354,13 +354,14 @@ const auditRepository = {
     return new Promise((resolve, reject) => {
       db.run(
         `INSERT INTO audit_logs
-          (user_id, action, entity, entity_id, outcome, ip_address, request_origin, user_agent)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          (user_id, action, entity, entity_id, entity_label, outcome, ip_address, request_origin, user_agent)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           entry.userId || null,
           entry.action,
           entry.entity,
           entry.entityId || null,
+          entry.entityLabel || null,
           entry.outcome || 'success',
           entry.ipAddress || null,
           entry.requestOrigin || null,
@@ -377,10 +378,13 @@ const auditRepository = {
   list(limit = 200) {
     return new Promise((resolve, reject) => {
       db.all(
-        `SELECT id, user_id AS userId, action, entity, entity_id AS entityId,
-          outcome, occurred_at AS occurredAt, ip_address AS ipAddress,
-          request_origin AS requestOrigin, user_agent AS userAgent
-         FROM audit_logs ORDER BY id DESC LIMIT ?`,
+        `SELECT audit_logs.id, user_id AS userId, action, entity, entity_id AS entityId,
+          entity_label AS entityLabel, outcome, occurred_at AS occurredAt, ip_address AS ipAddress,
+          request_origin AS requestOrigin, user_agent AS userAgent,
+          COALESCE(users.nome, users.username, 'Conta removida') AS actorName
+         FROM audit_logs
+         LEFT JOIN users ON users.id = audit_logs.user_id
+         ORDER BY audit_logs.id DESC LIMIT ?`,
         [limit],
         (error, rows) => error ? reject(error) : resolve(rows)
       );

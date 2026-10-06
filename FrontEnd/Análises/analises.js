@@ -90,6 +90,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function statusBadge(status) { const badge = document.createElement('span'); const key = String(status || '').toLowerCase(); badge.className = `status-badge status-badge--${key}`; badge.textContent = label(status); return badge; }
+    function renderProjectHistory(history) {
+        const section = document.getElementById('project-history-section');
+        const list = document.getElementById('project-history-list');
+        const events = history?.available ? history.events : [];
+        section.hidden = !history?.available;
+        list.replaceChildren();
+        if (!history?.available) return;
+        if (!events.length) {
+            const item = document.createElement('li'); item.className = 'project-history-empty'; item.textContent = 'Ainda não há criações ou alterações de projetos registradas.'; list.append(item); return;
+        }
+        events.forEach(event => {
+            const item = document.createElement('li'); item.className = `project-history-item project-history-item--${event.action}`;
+            const marker = document.createElement('span'); marker.className = 'project-history-item__marker'; marker.setAttribute('aria-hidden', 'true'); marker.textContent = event.action === 'create' ? '+' : '↻';
+            const content = document.createElement('div'); content.className = 'project-history-item__content';
+            const title = document.createElement('strong'); title.textContent = event.projectName || `Projeto #${event.projectId || '—'}`;
+            const detail = document.createElement('span'); detail.textContent = `${event.action === 'create' ? 'Criado' : 'Atualizado'} por ${event.actorName || 'Usuário não identificado'}`;
+            content.append(title, detail);
+            const time = document.createElement('time'); time.dateTime = event.occurredAt || ''; time.textContent = formatDate(event.occurredAt);
+            item.append(marker, content, time); list.append(item);
+        });
+    }
     function setupTabs() { document.querySelectorAll('.analysis-tabs [role="tab"]').forEach(tab => tab.addEventListener('click', () => { document.querySelectorAll('.analysis-tabs [role="tab"]').forEach(button => button.setAttribute('aria-selected', String(button === tab))); document.querySelectorAll('.tab-panel').forEach(panel => { panel.hidden = panel.id !== tab.getAttribute('aria-controls'); }); })); }
 
     async function loadAnalysis() {
@@ -106,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTable('contratos-recentes', data.recent.contracts, [record => formatDate(record.date), record => String(record.number || '—'), record => label(record.type), record => String(record.description || '—')]);
             renderTable('projetos-recentes', data.recent.projects, [record => formatDate(record.start_date), record => String(record.name || '—'), record => String(record.code || '—'), record => statusBadge(record.status), record => String(record.manager || '—')]);
             renderTable('identidades-recentes', data.recent.identities, [record => formatDate(record.created_at), record => String(record.cpf || '—'), record => String(record.nome || '—'), record => label(record.perfil)]);
+            renderProjectHistory(data.projectHistory);
             document.getElementById('analysis-updated').textContent = `Atualizado em ${formatDate(data.updatedAt)}`; window.appNotice?.hide(document.getElementById('analises-error'));
         } catch (error) {
             console.error('Falha ao carregar análises:', error); document.getElementById('analysis-updated').textContent = 'Não foi possível atualizar os dados.'; window.appNotice?.show(document.getElementById('analises-error'), 'Não foi possível carregar as análises. Verifique a conexão e tente novamente.', 'warning');

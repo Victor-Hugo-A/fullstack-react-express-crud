@@ -52,6 +52,10 @@ async function mockApi(page) {
             await route.fulfill({ status: 200, headers, body: JSON.stringify({ success: true, user }) });
             return;
         }
+        if (url.pathname === '/api/analysis/summary') {
+            await route.fulfill({ status: 200, headers, body: JSON.stringify({ totals: { contracts: 7, projects: 7, identities: 3, completedProjects: 2, overdueProjects: 1 }, groups: { contracts: [{ tipo: 'servicos', count: 7 }], projects: [{ status: 'andamento', count: 7 }], identities: [{ perfil: 'Usuário', count: 3 }] }, recent: { contracts: contracts.slice(0, 1), projects: projects.slice(0, 1), identities: identities.slice(0, 1) }, projectHistory: { available: true, events: [{ action: 'update', projectId: 'project-1', projectName: 'Projeto 1', actorName: 'Gestor de Testes', occurredAt: '2026-03-15T14:30:00.000Z' }] }, updatedAt: '2026-03-15T14:30:00.000Z' }) });
+            return;
+        }
         if (url.pathname === '/api/admin/users' && request.method() === 'POST') {
             await route.fulfill({
                 status: 201,
@@ -174,6 +178,18 @@ test('identidades ordena os registros pelo nome', async ({ page }) => {
 test('análises abre pelo endereço público sem acento', async ({ page }) => {
     await authenticatedPage(page, '/Analises/analises.html');
     await expect(page.getByRole('heading', { name: 'Análises dos registros' })).toBeVisible();
+    await expect(page.locator('#project-history-section')).toBeVisible();
+    await expect(page.locator('#project-history-list')).toContainText('Projeto 1');
+});
+
+test('normativos e manuais exibem orientações de uso', async ({ page }) => {
+    await authenticatedPage(page, '/Normativos/normativos.html');
+    await expect(page.getByRole('heading', { name: 'Normativos e boas práticas' })).toBeVisible();
+    await expect(page.getByText('Controle de acesso')).toBeVisible();
+
+    await authenticatedPage(page, '/Manuais/manuais.html');
+    await expect(page.getByRole('heading', { name: 'Manuais de uso do portal' })).toBeVisible();
+    await expect(page.getByText('Guias por área')).toBeVisible();
 });
 
 test('endereço antigo de análises com acento é redirecionado', async ({ page }) => {

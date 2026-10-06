@@ -37,7 +37,7 @@ function createProjectsService({ repository, uploadsDir }) {
 
       const projectId = await repository.create(projectData);
       await saveFiles(projectId, files);
-      return { projectId };
+      return { projectId, projectName: projectData.name };
     },
 
     async list(query) {

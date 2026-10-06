@@ -23,7 +23,7 @@ function createProjectsController(service) {
         if (result.validationMessage) {
           return res.status(400).json({ success: false, message: result.validationMessage });
         }
-        return res.json({ success: true, projectId: result.projectId });
+        return res.json({ success: true, projectId: result.projectId, projectName: result.projectName });
       } catch (error) {
         if (error.message && error.message.includes('UNIQUE constraint failed: projects.code')) {
           return res.status(400).json({ success: false, message: 'Código do projeto já existe' });

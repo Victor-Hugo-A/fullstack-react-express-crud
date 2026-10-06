@@ -1,42 +1,27 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Manuais | SENAPPEN</title>
-    <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css">
-    <link rel="stylesheet" href="/FrontEnd/internal.css">
-    <link rel="icon" href="data:,">
-    <script src="/FrontEnd/api.js" defer></script>
-    <script src="/FrontEnd/internal.js" defer></script>
-    <link rel="stylesheet" href="/FrontEnd/design-tokens.css">
-    <script src="/FrontEnd/accessibility.js" defer></script>
+    <link rel="stylesheet" href="/FrontEnd/Sistema/sistema.css"><link rel="stylesheet" href="/FrontEnd/internal.css"><link rel="stylesheet" href="/FrontEnd/Normativos/normativos.css"><link rel="icon" href="data:,">
+    <script src="/FrontEnd/api.js" defer></script><script src="/FrontEnd/internal.js" defer></script><link rel="stylesheet" href="/FrontEnd/design-tokens.css"><script src="/FrontEnd/accessibility.js" defer></script>
 </head>
 <body class="internal-page">
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
     <div class="top-bar"><div class="page-container"><span>Ministério da Justiça e Segurança Pública · SENAPPEN</span><time id="current-date"></time></div></div>
-    <header class="main-header">
-        <div class="page-container header-content">
-            <a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></a>
-            <div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div>
-        </div>
-    </header>
-    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links">
-        <a href="/FrontEnd/Sistema/sistema.html">Início</a>
-        <a href="/FrontEnd/Documentos/documentos.html">Documentos</a>
-        <a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a>
-        <a href="/Analises/analises.html">Análises</a>
-        <a href="/FrontEnd/Perfil/perfil.html">Perfil</a>
-    </div></nav>
+    <header class="main-header"><div class="page-container header-content"><a class="brand" href="/FrontEnd/Sistema/sistema.html" aria-label="Ir ao início do sistema"><span class="brand-mark"><img src="/FrontEnd/img/MJ.png" alt="Brasão da República"></span><span class="brand-copy"><strong>Manuais</strong><small>Secretaria Nacional de Políticas Penais</small></span></a><div class="user-menu"><span class="user-info">Usuário: <strong id="username-display">Usuário</strong></span><button id="logout" class="logout-btn" type="button">Sair <span aria-hidden="true">↗</span></button></div></div></header>
+    <nav class="main-nav" aria-label="Navegação principal"><div class="page-container nav-links"><a href="/FrontEnd/Sistema/sistema.html">Início</a><a href="/FrontEnd/Documentos/documentos.html">Documentos</a><a href="/FrontEnd/Dashboard/dashboard.html">Dashboard</a><a href="/Analises/analises.html">Análises</a><a href="/FrontEnd/Perfil/perfil.html">Perfil</a></div></nav>
     <main id="conteudo" class="main-content page-container">
-        <div class="module-heading">
-            <div><span class="eyebrow">MANUAIS</span><h1>Consulta de manuais</h1><p>Acesse orientações e materiais de apoio disponibilizados para uso interno.</p></div>
-            <a class="module-link" href="/FrontEnd/Sistema/sistema.html">Voltar ao início <span aria-hidden="true">↗</span></a>
-        </div>
-        <section class="module-section" aria-labelledby="available-title">
-            <div class="module-section__heading"><h2 id="available-title">Documentos disponíveis</h2></div>
-            <div class="module-card"><p class="module-card__description">Não há manuais publicados neste sistema no momento.</p></div>
-        </section>
+        <section class="information-hero" aria-labelledby="page-title"><div><span class="eyebrow">GUIAS RÁPIDOS</span><h1 id="page-title">Manuais de uso do portal</h1><p>Encontre caminhos diretos para executar as tarefas mais frequentes e aproveitar os recursos disponíveis no sistema.</p></div><div class="information-hero__summary"><strong>Comece por aqui</strong><span>Consulte, registre ou acompanhe informações de acordo com o perfil de acesso da sua conta.</span></div></section>
+        <section class="module-section" aria-labelledby="steps-title"><div class="module-section__heading"><h2 id="steps-title">Fluxo recomendado</h2><p>Uma sequência simples para manter os registros consistentes.</p></div><ol class="information-steps"><li><strong>Consulte antes de registrar</strong>Use a pesquisa, filtros e ordenação para verificar se a informação já está cadastrada.</li><li><strong>Preencha com atenção</strong>Informe dados completos, confira prazos e anexe apenas arquivos relacionados ao registro.</li><li><strong>Acompanhe as mudanças</strong>Use Dashboard e Análises para acompanhar resultados e, quando for administrador, o histórico de projetos.</li></ol></section>
+        <section class="module-section" aria-labelledby="manuals-title"><div class="module-section__heading"><h2 id="manuals-title">Guias por área</h2><p>Selecione uma área para continuar o trabalho.</p></div><div class="information-grid">
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">▤</span><h3>Contratos</h3><p>Consulte documentos, organize a listagem e inclua informações quando sua conta possuir essa permissão.</p><a href="/FrontEnd/Documentos/contrato.html">Abrir contratos <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">◈</span><h3>Projetos</h3><p>Acompanhe responsáveis, prazos, situação e arquivos. Administradores veem o histórico de movimentações em Análises.</p><a href="/FrontEnd/Documentos/projetos.html">Abrir projetos <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">◉</span><h3>Identidades</h3><p>Consulte os cadastros e, quando autorizado, registre dados e fotografia de identificação.</p><a href="/FrontEnd/Documentos/identidades.html">Abrir identidades <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">↗</span><h3>Indicadores</h3><p>Use o painel para uma visão geral e Análises para comparar registros por período.</p><a href="/FrontEnd/Dashboard/dashboard.html">Abrir dashboard <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">◌</span><h3>Meu perfil</h3><p>Mantenha CPF, departamento e cargo corretos. Para mudar a senha, informe a senha atual.</p><a href="/FrontEnd/Perfil/perfil.html">Abrir perfil <span aria-hidden="true">→</span></a></article>
+            <article class="information-card"><span class="information-card__icon" aria-hidden="true">♙</span><h3>Administração</h3><p>Administradores podem criar contas e ajustar as permissões de cada pessoa pelo botão Administração.</p><a href="/Admin/usuarios.html">Gerenciar usuários <span aria-hidden="true">→</span></a></article>
+        </div></section>
     </main>
     <footer class="footer"><div class="page-container footer-bottom">Ministério da Justiça e Segurança Pública · SENAPPEN</div></footer>
 </body>
